@@ -61,3 +61,75 @@ Priority Recommendations for Next Phase:
 - Export/import sessions & memory as JSON.
 
 ---
+
+## Task ID: 2
+Agent: Z.ai Code (cron self-improvement cycle #1)
+Task: Scheduled 15-min self-review. Assess project status, QA via agent-browser, fix bugs, add features, improve styling, update worklog.
+
+Work Log:
+- Read worklog.md (Task 1 complete: Nexa Agent v1.0.0 stable). Checked dev log — all 200s, no errors.
+- QA via agent-browser: app loads clean, sessions intact, no console/page errors. Phase 1 stable.
+- Invoked web-search skill to learn `zai.functions.invoke('web_search', ...)` API for a live web_search tool.
+
+### New features added
+- **Web tools** (`src/lib/nexa/tools/web-tools.ts`):
+  - `WebSearchTool` — live web search via z-ai-web-dev-sdk `functions.invoke('web_search')`. Returns ranked results (title, url, snippet, domain, date). Caps payload.
+  - `WebFetchTool` — reads a single URL's content via `functions.invoke('web_reader')` with HTML stripping + truncation.
+  - Both registered in `createDefaultToolSet()` (agent now has 11 tools total).
+- **Export-as-Markdown** (`src/app/api/export/[id]/route.ts`):
+  - GET endpoint returns a session transcript as a downloadable `.md` file (user/assistant/tool messages, metadata header, collapsible tool outputs).
+  - Wired to `/export` slash command + per-session download button in sidebar.
+- **Slash command system** (`composer.tsx`):
+  - Typing `/` opens a filterable command palette (arrow-key nav, Enter/Escape).
+  - Commands: `/new`, `/clear`, `/memory`, `/export`, `/help` (renders a tools+commands reference card).
+  - Handler wired in `page.tsx` via `handleCommand()`.
+- **Session management** (`sidebar.tsx`):
+  - Inline rename (edit icon → input → Enter to commit / Escape to cancel, optimistic update + PATCH).
+  - Per-session export button (download icon → opens `/api/export/:id`).
+  - "clear all" action with two-step confirm (click once → "confirm?" → click again → deletes all).
+  - Session count badge + total message counter in footer.
+  - Live pulse dot on the Nexa brand logo.
+
+### Styling polish
+- **Message timestamps**: user/assistant/tool messages now show HH:MM time beside the avatar.
+- **Copy-answer button**: each assistant message has a one-click copy button.
+- **Richer welcome screen**: 2×2 capability grid (web search, tool-calling, memory, terminal UX) + "try asking" examples + animated ping ring on the logo + MIT/attribution chip.
+- **Thinking step-counter**: while working, shows "N tools called" badge + "awaiting result" cursor.
+- **Sidebar**: session count badge, hover-revealed action icons (export/rename/delete), total-msg footer stat.
+- **Composer**: updated placeholder ("type / for commands"), new web-search suggestion chip, command palette dropdown with hover highlight.
+
+### Bug fixed
+- **429 rate-limit failures**: discovered during web_search QA — the agent's 2nd LLM call (after tool execution) hit HTTP 429 "Too many requests", failing the whole turn. Added exponential-backoff retry (4 attempts: 1s→2s→4s→8s) in `LLMProvider.chatCompletion()` for transient errors (429, 5xx, rate-limit, timeout, ECONNRESET). After the fix, web_search turns complete successfully.
+
+### Verification (agent-browser)
+- Slash palette: typing `/` shows 5 commands, clickable. ✅
+- `/help`: renders command table + full tool list. ✅
+- **Web search**: "find a space exploration news headline" → agent called `web_search`, got live space.com result (SpaceX Starship V3 Starlink launch), synthesized answer with source. ✅
+- Session rename: edit → "Space News Test" → committed (PATCH 200, title updated). ✅
+- Export button present on each session. ✅
+- Clear-all two-step confirm present. ✅
+- Timestamps render on all messages. ✅
+- Mobile (390×844): hamburger drawer + composer + slash palette all functional. ✅
+- 0 page errors, 0 console errors. ✅
+- Lint: 0 errors, 0 warnings. ✅
+
+Stage Summary:
+- **Status: STABLE & ENHANCED.** Nexa Agent now has live web access (search + fetch), a slash command system, session export/rename/clear-all, and richer terminal styling. The 429 retry fix makes the agent resilient to transient rate limits.
+- Tool count: 11 (echo, get_time, calculate, generate_uuid, base64, save_memory, recall_memory, list_memory, forget_memory, web_search, web_fetch).
+- All features verified end-to-end via agent-browser with real LLM + real web search calls.
+
+Unresolved Issues / Risks:
+- Web search adds latency (multi-round: LLM → search → LLM). Mitigated by retry logic, but a single turn can take 10–20s. Streaming responses would improve perceived performance.
+- `web_reader` function availability depends on the SDK; if it's not present, WebFetchTool fails gracefully with an error message (no crash).
+- Memory digest still injected into every prompt (capped 24). Semantic search is a future enhancement.
+
+Priority Recommendations for Next Phase:
+- **Streaming responses**: stream LLM output token-by-token for a live typing effect (big UX win).
+- **Context compression**: summarize old messages when transcript exceeds a token threshold.
+- **More tools**: notes/files CRUD, a code runner sandbox, image generation hook.
+- **Keyboard shortcut overlay**: ⌘K command palette, ⌘N new session, ⌘B toggle sidebar.
+- **Light theme toggle**: terminal dark is canonical; a toggle broadens appeal.
+- **Session search**: full-text search across past sessions (SQLite FTS5).
+- **Token/cost estimator**: show approximate token usage per turn in the status bar.
+
+---

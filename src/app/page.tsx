@@ -71,6 +71,52 @@ export default function Home() {
     setSidebarOpen(false);
   }, []);
 
+  const handleCommand = useCallback(
+    (cmd: string) => {
+      const c = cmd.trim().toLowerCase();
+      if (c === "/new" || c === "/clear") {
+        newSession();
+        return;
+      }
+      if (c === "/memory") {
+        setMemoryOpen((o) => !o);
+        return;
+      }
+      if (c === "/export") {
+        if (activeSession) {
+          window.open(`/api/export/${activeSession}`, "_blank");
+        }
+        return;
+      }
+      if (c === "/help") {
+        const help: NexaMessage = {
+          id: `help-${Date.now()}`,
+          role: "assistant",
+          content: [
+            "**Nexa Agent — commands**",
+            "",
+            "| command | action |",
+            "|---|---|",
+            "| `/new` | start a new session |",
+            "| `/clear` | clear the current conversation |",
+            "| `/memory` | toggle the memory panel |",
+            "| `/export` | download this session as markdown |",
+            "| `/help` | show this help |",
+            "",
+            "**Available tools**: `web_search`, `web_fetch`, `calculate`, `get_time`, `generate_uuid`, `base64`, `save_memory`, `recall_memory`, `list_memory`, `forget_memory`, `echo`.",
+            "",
+            "Just ask nexa anything — it will decide which tool (if any) to use.",
+          ].join("\n"),
+          createdAt: new Date().toISOString(),
+        };
+        setMessages((m) => [...m, help]);
+        return;
+      }
+      // unknown command — ignore silently
+    },
+    [activeSession, newSession]
+  );
+
   const send = useCallback(
     async (text: string) => {
       if (thinking) return;
@@ -272,7 +318,12 @@ export default function Home() {
               welcome={welcome}
             />
           </div>
-          <Composer onSend={send} disabled={thinking} thinking={thinking} />
+          <Composer
+            onSend={send}
+            onCommand={handleCommand}
+            disabled={thinking}
+            thinking={thinking}
+          />
         </main>
 
         {/* Memory panel — desktop */}

@@ -51,7 +51,8 @@ export class LLMProvider {
 
   /**
    * Run a single chat completion round. The first message is treated as the
-   * system prompt (role 'assistant' per SDK convention).
+   * system prompt (role 'assistant' per SDK convention). Retries with
+   * exponential backoff on transient errors (429 / 5xx).
    */
   async chatCompletion(
     options: ChatCompletionOptions
@@ -74,18 +75,32 @@ export class LLMProvider {
       content: m.content,
     }));
 
-    const completion = await client.chat.completions.create({
-      messages,
-      thinking: { type: options.thinking ? "enabled" : "disabled" },
-    });
-
-    const content = completion.choices?.[0]?.message?.content ?? "";
-
-    return {
-      content,
-      model: this.model,
-      raw: completion,
-    };
+    const maxRetries = 4;
+    let lastError: unknown = null;
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        const completion = await client.chat.completions.create({
+          messages,
+          thinking: { type: options.thinking ? "enabled" : "disabled" },
+        });
+        const content = completion.choices?.[0]?.message?.content ?? "";
+        return {
+          content,
+          model: this.model,
+          raw: completion,
+        };
+      } catch (err) {
+        lastError = err;
+        const isTransient = isTransientError(err);
+        if (!isTransient || attempt === maxRetries - 1) break;
+        // Exponential backoff: 1s, 2s, 4s, 8s
+        const delayMs = 1000 * Math.pow(2, attempt);
+        await new Promise((r) => setTimeout(r, delayMs));
+      }
+    }
+    const message =
+      lastError instanceof Error ? lastError.message : String(lastError);
+    throw new Error(message);
   }
 
   /** Stamp the system prompt with Nexa identity. */
@@ -100,4 +115,18 @@ export class LLMProvider {
       body,
     ].join("\n");
   }
+}
+
+/** Detect transient (retryable) errors: 429 rate-limit and 5xx server errors. */
+function isTransientError(err: unknown): boolean {
+  const text = err instanceof Error ? err.message : String(err);
+  // The SDK surfaces HTTP status in the error message.
+  if (/status 429/i.test(text)) return true;
+  if (/status 5\d\d/i.test(text)) return true;
+  if (/too many requests/i.test(text)) return true;
+  if (/rate.?limit/i.test(text)) return true;
+  if (/service unavailable/i.test(text)) return true;
+  if (/gateway timeout/i.test(text)) return true;
+  if (/ECONNRESET|ETIMEDOUT|fetch failed/i.test(text)) return true;
+  return false;
 }

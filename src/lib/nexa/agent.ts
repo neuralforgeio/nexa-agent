@@ -27,19 +27,20 @@ import type {
 } from "./types";
 import { NexaTool } from "./tools/base";
 import {
-  ForgetMemoryTool,
-  ListMemoryTool,
-  RecallMemoryTool,
-  SaveMemoryTool,
-} from "./tools/memory-tools";
-import { ToolRegistry } from "./tools/registry";
-import {
   Base64Tool,
   CalculateTool,
   EchoTool,
   GenerateUuidTool,
   GetTimeTool,
 } from "./tools/builtins";
+import {
+  ForgetMemoryTool,
+  ListMemoryTool,
+  RecallMemoryTool,
+  SaveMemoryTool,
+} from "./tools/memory-tools";
+import { ToolRegistry } from "./tools/registry";
+import { WebFetchTool, WebSearchTool } from "./tools/web-tools";
 
 const TOOL_CALL_RE = /<tool_call>\s*([\s\S]*?)\s*<\/tool_call>/g;
 
@@ -325,7 +326,7 @@ export class NexaAgent {
   }
 }
 
-/** Convenience factory bundling the default tool set with memory tools. */
+/** Convenience factory bundling the default tool set with memory + web tools. */
 export function createDefaultToolSet(): NexaTool[] {
   return [
     new EchoTool(),
@@ -337,6 +338,8 @@ export function createDefaultToolSet(): NexaTool[] {
     new RecallMemoryTool(),
     new ListMemoryTool(),
     new ForgetMemoryTool(),
+    new WebSearchTool(),
+    new WebFetchTool(),
   ];
 }
 
