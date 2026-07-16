@@ -11,7 +11,7 @@ venv/
 .python-version
 *.so
 
-# Node.js (frontend is local-only, never committed)
+# Node.js
 node_modules/
 
 # Environment
@@ -23,6 +23,8 @@ node_modules/
 nexa-workspace/
 *.db
 *.db-journal
+*.db-wal
+*.db-shm
 
 # Logs
 *.log
@@ -36,30 +38,30 @@ build/
 .DS_Store
 Thumbs.db
 
-# === FRONTEND (local only, NOT pushed to GitHub) ===
-# The web frontend stays in the dev panel. Only the Python agent ships.
-src/
-public/
-prisma/
-db/
-components.json
-next.config.ts
-postcss.config.mjs
-tailwind.config.ts
-tsconfig.json
-package.json
-package-lock.json
-bun.lock
-eslint.config.mjs
-next-env.d.ts
-
-# === Panel artifacts (never commit) ===
-.zscripts/
+# === LOCAL ONLY (never push to GitHub) ===
+# z-ai bridge mini-service (for testing only)
 mini-services/
+
+# Panel artifacts
+.zscripts/
 download/
 upload/
-skills/
-examples/
 Caddyfile
+
+# Next.js build cache
 .next/
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
 .cache/
+coverage/
+
+# Vercel
+.vercel
+
+# Test artifacts
+.pytest_cache/
+htmlcov/
