@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+@keyframes nexa-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #2E2F34; border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: #4A9EFF; }

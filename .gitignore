@@ -39,14 +39,13 @@ build/
 Thumbs.db
 
 # === LOCAL ONLY (never push to GitHub) ===
-# z-ai bridge mini-service (for testing only)
 mini-services/
-
-# Panel artifacts
 .zscripts/
 download/
 upload/
-Caddyfile
+
+# === PANEL DEFAULTS (never push) ===
+skills/
 
 # Next.js build cache
 .next/
@@ -58,10 +57,7 @@ Caddyfile
 *.swo
 .cache/
 coverage/
+.pytest_cache/
 
 # Vercel
 .vercel
-
-# Test artifacts
-.pytest_cache/
-htmlcov/
