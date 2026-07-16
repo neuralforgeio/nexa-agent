@@ -45,9 +45,12 @@ console = Console()
 
 #: Available slash commands.
 SLASH_COMMANDS = {
-    "/help": "Show available commands and providers",
+    "/help": "Show all commands and providers",
     "/tools": "Show all available tools with their schemas",
     "/search": "Search past conversations (FTS5 full-text). Usage: /search <query>",
+    "/sessions": "List all sessions. Usage: /sessions [switch <id>]",
+    "/export": "Export current session as markdown. Usage: /export [filename]",
+    "/config": "Show or edit config. Usage: /config [show|set <key> <value>]",
     "/clear": "Clear the current conversation and start fresh",
     "/model": "Show or change the current model",
     "/provider": "Show or change the LLM provider",
@@ -234,6 +237,88 @@ async def handle_slash_command(cmd: str, agent: NexaAgent, db: ConversationDB) -
             console.print()
         else:
             console.print("[yellow]Usage:[/yellow] /memory [show|sync]\n")
+    elif command == "/sessions":
+        parts = (arg or "").split(maxsplit=1)
+        if not arg or parts[0] == "list":
+            convs = await db.list_conversations(limit=20)
+            if not convs:
+                console.print("[dim]No sessions found.[/dim]\n")
+            else:
+                console.print(Panel(f"[bold]Sessions ({len(convs)})[/bold]", border_style="cyan"))
+                for i, c in enumerate(convs, 1):
+                    title = c["title"][:50]
+                    cid = c["id"]
+                    updated = c.get("updated_at", "?")[:19]
+                    console.print(f"  [cyan]{i}.[/cyan] [bold]{title}[/bold] [dim]({cid})[/dim]")
+                    console.print(f"     [dim]Updated: {updated}[/dim]")
+                console.print(f"\n[dim]Use /sessions switch <id> to switch.[/dim]\n")
+        elif parts[0] == "switch" and len(parts) > 1:
+            target_id = parts[1].strip()
+            msgs = await db.get_messages(target_id)
+            if msgs:
+                console.print(f"[green]Switched to session:[/green] {target_id} ({len(msgs)} messages)\n")
+                console.print("[dim]Note: conversation history loaded for context.[/dim]\n")
+            else:
+                console.print(f"[red]Session not found:[/red] {target_id}\n")
+        else:
+            console.print("[yellow]Usage:[/yellow] /sessions [list|switch <id>]\n")
+    elif command == "/export":
+        if not arg:
+            console.print("[yellow]Usage:[/yellow] /export <filename> or /export <session_id>\n")
+        else:
+            # Try to export the current conversation or by ID.
+            target = arg.strip()
+            msgs = await db.get_messages(target)
+            if not msgs:
+                console.print(f"[red]No session found with ID:[/red] {target}\n")
+            else:
+                lines = [f"# Nexa Agent — Session Export", f"Session: {target}", ""]
+                for m in msgs:
+                    role = m["role"]
+                    content = m["content"]
+                    if role == "user":
+                        lines.append(f"## 🧑 User\n\n{content}\n")
+                    elif role == "assistant":
+                        lines.append(f"## ⚡ Nexa\n\n{content}\n")
+                    elif role == "tool":
+                        lines.append(f"<details><summary>🔧 {m.get('tool_name', 'tool')}</summary>\n\n```\n{content[:500]}\n```\n</details>\n")
+                export_text = "\n".join(lines)
+                # Write to workspace
+                from nexa.config import NEXA_WORKSPACE
+                export_path = NEXA_WORKSPACE / f"export_{target[:12]}.md"
+                export_path.write_text(export_text, encoding="utf-8")
+                console.print(f"[green]Exported to:[/green] {export_path}\n")
+                console.print(f"[dim]{len(msgs)} messages exported.[/dim]\n")
+    elif command == "/config":
+        from nexa.config import NEXA_HOME, NEXA_WORKSPACE, NEXA_MODEL, NEXA_PROVIDER
+        parts = (arg or "").split(maxsplit=2)
+        if not arg or parts[0] == "show":
+            console.print(Panel("[bold]Nexa Agent Configuration[/bold]", border_style="cyan"))
+            console.print(f"  [cyan]NEXA_HOME[/cyan]:      {NEXA_HOME}")
+            console.print(f"  [cyan]NEXA_WORKSPACE[/cyan]: {NEXA_WORKSPACE}")
+            console.print(f"  [cyan]Provider[/cyan]:       {agent.provider.base_url}")
+            console.print(f"  [cyan]Model[/cyan]:          {agent.provider.model}")
+            console.print(f"  [cyan]API Key[/cyan]:        {'✓ set' if agent.provider.api_key else '✗ not set'}")
+            console.print(f"  [cyan]Tools[/cyan]:          {len(agent.registry.list_names())} registered")
+            console.print(f"  [cyan]Version[/cyan]:        {NEXA_VERSION}")
+            console.print()
+        elif parts[0] == "set" and len(parts) >= 3:
+            key = parts[1]
+            value = parts[2]
+            if key == "model":
+                agent.provider.model = value
+                console.print(f"[green]Set model:[/green] {value}\n")
+            elif key == "provider":
+                base_url, model, api_key = resolve_provider(value)
+                agent.provider.base_url = base_url
+                agent.provider.model = model
+                agent.provider.api_key = api_key
+                agent.provider._client = None
+                console.print(f"[green]Set provider:[/green] {value} ({base_url})\n")
+            else:
+                console.print(f"[red]Unknown config key:[/red] {key}. Available: model, provider\n")
+        else:
+            console.print("[yellow]Usage:[/yellow] /config [show|set <key> <value>]\n")
     elif command == "/doctor":
         console.print(Panel("[bold]Running self-health diagnostics...[/bold]", border_style="yellow"))
         health = SelfHealth(db)

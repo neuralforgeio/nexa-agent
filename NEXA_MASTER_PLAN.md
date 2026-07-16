@@ -1,6 +1,6 @@
 # NEXA MASTER PLAN
 **Nexa Agent — Terminal-First Local AI Agent**
-Version 1.6.0 · Author: Dearly Febriano Irwansyah · MIT License
+Version 1.7.0 · Author: Dearly Febriano Irwansyah · MIT License
 
 > This document is the source of truth for Nexa Agent's architecture,
 > development roadmap, and maintenance schedule. It is updated by the
@@ -99,7 +99,7 @@ Nexa Agent is developed by an autonomous cron system with 3 cycles:
 | 3 | Memory System (MEMORY.md + USER.md + /memory) | v1.2.0 | 15 tests |
 | 4 | Subagent Delegation (delegate tool) | v1.3.0 | 13 tests |
 | 5 | Dynamic Prompt Builder (8 sections) | v1.4.0 | 27 tests |
-| - | Bug fix: empty terminal command | v1.6.0 | 2 tests |
+| - | Bug fix: empty terminal command | v1.7.0 | 2 tests |
 
 ### In Progress
 | # | Feature | Status |
@@ -128,7 +128,7 @@ Nexa Agent is developed by an autonomous cron system with 3 cycles:
 
 ## 5. Current State
 
-- **Version**: v1.6.0
+- **Version**: v1.7.0
 - **Tests**: 87 passing
 - **Tools**: 5 (read_file, write_file, run_terminal_command, generate_uuid, delegate)
 - **Agent modules**: 12
@@ -167,4 +167,4 @@ QA results are tracked in `.plans/qa_log.md` after every Cron 3 cycle.
 ---
 
 *This document is automatically maintained by the Nexa Autonomous Principal Engineer cron system.*
-*Last updated: v1.6.0 cycle*
+*Last updated: v1.7.0 cycle*
