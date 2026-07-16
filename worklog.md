@@ -499,3 +499,42 @@ Stage Summary:
 - Next roadmap item: #4 (Subagent Delegation — tools/delegate_tool.py)
 
 ---
+
+## Task ID: 10 (Autonomous Cycle — Subagent Delegation + Documentation)
+Agent: Nexa Autonomous Engineer (cron job 274439)
+Task: Roadmap item #4 — Subagent Delegation + comprehensive documentation update.
+
+Work Log:
+- Deleted old cron job (274406, failed due to 429) and created new merged cron (274439, every 30m) with:
+  - Documentation mandatory every cycle (README.md + docs/)
+  - uv/bun usage requirements
+  - Local AI architecture emphasis (~/.nexa/)
+  - 12-item roadmap (subagent → prompt builder → terminal backends → more tools → TUI → failover → trajectory → CLI entry → config)
+- Created tools/delegate_tool.py: sub-agent spawning for parallel subtasks
+  - delegate(task, context, max_iterations) function
+  - Sub-agent gets fresh transcript, focused system prompt, lower iteration budget (3)
+  - Inherits parent's provider and tool registry
+  - Returns summary of work including tool results
+  - _build_subagent_prompt, _has_pending_tool_calls helpers
+  - DELEGATE_SCHEMA for OpenAI function-calling
+- Registered delegate in create_default_registry() → 5 tools total
+- Created tests/test_delegate_tool.py: 13 tests
+  - Registration, schema validation, prompt builder, pending tool calls, empty task errors
+- Updated tests/test_tool_registry.py: expected 5 tools (was 4)
+- Comprehensive documentation:
+  - README.md: full rewrite (features, installation, providers table, TUI commands, tools, architecture, ~/.nexa/ structure)
+  - docs/tools.md: detailed tool reference (parameters, limits, custom tool guide, OpenAI schema)
+  - docs/architecture.md: system design, agent loop flow, data flow, self-improvement loop, testing
+  - docs/providers.md: setup guides for all 6 providers + custom endpoints + resolution order
+- Version bump: 1.2.0 → 1.3.0 (MINOR — new feature + docs)
+- All 58 tests passing (45 existing + 13 new)
+
+Stage Summary:
+- **Status: v1.3.0 RELEASED.** Subagent delegation + comprehensive docs complete.
+- GitHub: commit d22aa41, tag v1.3.0, pushed
+- Release: https://github.com/neuralforgeio/nexa-agent/releases/tag/v1.3.0
+- Tests: 58 passing
+- Cron: 274439 (every 30m, merged with documentation + uv/bun requirements)
+- Next roadmap item: #5 (Prompt Builder — dynamic system prompt with active tools + memory + user profile)
+
+---
