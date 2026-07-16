@@ -326,3 +326,96 @@ Stage Summary:
 - ZIP: nexa-agent-v1.0.0.zip (33KB, 26 files).
 
 ---
+
+## Task ID: 7
+Agent: Z.ai Code (Phase 4 deepening — self-improvement + hardening)
+Task: Deepen original implementation to match Hermes feature set: self-improvement loop, context compression, error classifier, self-health, learning graph.
+
+Work Log:
+- Analyzed Hermes Agent features (self-improvement, learning loop, context compression, error classification, health checks).
+- Built 7 original agent/ modules with comprehensive docstrings:
+
+### agent/error_classifier.py
+- ErrorCategory enum: TRANSIENT, AUTH, BAD_REQUEST, FATAL
+- classify_error() with pattern matching (429, 503, 401, context overflow, etc.)
+- _backoff_delay() with retry-after hint extraction + jitter
+- is_context_overflow() for compression triggering
+
+### agent/message_sanitizer.py
+- sanitize_messages(): strip surrogates, control chars, truncate
+- _repair_json(): fix missing colons, trailing commas, escape newlines
+- _close_interrupted_tool_calls(): append synthetic tool results
+- estimate_tokens(): ~4 chars/token heuristic
+
+### agent/iteration_budget.py
+- IterationBudget dataclass: max 8 iterations per turn
+- consume() + exhausted property + history tracking
+
+### agent/context_compressor.py
+- DEFAULT_TOKEN_BUDGET = 30K
+- estimate_total_tokens() across message list
+- compress_if_needed(): LLM summarization of old messages
+- _truncate_compress(): fallback when no provider
+
+### agent/memory_curator.py (THE GETTING-SMARTER LOOP)
+- curate_turn(): extract candidates after each turn
+- _extract_candidates(): pattern-based (preferences, facts, insights, skills)
+- _is_duplicate(): FTS5 semantic deduplication (>70% word overlap)
+- build_memory_digest(): inject accumulated knowledge into system prompt
+- MAX_MEMORIES_PER_TURN = 3
+
+### agent/learning_graph.py
+- record_tool_outcome(): track success/failure per tool
+- record_pattern_outcome(): track approaches
+- get_tool_success_rate(): historical 0.0-1.0
+- recommend_tools(): rank by success rate
+- get_stats(): aggregate for /doctor
+
+### agent/self_health.py
+- HealthCheck + HealthReport dataclasses
+- check_database(): DB connectivity + table counts
+- check_disk_space(): free space at NEXA_HOME
+- check_memories(): memory store stats
+- check_learning_graph(): tool success/failure breakdown
+- check_provider_reachable(): TCP connect test
+- run_full_check(): comprehensive report
+
+### storage.py (enhanced)
+- New tables: memories (with confidence, times_used), learning_graph
+- FTS5 virtual table on memories for semantic search
+- parent_session_id on conversations for compression splits
+- token_count column on messages
+- WAL mode for concurrent reads
+- Methods: add_memory, list_memories, search_memories, increment_memory_usage, delete_memory
+- Methods: record_outcome, get_success_rate, get_learning_stats
+
+### cli.py (enhanced)
+- /doctor command: full health report via SelfHealth
+- /memories command: view accumulated learning store
+- Memory event visualization (magenta panel: "💾 Memory curated")
+- Compression event visualization (yellow warning)
+
+### conversation_loop.py (rewritten)
+- Integrated: iteration_budget, error_classifier, message_sanitizer, context_compressor, memory_curator, learning_graph
+- New event types: "compressing", "memory"
+- Sanitizes messages before every LLM call
+- Compresses context when over token budget
+- Classifies errors + adaptive retry
+- Curates memories after each successful turn
+- Records tool outcomes in learning graph
+
+### Verification (all tested end-to-end):
+- Memory curator: extracted "preference: I prefer Python" from user input ✓
+- Learning graph: generate_uuid 100% success rate (2/2), write_file 0% (0/1) ✓
+- Self-health: ALL HEALTHY (database, disk_space, memories, learning_graph) ✓
+- /doctor command: full health report rendered in TUI ✓
+- /memories command: accumulated memories displayed with confidence stars ✓
+
+Stage Summary:
+- **Status: PHASE 4 COMPLETE.** Nexa Agent now has self-improvement (gets smarter over time), context compression, error classification, and self-health diagnostics.
+- 7 new agent/ modules + enhanced storage + enhanced TUI.
+- GitHub: pushed to main, tagged v1.1.0, release created.
+- Release: https://github.com/neuralforgeio/nexa-agent/releases/tag/v1.1.0
+- ZIP: nexa-agent-v1.1.0.zip (66KB, 36 files)
+
+---
