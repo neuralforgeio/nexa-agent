@@ -274,4 +274,27 @@ def create_default_registry() -> ToolRegistry:
         ),
         parameters=DELEGATE_SCHEMA,
     )
+    # Register background process management tools.
+    from .terminal_tool import list_background_processes, kill_background_process
+    registry.register(
+        name="list_background_processes",
+        fn=list_background_processes,
+        description="List all background processes spawned by the agent.",
+        parameters={"type": "object", "properties": {}, "required": []},
+    )
+    registry.register(
+        name="kill_background_process",
+        fn=kill_background_process,
+        description="Terminate a background process by its PID.",
+        parameters={
+            "type": "object",
+            "properties": {
+                "pid": {
+                    "type": "string",
+                    "description": "The process ID (e.g. 'bg-a1b2c3d4').",
+                }
+            },
+            "required": ["pid"],
+        },
+    )
     return registry

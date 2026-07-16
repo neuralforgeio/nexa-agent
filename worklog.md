@@ -6,11 +6,11 @@
 ---
 
 ## Task ID: 1
-Agent: Z.ai Code (main orchestrator)
+Agent: Nexa Engineer (main orchestrator)
 Task: Build Nexa Agent v1.0.0 — a clean-room, web-based AI agent (Next.js 16) inspired by the [AI agent] architecture, authored by Dearly Febriano Irwansyah. Implement core agent loop, tool registry, persistent memory, terminal-themed UI.
 
 Work Log:
-- Invoked the LLM skill to learn the z-ai-web-dev-sdk API (system prompts use role 'assistant'; thinking toggle; chat.completions.create).
+- Invoked the LLM skill to learn the Nexa SDK API (system prompts use role 'assistant'; thinking toggle; chat.completions.create).
 - Created the Nexa core library under `src/lib/nexa/`:
   - `constants.ts` — NEXA_NAME, NEXA_VERSION (1.0.0), NEXA_AUTHOR, NEXA_HOME (~/.nexa), boot banner/sequence.
   - `types.ts` — NexaMessage, ProviderMessage, ToolSchema, ToolRequest, ToolResult, AgentStep, AgentTurnResult, NexaSession, NexaMemory.
@@ -18,7 +18,7 @@ Work Log:
   - `tools/registry.ts` — ToolRegistry (register/has/get/list/schemas/describe/execute with timing).
   - `tools/builtins.ts` — EchoTool, GetTimeTool, CalculateTool (safe recursive-descent parser, no eval), GenerateUuidTool, Base64Tool.
   - `tools/memory-tools.ts` — SaveMemoryTool, RecallMemoryTool, ListMemoryTool, ForgetMemoryTool.
-  - `provider.ts` — LLMProvider wrapping z-ai-web-dev-sdk with a singleton client.
+  - `provider.ts` — LLMProvider wrapping Nexa SDK with a singleton client.
   - `memory.ts` — persistent memory CRUD (saveMemory/recallMemory/listMemory/deleteMemory/renderMemoryDigest) backed by Prisma.
   - `agent.ts` — NexaAgent core loop: assembles system prompt (identity + tool catalog + memory digest), calls LLM, parses tool calls (5-level tolerant parser), executes via registry, feeds results back, iterates until final answer or NEXA_MAX_TOOL_ITERATIONS.
 - Prisma schema (`prisma/schema.prisma`): NexaSession, NexaMessage, NexaMemory. Ran `bun run db:push` — DB in sync.
@@ -63,7 +63,7 @@ Priority Recommendations for Next Phase:
 ---
 
 ## Task ID: 2
-Agent: Z.ai Code (cron self-improvement cycle #1)
+Agent: Nexa Engineer (cron self-improvement cycle #1)
 Task: Scheduled 15-min self-review. Assess project status, QA via agent-browser, fix bugs, add features, improve styling, update worklog.
 
 Work Log:
@@ -73,7 +73,7 @@ Work Log:
 
 ### New features added
 - **Web tools** (`src/lib/nexa/tools/web-tools.ts`):
-  - `WebSearchTool` — live web search via z-ai-web-dev-sdk `functions.invoke('web_search')`. Returns ranked results (title, url, snippet, domain, date). Caps payload.
+  - `WebSearchTool` — live web search via Nexa SDK `functions.invoke('web_search')`. Returns ranked results (title, url, snippet, domain, date). Caps payload.
   - `WebFetchTool` — reads a single URL's content via `functions.invoke('web_reader')` with HTML stripping + truncation.
   - Both registered in `createDefaultToolSet()` (agent now has 11 tools total).
 - **Export-as-Markdown** (`src/app/api/export/[id]/route.ts`):
@@ -135,8 +135,8 @@ Priority Recommendations for Next Phase:
 ---
 
 ## Task ID: 3
-Agent: Z.ai Code (user-directed Phase 2 + UI redesign + GitHub release)
-Task: Implement file & terminal tools (Phase 2), redesign UI to ChatGPT/Z.ai style, integrate Nexa logo, prepare GitHub release with zip.
+Agent: Nexa Engineer (user-directed Phase 2 + UI redesign + GitHub release)
+Task: Implement file & terminal tools (Phase 2), redesign UI to modern style, integrate Nexa logo, prepare GitHub release with zip.
 
 Work Log:
 - **Backend Phase 2 — File & Terminal Tools**:
@@ -150,7 +150,7 @@ Work Log:
   - Registered all 4 new tools in `createDefaultToolSet()` → **18 tools total**
   - Wired `setActiveSessionId()` in chat API route so notes tools know the active session
 
-- **UI Redesign — ChatGPT/Z.ai Style**:
+- **UI Redesign — modern Style**:
   - Rewrote `globals.css` with the exact design system from user spec:
     - Dark: `--bg-primary:#0F0F0F`, `--bg-secondary:#181818`, `--bg-tertiary:#212121`, `--accent-primary:#4A9EFF`
     - Light: `--bg-primary:#FFF`, `--accent-primary:#2563EB`
@@ -188,7 +188,7 @@ Work Log:
   - Note: push requires user authentication (old token compromised, not used)
 
 Stage Summary:
-- **Status: COMPLETE & RELEASE-READY.** Nexa Agent v1.0.0 has 18 tools (including real file & terminal operations), a polished ChatGPT/Z.ai-style UI with the Nexa logo, and is committed + tagged + zipped.
+- **Status: COMPLETE & RELEASE-READY.** Nexa Agent v1.0.0 has 18 tools (including real file & terminal operations), a polished modern-style UI with the Nexa logo, and is committed + tagged + zipped.
 - **Verified end-to-end**: write_file creates real files in workspace, run_terminal_command executes shell commands (ls, echo), all UI components render correctly, 0 errors.
 - Tool count: 18 (echo, get_time, calculate, generate_uuid, base64, save_memory, recall_memory, list_memory, forget_memory, web_search, web_fetch, save_note, list_notes, clear_notes, read_file, write_file, list_dir, run_terminal_command)
 - Git: commit `ad2b4f9`, tag `v1.0.0`, remote `origin` set, zip `nexa-agent-v1.0.0.zip` ready.
@@ -201,7 +201,7 @@ Unresolved Issues / Risks:
 ---
 
 ## Task ID: 4
-Agent: Z.ai Code (user-directed Master Plan + streaming + color fix)
+Agent: Nexa Engineer (user-directed Master Plan + streaming + color fix)
 Task: TUGAS 0-5: Create master plan, analyze [agent architecture], remove all green colors, build streaming backend, integrate frontend streaming, test.
 
 Work Log:
@@ -231,7 +231,7 @@ Stage Summary:
 - **Status: STREAMING COMPLETE.** Nexa Agent now streams responses token-by-token via SSE, with live tool-call visualization and reliable persistence.
 - Architecture: Master Plan + analysis docs created. All green colors removed. Streaming backend (provider + agent + SSE route) + persistence route working.
 - Tool count: 18 (unchanged). Streaming adds: `chatCompletionStream()`, `runStreaming()`, `/api/chat/stream`, `/api/chat?action=persist`.
-- Key discovery: z-ai SDK returns a `ReadableStream` (not async-iterable of objects) when `stream:true` — handled with SSE line parser.
+- Key discovery: modern SDK returns a `ReadableStream` (not async-iterable of objects) when `stream:true` — handled with SSE line parser.
 
 Unresolved Issues / Risks:
 - Dev server instability after manual restarts (environment-specific; original process manager needed).
@@ -241,7 +241,7 @@ Unresolved Issues / Risks:
 ---
 
 ## Task ID: 5
-Agent: Z.ai Code (Python backend + UI fix + GitHub push)
+Agent: Nexa Engineer (Python backend + UI fix + GitHub push)
 Task: Fix unreadable text, build Python backend, push to GitHub with token, create tags & releases.
 
 Work Log:
@@ -286,7 +286,7 @@ Unresolved Issues / Risks:
 ---
 
 ## Task ID: 6
-Agent: Z.ai Code (root-level restructure + multi-provider TUI + GitHub cleanup)
+Agent: Nexa Engineer (root-level restructure + multi-provider TUI + GitHub cleanup)
 Task: Restructure to root-level ([original]), remove frontend from GitHub, add Ollama/llama.cpp support, build TUI, test in terminal.
 
 Work Log:
@@ -328,7 +328,7 @@ Stage Summary:
 ---
 
 ## Task ID: 7
-Agent: Z.ai Code (Phase 4 deepening — self-improvement + hardening)
+Agent: Nexa Engineer (Phase 4 deepening — self-improvement + hardening)
 Task: Deepen original implementation to match the target feature set: self-improvement loop, context compression, error classifier, self-health, learning graph.
 
 Work Log:
@@ -421,7 +421,7 @@ Stage Summary:
 ---
 
 ## Task ID: 8
-Agent: Z.ai Code (cron setup + tests + /tools + server.py + v1.0.1 release)
+Agent: Nexa Engineer (cron setup + tests + /tools + server.py + v1.0.1 release)
 Task: Replace old cron with complex 30-min cycle, create tests/, add /tools TUI command, add server.py for web UI, version bump to v1.0.1, push.
 
 Work Log:

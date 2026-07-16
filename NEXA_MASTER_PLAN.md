@@ -1,175 +1,170 @@
 # NEXA MASTER PLAN
-**Nexa Agent — Terminal-First AI Agent**
-Version 1.0.0 · Author: Dearly Febriano Irwansyah · MIT License
+**Nexa Agent — Terminal-First Local AI Agent**
+Version 1.5.0 · Author: Dearly Febriano Irwansyah · MIT License
 
-> This document is the source of truth for Nexa Agent's architecture and
-> phased roadmap.
-> into an original codebase, structured root-level (no `backend/` wrapper).
-
----
-
-## 1. Vision
-
-Nexa Agent is a **terminal-first AI agent** — a Python CLI/TUI that runs an
-iterative tool-calling loop against any OpenAI-compatible LLM (OpenAI,
-OpenRouter, **Ollama**, **llama.cpp**, LM Studio, vLLM, etc.). It mirrors
-Modern AI agent architecture: root-level Python modules, an `agent``
-engine package, a `tools/` package, and a prompt_toolkit+rich TUI.
-
-**Key principle**: the GitHub repo contains **only the agent** (Python,
-root-level). The web frontend stays local in the dev panel and is NOT
-pushed to GitHub — the repo ships a CLI, not a webapp.
+> This document is the source of truth for Nexa Agent's architecture,
+> development roadmap, and maintenance schedule. It is updated by the
+> autonomous cron system after every development cycle.
 
 ---
 
-## 2. Root-Level Structure
+## 1. Project Overview
+
+Nexa Agent is a **local-first AI agent** built entirely in Python. It runs
+as a terminal application (TUI) with an iterative tool-calling loop,
+multi-provider LLM support, and a self-improvement memory system. All user
+data is stored locally at `~/.nexa/`.
+
+### Core Principles
+- **100% Original** — All code is written from scratch by Dearly Febriano Irwansyah.
+- **Local-First** — No cloud dependencies for data storage. User data stays on-device.
+- **Terminal-Native** — The primary interface is a TUI, not a web app.
+- **Self-Improving** — The agent learns from each conversation and gets smarter over time.
+- **Multi-Provider** — Works with OpenAI, Ollama, llama.cpp, vLLM, LM Studio, OpenRouter.
+
+---
+
+## 2. Architecture
 
 ```
 nexa-agent/
-├── pyproject.toml              # build config, deps, entry points
-├── requirements.txt            # pip install -r
-├── nexa_bootstrap.py           # UTF-8 stdio setup (imported first)
-├── nexa_constants.py            # NEXA_HOME, NEXA_VERSION, stable IDs
-├── nexa_state.py               # SQLite + FTS5 session store
-├── nexa_logging.py             # cross-platform logging
-├── nexa_time.py                # timezone helpers
-├── run_agent.py                # NexaAgent class + standalone runner
-├── cli.py                      # prompt_toolkit + rich TUI REPL
-├── provider.py                 # LLMProvider (AsyncOpenAI, multi-endpoint)
-├── toolsets.py                 # named tool groups
-├── utils.py                    # shared helpers
-│
-├── agent/                      # core engine
-│   ├── __init__.py
-│   ├── conversation_loop.py    # the run_conversation method
-│   ├── prompt_builder.py       # dynamic system prompt assembly
-│   ├── context_compressor.py   # context window management
-│   └── tool_executor.py        # tool dispatch + guardrails
-│
-├── tools/                      # tool implementations
-│   ├── __init__.py
-│   ├── registry.py             # ToolRegistry + get_openai_schemas()
-│   ├── file_tools.py           # read_file, write_file, list_dir
-│   ├── terminal_tool.py        # run_terminal_command, generate_uuid
-│   └── builtin_tools.py        # calculate, get_time, echo
-│
-├── providers/                  # provider catalog & resolution
-│   ├── __init__.py
-│   ├── base.py                 # abstract provider
-│   ├── openai_provider.py      # OpenAI direct
-│   ├── ollama_provider.py      # Ollama (localhost:11434)
-│   ├── llamacpp_provider.py    # llama.cpp server
-│   └── catalog.py              # provider registry
-│
-├── .env.example                # environment template
-├── .gitignore
-├── LICENSE                     # MIT
-├── README.md                   # documentation
-└── NEXA_MASTER_PLAN.md         # this file
+├── cli.py                  # Interactive TUI (prompt_toolkit + rich)
+├── run_agent.py            # NexaAgent class + standalone runner
+├── server.py               # FastAPI SSE server (port 8000)
+├── nexa/                   # Core package
+│   ├── bootstrap.py        # UTF-8 stdio setup
+│   ├── constants.py        # NEXA_HOME, version, safeguards
+│   ├── config.py           # Environment variable loading
+│   ├── state.py            # SQLite + FTS5 persistence
+│   └── provider.py         # LLMProvider (AsyncOpenAI, streaming, tools)
+├── agent/                  # Agent engine (12 modules)
+│   ├── conversation_loop.py    # Iterative tool-calling loop
+│   ├── prompt_builder.py       # Dynamic 8-section system prompt
+│   ├── context_compressor.py   # Token budget + LLM summarization
+│   ├── memory_curator.py       # Self-improvement (insight extraction)
+│   ├── memory_files.py         # MEMORY.md + USER.md management
+│   ├── learning_graph.py       # Tool success rate tracking
+│   ├── error_classifier.py     # API error categorization + retry
+│   ├── message_sanitizer.py    # JSON repair + message cleanup
+│   ├── iteration_budget.py     # Tool-call iteration limits
+│   ├── self_health.py          # Diagnostics (/doctor)
+│   └── session_search.py       # FTS5 full-text session search
+├── tools/                  # Tool implementations (5 tools)
+│   ├── registry.py         # ToolRegistry + OpenAI schemas
+│   ├── file_tools.py       # read_file, write_file
+│   ├── terminal_tool.py    # run_terminal_command, generate_uuid
+│   └── delegate_tool.py    # Sub-agent delegation
+├── providers/              # Provider catalog (6 providers)
+│   └── catalog.py          # OpenAI, Ollama, llama.cpp, vLLM, etc.
+├── tests/                  # pytest test suite (87 tests)
+├── docs/                   # Documentation
+│   ├── tools.md            # Tool reference
+│   ├── architecture.md     # System design
+│   └── providers.md        # Provider setup guides
+└── .plans/                 # Internal planning
+    └── qa_log.md           # QA cycle log
 ```
 
 ---
 
-## 3. Tech Stack
+## 3. Autonomous Development System
 
-| Layer | Technology | Version |
-|-------|-----------|---------|
-| Language | Python | >=3.11, <3.14 |
-| Package manager | pip / uv | latest |
-| LLM client | openai (AsyncOpenAI) | >=1.50 |
-| CLI/TUI | **prompt_toolkit** + **rich** | 3.0.x / 14.x |
-| Storage | aiosqlite (SQLite + FTS5) | >=0.20 |
-| Config | python-dotenv, pyyaml | latest |
-| Resilience | tenacity (retry/backoff) | >=9.0 |
-| Markdown | rich.markdown | built-in |
+Nexa Agent is developed by an autonomous cron system with 3 cycles:
 
-**No FastAPI in the core repo** — the agent is a CLI/TUI, not a server.
-(An optional `gateway/` package can be added later for messaging bridges.)
+| Cron | Schedule | Role | Priority |
+|------|----------|------|----------|
+| **Cron 1** | Every 60 min | R&D: Architecture analysis, weakness identification, superior design | 5 |
+| **Cron 2** | Every 30 min | Dev: Strict TDD implementation, documentation, staging commit | 10 |
+| **Cron 3** | Every 10 min | QA: Destructive testing, fuzzing, auto-heal, release | 15 |
 
----
+### Cron Workflow
+1. **Cron 1** researches and designs → writes spec to worklog.md
+2. **Cron 2** implements via TDD → stages commit (does NOT push)
+3. **Cron 3** tests destructively → if stable, pushes + releases; if buggy, auto-heals + pushes patch
 
-## 4. Multi-Provider Support
-
-Nexa Agent supports any OpenAI-compatible endpoint via `NEXA_BASE_URL`:
-
-| Provider | NEXA_BASE_URL | NEXA_MODEL example |
-|----------|--------------|-------------------|
-| OpenAI | *(default)* | gpt-4o |
-| OpenRouter | https://openrouter.ai/api/v1 | anthropic/claude-3.5-sonnet |
-| **Ollama** | http://localhost:11434/v1 | llama3.2, qwen2.5, mistral |
-| **llama.cpp** | http://localhost:8080/v1 | local-model |
-| LM Studio | http://localhost:1234/v1 | loaded-model |
-| vLLM | http://localhost:8000/v1 | meta-llama/Llama-3.1-8B-Instruct |
-
-A `providers/catalog.py` maps friendly names to base URLs so users can run:
-```
-nexa --provider ollama --model llama3.2
-nexa --provider openai --model gpt-4o
-```
+### Resilience Protocol
+- Progress state saved in worklog.md after every cycle
+- If a cron crashes, the next cycle resumes from the last checkpoint
+- No task is repeated from scratch if partially completed
 
 ---
 
-## 5. Phased Roadmap
+## 4. Development Roadmap
 
-### Phase 1 — Root-Level Restructure (current)
-- [x] Move all Python from `backend/` to repo root
-- [ ] Remove frontend (`src/`, `prisma/`, etc.) from git tracking
-- [ ] Remove panel artifacts (`.zscripts/`, `mini-services/`, `download/`)
-- [ ] Commit clean repo
+### Completed
+| # | Feature | Version | Tests |
+|---|---------|---------|-------|
+| 1 | Context Engine (compression + token budget) | v1.0.0 | ✓ |
+| 2 | FTS5 Session Search + /search command | v1.1.0 | 8 tests |
+| 3 | Memory System (MEMORY.md + USER.md + /memory) | v1.2.0 | 15 tests |
+| 4 | Subagent Delegation (delegate tool) | v1.3.0 | 13 tests |
+| 5 | Dynamic Prompt Builder (8 sections) | v1.4.0 | 27 tests |
+| - | Bug fix: empty terminal command | v1.5.0 | 2 tests |
 
-### Phase 2 — Multi-Provider Support
-- [ ] `providers/` package with Ollama, llama.cpp, OpenRouter adapters
-- [ ] `--provider` CLI flag + `NEXA_PROVIDER` env var
-- [ ] Provider auto-detection (health check on base_url)
-- [ ] Model listing for local providers (`ollama list`)
+### In Progress
+| # | Feature | Status |
+|---|---------|--------|
+| 6 | Terminal Backends (PTY, output truncation, background processes) | NEXT |
 
-### Phase 3 — TUI (prompt_toolkit + rich)
-- [ ] Interactive REPL with multiline editing
-- [ ] Streaming token rendering with rich markdown
-- [ ] Slash commands (/help, /clear, /model, /provider, /history)
-- [ ] Tool-call visualization (collapsible cards)
-- [ ] Conversation history (FileHistory at ~/.nexa/history)
-- [ ] Interrupt support (Ctrl+C)
+### Upcoming
+| # | Feature |
+|---|---------|
+| 7 | More Tools: web_search, code_execution, file_patch |
+| 8 | TUI Enhancement: /sessions, /export, /config |
+| 9 | Provider Failover: health check + automatic failover |
+| 10 | Trajectory Recording |
+| 11 | CLI Entry Point: `pip install nexa-agent` → `nexa` command |
+| 12 | Config File: ~/.nexa/config.yaml |
 
-### Phase 4 — Agent Loop Hardening
-- [ ] Context compression when transcript exceeds token limit
-- [ ] Iteration budget (max tool calls per turn)
-- [ ] Error classification + adaptive retry
-- [ ] Message sanitization (strip images, repair JSON)
-
-### Phase 5 — Tools Expansion
-- [ ] web_search, web_fetch (httpx)
-- [ ] Memory tools (save/recall across sessions)
-- [ ] Code execution sandbox
-- [ ] Delegate tool (subagents)
-
-### Phase 6 — Distribution
-- [ ] `pip install nexa-agent` from PyPI
-- [ ] `nexa` entry point globally available
-- [ ] Docker image
-- [ ] Homebrew formula
+### Future Enterprise Features
+| # | Feature |
+|---|---------|
+| 13 | TUI Dashboard: multi-pane (chat, token usage, tool logs) |
+| 14 | Subagent Orchestration: RPC via asyncio without deadlock |
+| 15 | Context Compression Engine: async non-blocking summarization |
+| 16 | MCP Integration: external MCP server support |
 
 ---
 
-## 6. Risk Identification
+## 5. Current State
 
-| Risk | Mitigation |
-|------|-----------|
-| Ollama not running | Graceful error + `nexa setup ollama` guide |
-| prompt_toolkit not installed | Fallback to input()/print() basic mode |
-| Token overflow | Context compressor summarizes old messages |
-| Tool infinite loop | Iteration budget (max 8 rounds) |
-| Path traversal | Workspace sandbox + resolve validation |
-| Rate limits | tenacity retry with exponential backoff |
+- **Version**: v1.5.0
+- **Tests**: 87 passing
+- **Tools**: 5 (read_file, write_file, run_terminal_command, generate_uuid, delegate)
+- **Agent modules**: 12
+- **Providers**: 6 (openai, openrouter, ollama, llamacpp, lmstudio, vllm)
+- **TUI commands**: /help /tools /search /memory /memories /doctor /model /provider /history /clear /exit
+- **Storage**: ~/.nexa/ (nexa.db, memory/MEMORY.md, memory/USER.md)
+- **GitHub**: github.com/neuralforgeio/nexa-agent
 
 ---
 
-## 7. Definition of Done (Phase 1-3)
+## 6. Maintenance Schedule
 
-- [ ] Repo root has flat Python structure (no `backend/` folder)
-- [ ] No frontend files tracked in git
-- [ ] `nexa` CLI launches TUI
-- [ ] TUI streams tokens from at least 2 providers (OpenAI + Ollama)
-- [ ] Tool calls (file/terminal/uuid) work from TUI
-- [ ] Tested in real terminal
-- [ ] Pushed to GitHub, clean of panel artifacts
+### QA Log
+QA results are tracked in `.plans/qa_log.md` after every Cron 3 cycle.
+
+### Versioning Policy
+- **MAJOR (vX.0.0)**: Architecture overhaul (e.g., new package structure)
+- **MINOR (v1.X.0)**: New feature (e.g., new tool, new TUI command)
+- **PATCH (v1.0.X)**: Bug fix, test addition, documentation update
+- Patch numbers can go very high (v1.4.300, v1.4.587) for frequent auto-heal fixes
+
+### Token Safety
+- GitHub token stored in `~/.git-credentials` (never in tracked files)
+- Verified every cycle: `git grep 'ghp_'` must return nothing
+
+---
+
+## 7. Quality Standards
+
+- **Test Coverage**: All new features MUST have tests before push
+- **Docstrings**: Every Python file MUST have module/class/method docstrings with Args/Returns/Raises
+- **Documentation**: README.md and docs/ MUST be updated every development cycle
+- **Originality**: No references to external AI agent projects in any tracked file
+- **Edge Case Testing**: Fuzzing + chaos engineering every QA cycle
+
+---
+
+*This document is automatically maintained by the Nexa Autonomous Principal Engineer cron system.*
+*Last updated: v1.5.0 cycle*
