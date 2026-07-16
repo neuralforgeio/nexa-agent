@@ -538,3 +538,44 @@ Stage Summary:
 - Next roadmap item: #5 (Prompt Builder — dynamic system prompt with active tools + memory + user profile)
 
 ---
+
+## Task ID: 11 (Autonomous Cycle — Dynamic Prompt Builder)
+Agent: Nexa Autonomous Engineer (cron job 274439)
+Task: Roadmap item #5 — Prompt Builder: dynamic system prompt with active tools + memory + user profile.
+
+Work Log:
+- Rewrote agent/prompt_builder.py with 8 structured sections:
+  1. Agent Identity (name, version, tagline, author)
+  2. Behavioral Guidelines (8 numbered rules: reasoning, tool usage, accuracy, conciseness)
+  3. Available Tools (catalog from registry.describe())
+  4. Learning Insights (tool success rates from learning graph stats)
+  5. User Profile (from USER.md — preferences, facts about the user)
+  6. Long-term Memory (accumulated knowledge from memory curator)
+  7. Conversation Summary (from context compression when triggered)
+  8. Provider Information (model-specific hints)
+- Each section built by a dedicated _build_*_section function with docstrings
+- build_system_prompt() now accepts: registry, memory_digest, user_profile,
+  context_summary, learning_stats, provider_hint
+- Optional sections omitted when empty (clean prompt)
+- Created tests/test_prompt_builder.py: 27 tests
+  - TestBuildSystemPrompt: 13 tests (identity, behavior, tools, memory, profile, learning, context, provider, all-together)
+  - TestIdentitySection: 3 tests (name, version, author)
+  - TestBehaviorSection: 2 tests (numbered guidelines, mentions tools)
+  - TestToolsSection: 1 test (lists all tools)
+  - TestLearningSection: 3 tests (success rate format, empty data, tool name)
+  - TestUserProfileSection: 2 tests (includes text, strips whitespace)
+  - TestMemorySection: 1 test (includes digest)
+  - TestContextSection: 1 test (includes summary)
+  - TestProviderSection: 1 test (includes hint)
+- Updated README.md: version 1.4.0, prompt builder description
+- Version bump: 1.3.0 → 1.4.0 (MINOR — new feature)
+- All 85 tests passing (58 existing + 27 new)
+
+Stage Summary:
+- **Status: v1.4.0 RELEASED.** Dynamic prompt builder complete.
+- GitHub: commit 8e89645, tag v1.4.0, pushed
+- Release: https://github.com/neuralforgeio/nexa-agent/releases/tag/v1.4.0
+- Tests: 85 passing
+- Next roadmap item: #6 (Terminal Backends — PTY support, output truncation, background processes)
+
+---
