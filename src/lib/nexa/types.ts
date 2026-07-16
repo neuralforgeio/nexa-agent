@@ -82,3 +82,12 @@ export interface NexaMemory {
   content: string;
   createdAt: string;
 }
+
+/** Events emitted by NexaAgent.runStreaming() for live UI updates. */
+export type StreamEvent =
+  | { type: "thinking" }
+  | { type: "token"; text: string }
+  | { type: "tool_call"; toolRequest: ToolRequest }
+  | { type: "tool_result"; toolResult: ToolResult }
+  | { type: "done"; answer: string; steps: AgentStep[]; iterations: number }
+  | { type: "error"; message: string };

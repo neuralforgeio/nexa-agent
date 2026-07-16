@@ -8,9 +8,11 @@ import { Markdown } from "./markdown";
 export function MessageBlock({
   message,
   onRegenerate,
+  streaming,
 }: {
   message: NexaMessage;
   onRegenerate?: () => void;
+  streaming?: boolean;
 }) {
   if (message.role === "user") {
     return (
@@ -58,7 +60,20 @@ export function MessageBlock({
       </div>
       <div className="pl-8">
         <div className="text-[15px] leading-[1.7] text-foreground">
-          <Markdown content={message.content} />
+          {message.content ? (
+            <>
+              <Markdown content={message.content} />
+              {streaming && (
+                <span className="nexa-caret inline-block align-text-bottom" />
+              )}
+            </>
+          ) : streaming ? (
+            <span className="nexa-dots text-tertiary">
+              <span>•</span>
+              <span>•</span>
+              <span>•</span>
+            </span>
+          ) : null}
         </div>
         {/* per-message actions */}
         <div className="mt-2 flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">

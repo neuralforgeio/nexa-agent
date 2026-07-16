@@ -12,6 +12,7 @@ interface TranscriptProps {
   pendingSteps: AgentStep[];
   thinking: boolean;
   welcome: boolean;
+  streaming?: boolean;
 }
 
 export function Transcript({
@@ -19,6 +20,7 @@ export function Transcript({
   pendingSteps,
   thinking,
   welcome,
+  streaming,
 }: TranscriptProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -29,12 +31,17 @@ export function Transcript({
   if (welcome) return <EmptyState />;
 
   const toolCount = pendingSteps.filter((s) => s.kind === "tool_call").length;
+  const lastIdx = messages.length - 1;
 
   return (
     <div className="mx-auto max-w-[768px] px-4 py-6">
       <div className="space-y-6">
-        {messages.map((m) => (
-          <MessageBlock key={m.id} message={m} />
+        {messages.map((m, i) => (
+          <MessageBlock
+            key={m.id}
+            message={m}
+            streaming={streaming && i === lastIdx && m.role === "assistant"}
+          />
         ))}
       </div>
 

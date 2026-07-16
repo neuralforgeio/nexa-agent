@@ -56,7 +56,7 @@ export function MemoryPanel({ onClose }: MemoryPanelProps) {
 
   const kindColor: Record<NexaMemory["kind"], string> = {
     note: "text-sky-300 border-sky-500/30 bg-sky-500/10",
-    fact: "text-emerald-300 border-emerald-500/30 bg-emerald-500/10",
+    fact: "text-primary border-primary/30 bg-accent",
     preference: "text-amber-300 border-amber-500/30 bg-amber-500/10",
     skill: "text-fuchsia-300 border-fuchsia-500/30 bg-fuchsia-500/10",
   };
@@ -64,7 +64,7 @@ export function MemoryPanel({ onClose }: MemoryPanelProps) {
   return (
     <aside className="flex h-full w-full flex-col border-l border-border bg-sidebar/40">
       <div className="flex items-center gap-2 border-b border-border px-3 py-2.5">
-        <Brain className="h-4 w-4 text-emerald-400" />
+        <Brain className="h-4 w-4 text-primary" />
         <h2 className="text-xs font-semibold uppercase tracking-wider text-foreground">
           Memory
         </h2>
@@ -91,7 +91,7 @@ export function MemoryPanel({ onClose }: MemoryPanelProps) {
               onClick={() => setKind(k)}
               className={`rounded px-2 py-0.5 text-[10px] uppercase tracking-wider transition-colors ${
                 kind === k
-                  ? "bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-500/40"
+                  ? "bg-accent text-primary ring-1 ring-primary/40"
                   : "bg-muted/50 text-muted-foreground hover:bg-muted"
               }`}
             >
@@ -109,13 +109,13 @@ export function MemoryPanel({ onClose }: MemoryPanelProps) {
             }
           }}
           placeholder="remember this…  (⌘+Enter to save)"
-          className="w-full resize-none rounded-md border border-border bg-input/60 px-2.5 py-1.5 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-emerald-500/50 nexa-scroll"
+          className="w-full resize-none rounded-md border border-border bg-input/60 px-2.5 py-1.5 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-primary/50 nexa-scroll"
           rows={2}
         />
         <button
           onClick={add}
           disabled={!content.trim()}
-          className="flex w-full items-center justify-center gap-1.5 rounded-md border border-emerald-500/40 bg-emerald-500/10 px-2 py-1.5 text-xs font-medium text-emerald-300 transition-colors hover:bg-emerald-500/20 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="flex w-full items-center justify-center gap-1.5 rounded-md border border-primary/40 bg-accent px-2 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-accent disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <Plus className="h-3.5 w-3.5" />
           save memory

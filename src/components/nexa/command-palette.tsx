@@ -213,7 +213,7 @@ export function CommandPalette({
       >
         {/* search input */}
         <div className="flex items-center gap-2.5 border-b border-border px-3.5 py-3">
-          <Search className="h-4 w-4 text-emerald-400" />
+          <Search className="h-4 w-4 text-primary" />
           <input
             ref={inputRef}
             value={query}
@@ -250,20 +250,20 @@ export function CommandPalette({
                   onClick={() => item.action()}
                   className={`flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-sm transition-colors ${
                     active
-                      ? "bg-emerald-500/15 text-emerald-200"
+                      ? "bg-accent text-primary"
                       : "text-foreground/90 hover:bg-muted/60"
                   }`}
                 >
                   <Icon
                     className={`h-4 w-4 shrink-0 ${
-                      active ? "text-emerald-400" : "text-muted-foreground"
+                      active ? "text-primary" : "text-muted-foreground"
                     }`}
                   />
                   <span className="flex-1 truncate">{item.label}</span>
                   <kbd
                     className={`shrink-0 rounded border px-1.5 py-0.5 text-[10px] ${
                       active
-                        ? "border-emerald-500/30 text-emerald-300/80"
+                        ? "border-primary/30 text-primary/80"
                         : "border-border text-muted-foreground/60"
                     }`}
                   >
@@ -288,7 +288,7 @@ export function CommandPalette({
             </span>
           </div>
           <span className="flex items-center gap-1">
-            <Zap className="h-2.5 w-2.5 text-emerald-400" />
+            <Zap className="h-2.5 w-2.5 text-primary" />
             nexa command palette
           </span>
         </div>
