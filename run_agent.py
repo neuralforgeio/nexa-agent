@@ -146,6 +146,7 @@ async def _run_single_turn(agent: NexaAgent, message: str) -> None:
         agent:  The :class:`NexaAgent` instance.
         message: The user message.
     """
+    await agent.db.init()
     conv = await agent.db.create_conversation(title=message[:48])
     async for event in agent.run_streaming(message, conv["id"]):
         if event["type"] == "token":

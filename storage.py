@@ -16,6 +16,7 @@ SPDX-License-Identifier: MIT
 """
 
 import time
+import uuid
 from typing import Any, Dict, List, Optional
 
 import aiosqlite
@@ -80,7 +81,7 @@ class ConversationDB:
         Returns:
             A dict with ``id``, ``title``, ``created_at``, ``updated_at``.
         """
-        cid = f"conv-{int(time.time() * 1000)}"
+        cid = f"conv-{uuid.uuid4().hex[:12]}"
         now = _now_iso()
         async with aiosqlite.connect(str(NEXA_DB_PATH)) as db:
             await db.execute(
@@ -150,7 +151,7 @@ class ConversationDB:
         Returns:
             The new message ID.
         """
-        mid = f"msg-{int(time.time() * 1000)}"
+        mid = f"msg-{uuid.uuid4().hex[:12]}"
         now = _now_iso()
         async with aiosqlite.connect(str(NEXA_DB_PATH)) as db:
             await db.execute(
