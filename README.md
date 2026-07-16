@@ -1,7 +1,7 @@
 # Nexa Agent
 
 > **The advanced local AI agent by Dearly Febriano Irwansyah**
-> Version 1.3.0 · MIT License
+> Version 1.4.0 · MIT License
 
 A terminal-first local AI agent with iterative tool-calling, multi-provider
 support (OpenAI, Ollama, llama.cpp, vLLM, LM Studio, OpenRouter), a
