@@ -28,10 +28,10 @@ from typing import Any, AsyncGenerator, Dict, List, Optional
 
 from agent.conversation_loop import run_conversation
 from agent.prompt_builder import build_system_prompt
-from nexa_constants import NEXA_MAX_CONTEXT_MESSAGES, NEXA_NAME
-from provider import LLMProvider
+from nexa.constants import NEXA_MAX_CONTEXT_MESSAGES, NEXA_NAME
+from nexa.provider import LLMProvider
 from providers.catalog import resolve_provider
-from storage import ConversationDB
+from nexa.state import ConversationDB
 from tools.registry import ToolRegistry, create_default_registry
 
 

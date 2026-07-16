@@ -25,7 +25,7 @@ from typing import Any, Dict, List, Optional
 
 import aiosqlite
 
-from config import NEXA_DB_PATH, NEXA_HOME
+from .config import NEXA_DB_PATH, NEXA_HOME
 
 #: The SQL schema applied on initialization.
 SCHEMA = """

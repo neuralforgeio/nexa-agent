@@ -12,7 +12,7 @@ SPDX-License-Identifier: MIT
 from pathlib import Path
 from typing import Any
 
-from config import NEXA_WORKSPACE
+from nexa.config import NEXA_WORKSPACE
 
 
 def _resolve_in_workspace(raw: str) -> Path:

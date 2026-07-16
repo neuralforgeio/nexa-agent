@@ -30,7 +30,7 @@ SPDX-License-Identifier: MIT
 import re
 from typing import Any, Dict, List, Optional
 
-from storage import ConversationDB
+from nexa.state import ConversationDB
 
 
 #: Memory kinds the curator can produce.

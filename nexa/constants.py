@@ -11,8 +11,8 @@ SPDX-License-Identifier: MIT
 """
 
 # Re-export everything from config so both `from nexa_constants import ...`
-# and `from config import ...` work identically.
-from config import (  # noqa: F401
+# and `from .config import ...` work identically.
+from .config import (  # noqa: F401
     NEXA_AUTHOR,
     NEXA_HOME,
     NEXA_MAX_CONTEXT_MESSAGES,
