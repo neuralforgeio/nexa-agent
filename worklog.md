@@ -579,3 +579,40 @@ Stage Summary:
 - Next roadmap item: #6 (Terminal Backends — PTY support, output truncation, background processes)
 
 ---
+
+## Task ID: 12 (QA Cycle #1 — Bug Fix)
+Agent: Nexa QA Specialist (cron job 274527, every 10 min)
+Task: Run full test suite + edge case testing. Found and fixed 1 bug.
+
+Work Log:
+- Created two cron jobs:
+  - Cron 1 (274526): Development, every 30 min, priority 10
+  - Cron 2 (274527): QA & auto-fix, every 10 min, priority 15
+- Deleted old cron (274439, failed with concurrency limit)
+- QA Cycle #1 executed:
+  - Ran full test suite: 85 tests PASSED
+  - Ran 8 edge case tests:
+    - Empty path to read_file → ✓ rejected
+    - Path traversal (../../../etc/passwd) → ✓ rejected
+    - Nested dir write → ✓ succeeds
+    - 50KB content write → ✓ succeeds
+    - Empty command to terminal → ⚠️ BUG FOUND
+    - generate_uuid no args → ✓ valid
+    - delegate empty task → ✓ rejected
+    - Unknown tool → ✓ graceful
+- Bug found: run_terminal_command with empty command returned ok=True
+- Fix applied: added empty/whitespace validation, raises ValueError
+- Added 2 new tests: test_terminal_command_rejects_empty, test_terminal_command_rejects_whitespace
+- Re-ran tests: 87 PASSED (85 + 2 new)
+- Version bump: v1.4.0 → v1.4.1 (PATCH)
+- Created .plans/qa_log.md for tracking QA cycles
+- Git: commit 3df48d0, tag v1.4.1, pushed
+- Release: https://github.com/neuralforgeio/nexa-agent/releases/tag/v1.4.1
+
+Stage Summary:
+- **Status: v1.4.1 RELEASED (PATCH).** Bug found by QA cycle, fixed, tested, pushed.
+- Two cron jobs active: Dev (30m) + QA (10m)
+- Tests: 87 passing
+- Next: Cron 2 continues QA every 10 min; Cron 1 continues feature dev every 30 min (roadmap #6: Terminal Backends)
+
+---
