@@ -290,7 +290,7 @@ async def handle_slash_command(cmd: str, agent: NexaAgent, db: ConversationDB) -
                 console.print(f"[green]Exported to:[/green] {export_path}\n")
                 console.print(f"[dim]{len(msgs)} messages exported.[/dim]\n")
     elif command == "/config":
-        from nexa.config import NEXA_HOME, NEXA_WORKSPACE, NEXA_MODEL, NEXA_PROVIDER
+        from nexa.config import NEXA_HOME, NEXA_WORKSPACE, NEXA_MODEL
         parts = (arg or "").split(maxsplit=2)
         if not arg or parts[0] == "show":
             console.print(Panel("[bold]Nexa Agent Configuration[/bold]", border_style="cyan"))
