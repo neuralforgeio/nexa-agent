@@ -129,12 +129,13 @@ class TestConfigCommand:
 
     def test_config_set_model(self) -> None:
         """Setting model via config must update the provider."""
-        from providers.catalog import resolve_provider
-        base_url, model, api_key = resolve_provider("ollama")
-        assert model == "llama3.2"
+        from providers.catalog import resolve_provider, PROVIDER_CATALOG
+        # Use catalog directly (not env-overridden resolve_provider)
+        ollama_config = PROVIDER_CATALOG["ollama"]
+        assert ollama_config.default_model == "llama3.2"
 
     def test_config_set_provider(self) -> None:
         """Setting provider must resolve correct base_url."""
-        from providers.catalog import resolve_provider
-        base_url, model, api_key = resolve_provider("openai")
-        assert "openai.com" in base_url
+        from providers.catalog import PROVIDER_CATALOG
+        openai_config = PROVIDER_CATALOG["openai"]
+        assert "openai.com" in openai_config.base_url

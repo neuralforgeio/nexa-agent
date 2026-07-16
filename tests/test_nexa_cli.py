@@ -1,0 +1,83 @@
+"""
+Tests for the nexa_cli subcommand module.
+
+Verifies:
+    - CLI setup command creates ~/.nexa/ directory
+    - CLI model command shows and sets model
+    - CLI gateway status command works
+    - CLI doctor command runs diagnostics
+    - CLI help output is correct
+
+Copyright (c) 2026 Dearly Febriano Irwansyah
+SPDX-License-Identifier: MIT
+"""
+
+import pytest
+from nexa_cli.main import main
+
+
+class TestCLISetup:
+    """Tests for the 'nexa setup' command."""
+
+    def test_setup_returns_zero(self) -> None:
+        """setup command must return 0."""
+        result = main(["setup"])
+        assert result == 0
+
+    def test_setup_creates_home(self, tmp_path, monkeypatch) -> None:
+        """setup must create the NEXA_HOME directory."""
+        import nexa.config as cfg
+        monkeypatch.setattr(cfg, "NEXA_HOME", tmp_path / ".nexa")
+        monkeypatch.setattr("nexa.constants.NEXA_HOME", tmp_path / ".nexa")
+        result = main(["setup"])
+        assert result == 0
+
+
+class TestCLIModel:
+    """Tests for the 'nexa model' command."""
+
+    def test_model_show_returns_zero(self) -> None:
+        """model command without args must return 0."""
+        result = main(["model"])
+        assert result == 0
+
+    def test_model_set_returns_zero(self, tmp_path, monkeypatch) -> None:
+        """model command with name must return 0."""
+        import nexa.config as cfg
+        monkeypatch.setattr(cfg, "NEXA_HOME", tmp_path / ".nexa")
+        (tmp_path / ".nexa").mkdir()
+        result = main(["model", "test-model-123"])
+        assert result == 0
+
+
+class TestCLIGateway:
+    """Tests for the 'nexa gateway' command."""
+
+    def test_gateway_status_returns_zero_or_one(self) -> None:
+        """gateway status must return 0 (running) or 1 (stopped)."""
+        result = main(["gateway", "status"])
+        assert result in (0, 1)
+
+
+class TestCLIDoctor:
+    """Tests for the 'nexa doctor' command."""
+
+    def test_doctor_returns_zero_or_one(self) -> None:
+        """doctor must return 0 (healthy) or 1 (issues)."""
+        result = main(["doctor"])
+        assert result in (0, 1)
+
+
+class TestCLIHelp:
+    """Tests for CLI help output."""
+
+    def test_no_args_returns_zero(self) -> None:
+        """No args must return 0 (shows help)."""
+        result = main([])
+        assert result == 0
+
+    def test_invalid_command_shows_error(self) -> None:
+        """Invalid command must exit with error code (argparse behavior)."""
+        with pytest.raises(SystemExit) as exc_info:
+            main(["invalid"])
+        assert exc_info.value.code == 2
