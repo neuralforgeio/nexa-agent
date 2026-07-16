@@ -1,48 +1,7 @@
 # Nexa Agent — .gitignore
 # Copyright (c) 2026 Dearly Febriano Irwansyah
 
-# dependencies
-node_modules/
-.pnp
-.pnp.js
-
-# next.js
-.next/
-out/
-build/
-dist/
-
-# production
-*.tsbuildinfo
-next-env.d.ts
-
-# env files (never commit secrets)
-.env
-.env*
-!.env.example
-
-# database (runtime data)
-db/*.db
-db/*.db-journal
-db/*.db-wal
-db/*.db-shm
-
-# logs
-dev.log
-server.log
-*.log
-
-# runtime workspace (agent file/terminal tool sandbox)
-nexa-workspace/
-
-# uploads & downloads (user-supplied, not source)
-upload/
-download/
-
-# test screenshots at repo root
-/nexa-*.png
-
-# python
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
@@ -50,24 +9,57 @@ __pycache__/
 .venv/
 venv/
 .python-version
+*.so
 
-# panel defaults (not part of Nexa Agent source)
+# Node.js (frontend is local-only, never committed)
+node_modules/
+
+# Environment
+.env
+.env*
+!.env.example
+
+# Runtime
+nexa-workspace/
+*.db
+*.db-journal
+
+# Logs
+*.log
+
+# Distribution
+*.zip
+dist/
+build/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# === FRONTEND (local only, NOT pushed to GitHub) ===
+# The web frontend stays in the dev panel. Only the Python agent ships.
+src/
+public/
+prisma/
+db/
+components.json
+next.config.ts
+postcss.config.mjs
+tailwind.config.ts
+tsconfig.json
+package.json
+package-lock.json
+bun.lock
+eslint.config.mjs
+next-env.d.ts
+
+# === Panel artifacts (never commit) ===
+.zscripts/
+mini-services/
+download/
+upload/
 skills/
 examples/
 Caddyfile
-
-# misc
-.DS_Store
-Thumbs.db
-*.zip
+.next/
 .cache/
-coverage/
-
-# editor
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# vercel
-.vercel

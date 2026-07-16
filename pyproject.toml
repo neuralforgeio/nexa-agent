@@ -1,0 +1,45 @@
+[project]
+name = "nexa-agent"
+version = "1.0.0"
+description = "Nexa Agent — The advanced AI agent by Dearly Febriano Irwansyah"
+authors = [{ name = "Dearly Febriano Irwansyah" }]
+license = "MIT"
+requires-python = ">=3.11,<3.14"
+dependencies = [
+    "openai>=1.50.0",
+    "prompt_toolkit>=3.0.0",
+    "rich>=13.0.0",
+    "aiosqlite>=0.20.0",
+    "python-dotenv>=1.0.0",
+    "pydantic>=2.9.0",
+    "pyyaml>=6.0",
+    "tenacity>=9.0.0",
+    "httpx>=0.27.0",
+]
+
+[project.scripts]
+nexa = "cli:main"
+nexa-agent = "run_agent:main"
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "pytest-asyncio>=0.24"]
+
+[build-system]
+requires = ["setuptools>=77,<83"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = [
+    "nexa_bootstrap",
+    "nexa_constants",
+    "config",
+    "provider",
+    "storage",
+    "run_agent",
+    "cli",
+    "toolsets",
+    "utils",
+]
+
+[tool.setuptools.packages.find]
+include = ["agent*", "tools*", "providers*"]

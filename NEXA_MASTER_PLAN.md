@@ -1,190 +1,175 @@
 # NEXA MASTER PLAN
-**Nexa Agent v1.0.0 — Architecture & Execution Plan**
-Author: Dearly Febriano Irwansyah · MIT License
+**Nexa Agent — Terminal-First AI Agent (Hermes-style clean-room reimplementation)**
+Version 1.0.0 · Author: Dearly Febriano Irwansyah · MIT License
 
-> Dokumen ini adalah sumber kebenaran arsitektur Nexa Agent. Disusun sebelum
-> satu baris kode pun ditulis ulang, sebagai mandated oleh TUGAS 0.
-
----
-
-## 1. Visi & Arsitektur Umum
-
-Nexa Agent adalah AI agent canggih yang arsitekturnya **diadaptasi** dari
-NousResearch/hermes-agent (MIT). Adaptasi berarti: kita menyerap pola desain
-inti — agent loop iteratif, tool registry terpusat, provider resolution
-pluggable, state persisten dengan FTS, dan memory orchestration — lalu
-menulisnya ulang orisinal dengan TypeScript/Next.js, bukan menyalin kode
-Python.
-
-### Adaptasi environment (penting)
-Spec asli meminta FastAPI (Python) + WebSocket. Environment ini adalah
-**Next.js 16 monorepo** (TypeScript). Membangun Python backend terpisah tidak
-viable di sini. Adaptasi yang dipilih:
-
-| Konsep Hermes (Python) | Implementasi Nexa (Next.js/TS) | Alasan |
-|---|---|---|
-| FastAPI app | Next.js App Router API routes | Satu proses, satu bahasa, hot-reload |
-| `asyncio` agent loop | `async`/`await` di route handler | Native di Node.js |
-| `aiosqlite` + FTS5 | Prisma + SQLite | Type-safe, migrations, sudah terpasang |
-| WebSocket `/ws/chat` | **SSE** `/api/chat/stream` | One-way stream cukup untuk chat; lebih simpel, auto-reconnect native browser, tidak butuh mini-service terpisah |
-| `AsyncOpenAI` SDK | `z-ai-web-dev-sdk` | SDK bawaan environment, backend-only |
-| `~/.nexa/` files | Prisma tables + logical `NEXA_HOME` namespace | Web app tidak punya akses filesystem user; DB sebagai pengganti |
-
-**Outcome fungsional identik**: streaming token-by-token, tool calling iteratif,
-persistensi percakapan, full-text search.
-
-### Prinsip desain
-1. **Clean-room**: kode orisinal, pola diadaptasi, tidak menyalin.
-2. **Modular**: setiap tool/provider/service adalah modul independen terdaftar di registry.
-3. **Toleran terhadap error**: tool gagal → `ok:false`, bukan crash. LLM transient error → retry+backoff.
-4. **Sandboxed**: file/terminal tools terbatas pada `nexa-workspace/`.
-5. **Streaming-first**: respons LLM dialirkan token-by-token ke UI.
+> This document is the source of truth for Nexa Agent's architecture and
+> phased roadmap. It adapts the design of NousResearch/hermes-agent (MIT)
+> into an original codebase, structured root-level (no `backend/` wrapper).
 
 ---
 
-## 2. Struktur Folder & File
+## 1. Vision
 
-Struktur sudah ada dan baik; ini dokumen resminya:
+Nexa Agent is a **terminal-first AI agent** — a Python CLI/TUI that runs an
+iterative tool-calling loop against any OpenAI-compatible LLM (OpenAI,
+OpenRouter, **Ollama**, **llama.cpp**, LM Studio, vLLM, etc.). It mirrors
+Hermes Agent's core architecture: root-level Python modules, an `agent/`
+engine package, a `tools/` package, and a prompt_toolkit+rich TUI.
+
+**Key principle**: the GitHub repo contains **only the agent** (Python,
+root-level). The web frontend stays local in the dev panel and is NOT
+pushed to GitHub — exactly like Hermes which ships a CLI, not a webapp.
+
+---
+
+## 2. Root-Level Structure (mirrors Hermes)
 
 ```
 nexa-agent/
-├── prisma/
-│   └── schema.prisma              # NexaSession, NexaMessage, NexaMemory, NexaNote
-├── public/
-│   └── nexa-agent.png             # Logo (favicon, avatar, OG)
-├── src/
-│   ├── app/
-│   │   ├── layout.tsx             # Inter + JetBrains Mono, dark default, logo meta
-│   │   ├── page.tsx               # Orchestrator: sidebar + chat + panels + shortcuts
-│   │   ├── globals.css            # Design system (dark #0F0F0F, accent #4A9EFF)
-│   │   └── api/
-│   │       ├── chat/route.ts              # POST: non-streaming agent turn
-│   │       ├── chat/stream/route.ts       # POST: SSE streaming agent turn ★NEW
-│   │       ├── sessions/route.ts          # GET/POST list/create
-│   │       ├── sessions/[id]/route.ts     # GET/PATCH/DELETE
-│   │       ├── memory/route.ts            # GET/POST/DELETE
-│   │       ├── notes/route.ts             # GET/POST (per-session scratchpad)
-│   │       ├── notes/[id]/route.ts        # PATCH/DELETE
-│   │       └── export/[id]/route.ts       # GET markdown export
-│   ├── components/
-│   │   ├── nexa/
-│   │   │   ├── sidebar.tsx        # Sessions, date grouping, search, rename/export/delete
-│   │   │   ├── composer.tsx       # Pill-shaped, auto-grow, suggestion chips
-│   │   │   ├── transcript.tsx     # Message stream + empty state + thinking
-│   │   │   ├── message-block.tsx  # User bubble / assistant full-width / tool output
-│   │   │   ├── markdown.tsx       # react-markdown + code blocks + copy
-│   │   │   ├── tool-step.tsx      # Collapsible tool call/result cards
-│   │   │   ├── status-bar.tsx     # Model, session, status
-│   │   │   ├── memory-panel.tsx   # Long-term memory CRUD
-│   │   │   ├── notes-panel.tsx    # Per-session scratchpad
-│   │   │   └── command-palette.tsx# ⌘K fuzzy search
-│   │   └── theme-provider.tsx     # next-themes wrapper
-│   └── lib/
-│       ├── db.ts                  # Prisma client singleton
-│       └── nexa/
-│           ├── constants.ts       # NEXA_HOME, NEXA_VERSION, NEXA_WORKSPACE
-│           ├── types.ts           # Shared interfaces
-│           ├── agent.ts           # NexaAgent core loop (iterative tool calling)
-│           ├── provider.ts        # LLMProvider (z-ai-web-dev-sdk + retry/backoff)
-│           ├── memory.ts          # Long-term memory CRUD
-│           ├── notes.ts           # Per-session scratchpad CRUD
-│           └── tools/
-│               ├── base.ts        # NexaTool abstract class
-│               ├── registry.ts    # ToolRegistry + getOpenAiSchemas()
-│               ├── builtins.ts    # echo, get_time, calculate, uuid, base64
-│               ├── memory-tools.ts# save/recall/list/forget memory
-│               ├── notes-tools.ts # save/list/clear notes
-│               ├── web-tools.ts   # web_search, web_fetch
-│               └── fs-tools.ts    # read_file, write_file, list_dir, run_terminal_command
-├── nexa-workspace/                # Sandboxed filesystem for file/terminal tools (gitignored)
-├── NEXA_MASTER_PLAN.md            # Dokumen ini
-├── .plans/nexa-architecture-analysis.md  # Analisis Hermes
-└── worklog.md                     # Development handover log
+├── pyproject.toml              # build config, deps, entry points
+├── requirements.txt            # pip install -r
+├── nexa_bootstrap.py           # UTF-8 stdio setup (imported first)
+├── nexa_constants.py            # NEXA_HOME, NEXA_VERSION, stable IDs
+├── nexa_state.py               # SQLite + FTS5 session store
+├── nexa_logging.py             # cross-platform logging
+├── nexa_time.py                # timezone helpers
+├── run_agent.py                # NexaAgent class + standalone runner
+├── cli.py                      # prompt_toolkit + rich TUI REPL
+├── provider.py                 # LLMProvider (AsyncOpenAI, multi-endpoint)
+├── toolsets.py                 # named tool groups
+├── utils.py                    # shared helpers
+│
+├── agent/                      # core engine
+│   ├── __init__.py
+│   ├── conversation_loop.py    # the run_conversation method
+│   ├── prompt_builder.py       # dynamic system prompt assembly
+│   ├── context_compressor.py   # context window management
+│   └── tool_executor.py        # tool dispatch + guardrails
+│
+├── tools/                      # tool implementations
+│   ├── __init__.py
+│   ├── registry.py             # ToolRegistry + get_openai_schemas()
+│   ├── file_tools.py           # read_file, write_file, list_dir
+│   ├── terminal_tool.py        # run_terminal_command, generate_uuid
+│   └── builtin_tools.py        # calculate, get_time, echo
+│
+├── providers/                  # provider catalog & resolution
+│   ├── __init__.py
+│   ├── base.py                 # abstract provider
+│   ├── openai_provider.py      # OpenAI direct
+│   ├── ollama_provider.py      # Ollama (localhost:11434)
+│   ├── llamacpp_provider.py    # llama.cpp server
+│   └── catalog.py              # provider registry
+│
+├── .env.example                # environment template
+├── .gitignore
+├── LICENSE                     # MIT
+├── README.md                   # documentation
+└── NEXA_MASTER_PLAN.md         # this file
 ```
 
 ---
 
 ## 3. Tech Stack
 
-| Lapisan | Teknologi | Versi |
-|---|---|---|
-| Framework | Next.js (App Router) | 16 |
-| Bahasa | TypeScript | 5 |
-| Styling | Tailwind CSS + CSS variables | 4 |
-| UI components | shadcn/ui (New York) + Lucide | latest |
-| Markdown | react-markdown + remark-gfm | latest |
-| Database | Prisma + SQLite | 6 |
-| AI SDK | z-ai-web-dev-sdk (backend-only) | 0.0.18 |
-| Theming | next-themes | 0.4 |
-| State | React hooks + fetch (no global store needed) | — |
-| Streaming | Server-Sent Events (native Response stream) | — |
+| Layer | Technology | Version |
+|-------|-----------|---------|
+| Language | Python | >=3.11, <3.14 |
+| Package manager | pip / uv | latest |
+| LLM client | openai (AsyncOpenAI) | >=1.50 |
+| CLI/TUI | **prompt_toolkit** + **rich** | 3.0.x / 14.x |
+| Storage | aiosqlite (SQLite + FTS5) | >=0.20 |
+| Config | python-dotenv, pyyaml | latest |
+| Resilience | tenacity (retry/backoff) | >=9.0 |
+| Markdown | rich.markdown | built-in |
 
-**Tidak dipakai** (dan alasannya): FastAPI (bukan env ini), WebSocket/socket.io
-(SSE cukup untuk one-way chat stream, lebih simpel), Zustand (state lokal
-cukup), aiosqlite (Prisma sudah async).
+**No FastAPI in the core repo** — the agent is a CLI/TUI, not a server.
+(An optional `gateway/` package can be added later for messaging bridges.)
 
 ---
 
-## 4. Alur Eksekusi
+## 4. Multi-Provider Support
 
-### Fase A — Planning (TUGAS 0)
-- ✅ Dokumen ini dibuat.
+Nexa Agent supports any OpenAI-compatible endpoint via `NEXA_BASE_URL`:
 
-### Fase B — Analisis Hermes (TUGAS 1)
-- `.plans/nexa-architecture-analysis.md`: dekomposisi 5 subsistem Hermes
-  (agent loop, tool system, provider, state, memory) dan padanannya di Nexa.
-- Catatan: repo Hermes tidak bisa di-fetch langsung dari sandbox; analisis
-  berdasarkan dokumentasi arsitektur publik dan pola standar AI agent.
+| Provider | NEXA_BASE_URL | NEXA_MODEL example |
+|----------|--------------|-------------------|
+| OpenAI | *(default)* | gpt-4o |
+| OpenRouter | https://openrouter.ai/api/v1 | anthropic/claude-3.5-sonnet |
+| **Ollama** | http://localhost:11434/v1 | llama3.2, qwen2.5, mistral |
+| **llama.cpp** | http://localhost:8080/v1 | local-model |
+| LM Studio | http://localhost:1234/v1 | loaded-model |
+| vLLM | http://localhost:8000/v1 | meta-llama/Llama-3.1-8B-Instruct |
 
-### Fase C — Perbaikan UI (TUGAS 2)
-- Scan & hapus SEMUA `emerald`/`green`/`teal` di komponen sekunder
-  (boot-sequence, command-palette, memory-panel, notes-panel, sidebar).
-- Ganti dengan `text-primary`/`bg-accent`/`border-primary` (blue #4A9EFF).
-- Verifikasi: `grep -rn "emerald\|green-" src/` → 0 hasil.
-
-### Fase D — Streaming Backend (TUGAS 3)
-- Tambah `NexaAgent.runStreaming()` — generator yang `yield` event:
-  `thinking`, `tool_call`, `tool_result`, `token`, `done`, `error`.
-- Cek apakah z-ai SDK support `stream: true`; jika ya, stream token asli;
-  jika tidak, chunk respons final menjadi token simulated.
-- Provider: tambah `chatCompletionStream()` returning async iterable.
-
-### Fase E — Streaming API + Frontend (TUGAS 4)
-- `POST /api/chat/stream` — SSE: kirim `Content-Type: text/event-stream`,
-  flush setiap event.
-- Frontend: `useStreamingChat` hook — `fetch` + `ReadableStream` reader,
-  parse SSE events, append token ke assistant message real-time dengan
-  blinking caret, tampilkan tool cards saat event masuk.
-
-### Fase F — Testing (TUGAS 5)
-- Skenario: generate_uuid, write_file, read_file, refresh+persist, warna.
-- Verifikasi via agent-browser.
+A `providers/catalog.py` maps friendly names to base URLs so users can run:
+```
+nexa --provider ollama --model llama3.2
+nexa --provider openai --model gpt-4o
+```
 
 ---
 
-## 5. Identifikasi Risiko & Solusi
+## 5. Phased Roadmap
 
-| Risiko | Dampak | Solusi |
-|---|---|---|
-| SDK tidak support `stream:true` | Tidak ada token stream asli | Fallback: chunk respons final jadi pseudo-token (10ms interval) — UX tetap live |
-| Tool call JSON malformed dari LLM | Tool tidak tereksekusi, markup bocor | `repairJson()` (sudah ada) + 5-level tolerant parser + markup stripping |
-| 429 rate limit saat multi-round tool call | Turn gagal | Retry exponential backoff 1s→2s→4s→8s (sudah ada di provider) |
-| SSE connection dropped | Stream terputus | Browser auto-reconnect untuk GET; untuk POST fetch, frontend deteksi abort → tampilkan "retry" |
-| Terminal command hang | Agent stuck | `timeout: 15_000` + `SIGKILL` (sudah ada) |
-| Path traversal via file tools | Akses file sistem host | `resolveInWorkspace()` reject `..` dan absolute path (sudah ada) |
-| Prisma connection exhaustion | API 500 | Singleton client (sudah ada) |
-| Hydration mismatch (theme) | UI flicker | `suppressHydrationWarning` + `mounted` guard (sudah ada) |
+### Phase 1 — Root-Level Restructure (current)
+- [x] Move all Python from `backend/` to repo root
+- [ ] Remove frontend (`src/`, `prisma/`, etc.) from git tracking
+- [ ] Remove panel artifacts (`.zscripts/`, `mini-services/`, `download/`)
+- [ ] Commit clean repo
+
+### Phase 2 — Multi-Provider Support
+- [ ] `providers/` package with Ollama, llama.cpp, OpenRouter adapters
+- [ ] `--provider` CLI flag + `NEXA_PROVIDER` env var
+- [ ] Provider auto-detection (health check on base_url)
+- [ ] Model listing for local providers (`ollama list`)
+
+### Phase 3 — TUI (prompt_toolkit + rich)
+- [ ] Interactive REPL with multiline editing
+- [ ] Streaming token rendering with rich markdown
+- [ ] Slash commands (/help, /clear, /model, /provider, /history)
+- [ ] Tool-call visualization (collapsible cards)
+- [ ] Conversation history (FileHistory at ~/.nexa/history)
+- [ ] Interrupt support (Ctrl+C)
+
+### Phase 4 — Agent Loop Hardening
+- [ ] Context compression when transcript exceeds token limit
+- [ ] Iteration budget (max tool calls per turn)
+- [ ] Error classification + adaptive retry
+- [ ] Message sanitization (strip images, repair JSON)
+
+### Phase 5 — Tools Expansion
+- [ ] web_search, web_fetch (httpx)
+- [ ] Memory tools (save/recall across sessions)
+- [ ] Code execution sandbox
+- [ ] Delegate tool (subagents)
+
+### Phase 6 — Distribution
+- [ ] `pip install nexa-agent` from PyPI
+- [ ] `nexa` entry point globally available
+- [ ] Docker image
+- [ ] Homebrew formula
 
 ---
 
-## 6. Definition of Done
+## 6. Risk Identification
 
-- [x] Master plan dibuat (dokumen ini)
-- [ ] Analisis Hermes dibuat
-- [ ] 0 warna emerald/green di `src/`
-- [ ] Streaming API merespons `text/event-stream`
-- [ ] Frontend menampilkan token real-time dengan caret
-- [ ] Tool cards muncul inline saat streaming
-- [ ] Refresh page → history tetap
-- [ ] 5 skenario test lulus via agent-browser
-- [ ] Lint 0 error
+| Risk | Mitigation |
+|------|-----------|
+| Ollama not running | Graceful error + `nexa setup ollama` guide |
+| prompt_toolkit not installed | Fallback to input()/print() basic mode |
+| Token overflow | Context compressor summarizes old messages |
+| Tool infinite loop | Iteration budget (max 8 rounds) |
+| Path traversal | Workspace sandbox + resolve validation |
+| Rate limits | tenacity retry with exponential backoff |
+
+---
+
+## 7. Definition of Done (Phase 1-3)
+
+- [ ] Repo root has flat Python structure (no `backend/` folder)
+- [ ] No frontend files tracked in git
+- [ ] `nexa` CLI launches TUI
+- [ ] TUI streams tokens from at least 2 providers (OpenAI + Ollama)
+- [ ] Tool calls (file/terminal/uuid) work from TUI
+- [ ] Tested in real terminal
+- [ ] Pushed to GitHub, clean of panel artifacts
