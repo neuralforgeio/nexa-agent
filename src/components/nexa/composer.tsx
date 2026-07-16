@@ -9,6 +9,7 @@ interface ComposerProps {
   disabled: boolean;
   thinking: boolean;
   onStop?: () => void;
+  showSuggestions?: boolean;
 }
 
 const SUGGESTIONS = [
@@ -18,7 +19,7 @@ const SUGGESTIONS = [
   { label: "Remember that I prefer concise answers", icon: Brain },
 ];
 
-export function Composer({ onSend, disabled, thinking, onStop }: ComposerProps) {
+export function Composer({ onSend, disabled, thinking, onStop, showSuggestions = true }: ComposerProps) {
   const [value, setValue] = useState("");
   const ref = useRef<HTMLTextAreaElement>(null);
 
@@ -39,23 +40,25 @@ export function Composer({ onSend, disabled, thinking, onStop }: ComposerProps) 
   return (
     <div className="bg-gradient-to-t from-background via-background to-transparent px-4 pb-4 pt-2">
       <div className="mx-auto max-w-[768px]">
-        {/* Suggestion chips (empty state only) */}
-        <div className="mb-3 flex flex-wrap justify-center gap-2">
-          {SUGGESTIONS.map((s) => {
-            const Icon = s.icon;
-            return (
-              <button
-                key={s.label}
-                onClick={() => !disabled && onSend(s.label)}
-                disabled={disabled}
-                className="flex items-center gap-1.5 rounded-full border border-border bg-secondary px-3 py-1.5 text-[12px] text-secondary transition-colors hover:border-primary/30 hover:bg-accent hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                <Icon className="h-3 w-3" />
-                {s.label}
-              </button>
-            );
-          })}
-        </div>
+        {/* Suggestion chips — only in empty/welcome state */}
+        {showSuggestions && (
+          <div className="mb-4 flex flex-wrap justify-center gap-2">
+            {SUGGESTIONS.map((s) => {
+              const Icon = s.icon;
+              return (
+                <button
+                  key={s.label}
+                  onClick={() => !disabled && onSend(s.label)}
+                  disabled={disabled}
+                  className="flex items-center gap-2 rounded-full border border-border bg-tertiary px-4 py-2 text-[13px] text-foreground/80 transition-colors hover:border-primary/40 hover:bg-accent hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <Icon className="h-3.5 w-3.5 text-primary" />
+                  {s.label}
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         {/* Pill composer */}
         <div className="flex items-end gap-2 rounded-[24px] border border-border bg-tertiary px-3 py-2 transition-colors focus-within:border-primary/40">

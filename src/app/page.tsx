@@ -497,7 +497,7 @@ export default function Home() {
                 streaming={thinking && streamingText.length > 0}
               />
             </div>
-            <Composer onSend={send} disabled={thinking} thinking={thinking} />
+            <Composer onSend={send} disabled={thinking} thinking={thinking} showSuggestions={welcome} />
           </main>
 
           {/* Notes panel — desktop */}
