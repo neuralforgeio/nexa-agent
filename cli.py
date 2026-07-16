@@ -35,6 +35,7 @@ from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.text import Text
 
+from agent.self_health import SelfHealth
 from nexa_constants import NEXA_AUTHOR, NEXA_NAME, NEXA_VERSION
 from providers.catalog import list_providers, resolve_provider
 from run_agent import NexaAgent
@@ -49,6 +50,8 @@ SLASH_COMMANDS = {
     "/model": "Show or change the current model",
     "/provider": "Show or change the LLM provider",
     "/history": "Show conversation history",
+    "/memories": "Show accumulated agent memories (learning store)",
+    "/doctor": "Run self-health diagnostics",
     "/exit": "Exit Nexa Agent (or press Ctrl+D)",
 }
 
@@ -130,6 +133,25 @@ async def handle_slash_command(cmd: str, agent: NexaAgent, db: ConversationDB) -
             for c in convs[:10]:
                 console.print(f"  [dim]{c['id']}[/dim] {c['title'][:50]}")
         console.print()
+    elif command == "/memories":
+        memories = await db.list_memories(limit=20)
+        if not memories:
+            console.print("[dim]No memories yet. The agent learns as you chat.[/dim]\n")
+        else:
+            console.print(Panel("[bold]Agent Memories (Learning Store)[/bold]", border_style="magenta"))
+            for m in memories:
+                stars = "★" * int(m["confidence"] * 5) or "·"
+                console.print(
+                    f"  [magenta][{m['kind']}][/magenta] {m['content'][:80]} "
+                    f"[dim]({stars}, used {m['times_used']}x)[/dim]"
+                )
+            console.print()
+    elif command == "/doctor":
+        console.print(Panel("[bold]Running self-health diagnostics...[/bold]", border_style="yellow"))
+        health = SelfHealth(db)
+        report = await health.run_full_check()
+        console.print(report.summary())
+        console.print()
     else:
         console.print(f"[red]Unknown command:[/red] {command}. Type /help.\n")
     return True
@@ -151,6 +173,8 @@ async def run_turn(agent: NexaAgent, message: str, conv_id: str, history: list) 
         async for event in agent.run_streaming(message, conv_id, history):
             if event["type"] == "thinking":
                 console.print("[dim]Nexa is thinking...[/dim]", end="")
+            elif event["type"] == "compressing":
+                console.print(f"\n[yellow]⚠ {event.get('detail', 'compressing context')}[/yellow]")
             elif event["type"] == "token":
                 accumulated += event["text"]
                 console.print(event["text"], end="", style="white")
@@ -165,6 +189,20 @@ async def run_turn(agent: NexaAgent, message: str, conv_id: str, history: list) 
                         expand=False,
                     )
                 )
+            elif event["type"] == "memory":
+                memories = event.get("memories", [])
+                if memories:
+                    console.print(
+                        Panel(
+                            "\n".join(
+                                f"[magenta][{m['kind']}][/magenta] {m['content'][:80]}"
+                                for m in memories
+                            ),
+                            title="[magenta]💾 Memory curated (agent is learning)[/magenta]",
+                            border_style="magenta",
+                            expand=False,
+                        )
+                    )
             elif event["type"] == "done":
                 console.print("\n")
                 console.print(Markdown(event["answer"]) if event["answer"] else "")
