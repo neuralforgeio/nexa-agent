@@ -179,9 +179,12 @@ class TestMemoryCuratorFileIntegration:
         monkeypatch.setattr(mf, "MEMORY_FILE", temp_dir / "MEMORY.md")
         monkeypatch.setattr(mf, "USER_FILE", temp_dir / "USER.md")
 
+        # Use a unique phrase to avoid dedup from prior test runs.
+        unique_phrase = "Remember that I prefer Python_uniquetest42"
+
         curator = MemoryCurator(db_for_curator)
         new_mems = await curator.curate_turn(
-            "Remember that I prefer Python",
+            unique_phrase,
             "Got it! I will remember that.",
             [],
         )
@@ -189,7 +192,7 @@ class TestMemoryCuratorFileIntegration:
 
         # The preference should be in USER.md.
         user_content = read_user_file()
-        assert "prefer Python" in user_content or "Remember" in user_content
+        assert "Python_uniquetest42" in user_content
 
     @pytest.mark.asyncio
     async def test_build_memory_digest_includes_files(self, db_for_curator, tmp_path, monkeypatch) -> None:
