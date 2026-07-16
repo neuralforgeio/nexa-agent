@@ -17,7 +17,7 @@ import asyncio
 import uuid
 from typing import Any
 
-from config import NEXA_WORKSPACE
+from nexa.config import NEXA_WORKSPACE
 
 #: Substrings that cause a command to be rejected outright.
 BLOCKED_PATTERNS: list[str] = [

@@ -17,7 +17,7 @@ SPDX-License-Identifier: MIT
 from dataclasses import dataclass, field
 from typing import List
 
-from nexa_constants import NEXA_MAX_TOOL_ITERATIONS
+from nexa.constants import NEXA_MAX_TOOL_ITERATIONS
 
 
 @dataclass

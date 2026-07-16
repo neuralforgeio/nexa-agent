@@ -25,8 +25,8 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List
 from urllib.parse import urlparse
 
-from config import NEXA_DB_PATH, NEXA_HOME, NEXA_WORKSPACE
-from storage import ConversationDB
+from nexa.config import NEXA_DB_PATH, NEXA_HOME, NEXA_WORKSPACE
+from nexa.state import ConversationDB
 
 
 @dataclass

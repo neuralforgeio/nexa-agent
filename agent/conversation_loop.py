@@ -28,9 +28,9 @@ from agent.iteration_budget import IterationBudget
 from agent.learning_graph import LearningGraph
 from agent.memory_curator import MemoryCurator
 from agent.message_sanitizer import sanitize_messages
-from nexa_constants import NEXA_NAME
-from provider import LLMProvider
-from storage import ConversationDB
+from nexa.constants import NEXA_NAME
+from nexa.provider import LLMProvider
+from nexa.state import ConversationDB
 from tools.registry import ToolRegistry
 
 

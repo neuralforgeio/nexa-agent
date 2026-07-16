@@ -19,7 +19,7 @@ SPDX-License-Identifier: MIT
 
 from typing import Any, Dict, List, Optional
 
-from storage import ConversationDB
+from nexa.state import ConversationDB
 
 
 class LearningGraph:

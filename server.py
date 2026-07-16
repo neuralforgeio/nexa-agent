@@ -41,11 +41,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, JSONResponse
 from pydantic import BaseModel
 
-import nexa_bootstrap  # noqa: F401 — must be imported first for UTF-8 stdio.
+from nexa import bootstrap as nexa_bootstrap  # noqa: F401 — must be imported first for UTF-8 stdio.
 from agent.self_health import SelfHealth
-from config import NEXA_NAME, NEXA_VERSION
+from nexa.config import NEXA_NAME, NEXA_VERSION
 from run_agent import NexaAgent
-from storage import ConversationDB
+from nexa.state import ConversationDB
 
 # ---------------------------------------------------------------------------
 # Singleton instances

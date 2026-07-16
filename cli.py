@@ -28,7 +28,7 @@ import os
 import sys
 
 # Bootstrap UTF-8 stdio FIRST (before any rich imports that may print).
-import nexa_bootstrap  # noqa: F401
+from nexa import bootstrap as nexa_bootstrap  # noqa: F401
 
 from rich.console import Console
 from rich.markdown import Markdown
@@ -36,10 +36,10 @@ from rich.panel import Panel
 from rich.text import Text
 
 from agent.self_health import SelfHealth
-from nexa_constants import NEXA_AUTHOR, NEXA_NAME, NEXA_VERSION
+from nexa.constants import NEXA_AUTHOR, NEXA_NAME, NEXA_VERSION
 from providers.catalog import list_providers, resolve_provider
 from run_agent import NexaAgent
-from storage import ConversationDB
+from nexa.state import ConversationDB
 
 console = Console()
 
@@ -47,6 +47,7 @@ console = Console()
 SLASH_COMMANDS = {
     "/help": "Show available commands and providers",
     "/tools": "Show all available tools with their schemas",
+    "/search": "Search past conversations (FTS5 full-text). Usage: /search <query>",
     "/clear": "Clear the current conversation and start fresh",
     "/model": "Show or change the current model",
     "/provider": "Show or change the LLM provider",
@@ -149,6 +150,24 @@ async def handle_slash_command(cmd: str, agent: NexaAgent, db: ConversationDB) -
         print_help(agent)
     elif command == "/tools":
         _print_tools(agent)
+    elif command == "/search":
+        if not arg:
+            console.print("[yellow]Usage:[/yellow] /search <query>\n")
+        else:
+            from agent.session_search import search_sessions, format_search_results
+            results = await search_sessions(db, arg, limit=10)
+            if not results:
+                console.print(f"[dim]No results for '{arg}'.[/dim]\n")
+            else:
+                console.print(Panel(f"[bold]🔍 Search: '{arg}'[/bold] ({len(results)} conversations)", border_style="cyan"))
+                for i, r in enumerate(results, 1):
+                    snippet = r["snippet"].replace("<<", "[").replace(">>", "]")
+                    console.print(
+                        f"  [cyan]{i}.[/cyan] [bold]{r['title'][:50]}[/bold] "
+                        f"[dim]({r['match_count']} matches)[/dim]"
+                    )
+                    console.print(f"     [dim]{snippet[:120]}[/dim]")
+                console.print()
     elif command == "/clear":
         console.clear()
         print_banner()

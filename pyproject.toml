@@ -1,6 +1,6 @@
 [project]
 name = "nexa-agent"
-version = "1.0.1"
+version = "1.1.0"
 description = "Nexa Agent — The advanced AI agent by Dearly Febriano Irwansyah"
 authors = [{ name = "Dearly Febriano Irwansyah" }]
 license = "MIT"
@@ -30,16 +30,9 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 py-modules = [
-    "nexa_bootstrap",
-    "nexa_constants",
-    "config",
-    "provider",
-    "storage",
     "run_agent",
     "cli",
-    "toolsets",
-    "utils",
 ]
 
 [tool.setuptools.packages.find]
-include = ["agent*", "tools*", "providers*"]
+include = ["nexa*", "agent*", "tools*", "providers*"]

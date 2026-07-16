@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
 
 from typing import TYPE_CHECKING
 
-from nexa_constants import NEXA_NAME, NEXA_TAGLINE, NEXA_VERSION
+from nexa.constants import NEXA_NAME, NEXA_TAGLINE, NEXA_VERSION
 
 if TYPE_CHECKING:
     from tools.registry import ToolRegistry
