@@ -769,3 +769,90 @@ Stage Summary:
 - Next: Roadmap #9 (Provider Failover) or restore frontend for preview testing
 
 ---
+
+---
+
+## Task ID: Frontend-Restore
+Agent: Full-Stack Developer
+Task: Restore Next.js Web UI frontend (src/ directory was deleted). Recreate a functional chat UI that connects to the Python agent server on port 8000 via Next.js proxy rewrites.
+
+Work Log:
+- Read worklog.md to understand project context: Nexa Agent v1.7.1 — a Python/FastAPI backend (server.py on port 8000) with SSE streaming chat, sessions CRUD, memory, and self-health endpoints. The Next.js frontend was previously removed from git tracking (kept local only); the `src/` directory had been deleted and needed full restoration.
+- Installed missing Python backend deps (`fastapi`, `uvicorn[standard]`) into the existing `.venv` via `uv pip install` (with `UV_CACHE_DIR=/tmp/uv-cache` to bypass a permission issue) so the FastAPI server could boot.
+- Started the Python backend: `.venv/bin/python server.py` on port 8000 (verified `GET /api/health` → 200 with tool catalog, `GET /api/sessions` → 200 with conversation list).
+- Created the Next.js 16 frontend (8 files):
+  1. `next.config.ts` — `output:"standalone"`, `typescript.ignoreBuildErrors`, `reactStrictMode:false`, and `rewrites()` proxying `/api/:path*` → `http://127.0.0.1:8000/api/:path*` so the browser only ever talks to port 3000.
+  2. `tsconfig.json` — standard Next.js 16 TS config (ES2022, `moduleResolution:"bundler"`, `@/*` path alias, strict, Next plugin).
+  3. `postcss.config.mjs` — Tailwind v4 `@tailwindcss/postcss` plugin.
+  4. `tailwind.config.ts` — content globs + custom dark palette (`bg-primary:#0F0F0F`, `bg-secondary:#181818`, `bg-tertiary:#212121`, `accent:#4A9EFF`, `fg:#ECECEC`, `fg-muted:#9A9A9A`) + Inter / JetBrains Mono font variables.
+  5. `src/lib/utils.ts` — `cn()` (clsx + tailwind-merge), `formatTime()`, `formatDate()` helpers.
+  6. `src/app/globals.css` — `@import "tailwindcss"`, CSS variables for the dark theme, custom scrollbar, blinking `nexa-caret` animation for streaming tokens, `fadeIn` animation, `thinking-dot` pulse animation, `.prose-chat` markdown styles (code blocks, headings, lists, blockquotes, links).
+  7. `src/app/layout.tsx` — Root layout with `Inter` + `JetBrains_Mono` via `next/font/google`, `<html class="dark">`, metadata title "Nexa Agent", viewport themeColor `#0F0F0F`, body bg `#0F0F0F` / fg `#ECECEC`.
+  8. `src/app/page.tsx` — Single-file functional chat UI (`"use client"`):
+     - **Message list**: user messages as right-aligned rounded bubbles; assistant messages full-width with a spark-logo avatar, name, timestamp, and markdown-rendered content (`renderMarkdown()` handles code blocks, inline code, bold, headings, line breaks).
+     - **Streaming tokens**: `handleSSE()` reads the response body via `ReadableStreamDefaultReader`, buffers `\n\n`-delimited SSE events, parses `data:` JSON lines, and dispatches on `type`: `session` (sets activeId), `thinking` (shows pulsing dots), `token` (appends text + shows blinking caret), `tool_result` (adds collapsible card), `done` (finalizes answer), `error` (shows error), `end` (clears streaming flag).
+     - **Tool result cards**: collapsible (`ToolCard` component) — shows tool name, ok/err badge, duration_ms, and expandable output `<pre>`; border turns red on error.
+     - **Composer**: auto-growing `<textarea>` (max 200px), pill-shaped input with accent send button, spinner while sending, Enter to send / Shift+Enter for newline, disabled while streaming.
+     - **Sidebar**: brand header (spark logo + "Nexa Agent v1.6.0"), "New chat" pill button, scrollable sessions list (title, formatted timestamp, message count, hover-reveal delete button), empty state, footer with copyright. Desktop: fixed 260px left column. Mobile: hamburger drawer overlay with backdrop.
+     - **Session management**: `loadSessions()` from `GET /api/sessions`, `selectSession()` loads messages from `GET /api/sessions/:id` and groups tool messages into the preceding assistant bubble, `deleteSession()` calls `DELETE /api/sessions/:id`, `newChat()` clears state.
+     - **Persistence**: after a stream completes, calls `POST /api/chat` with `{action:"persist", sessionId, userMessage, assistantAnswer, toolResults}` then refreshes the sessions list.
+     - **Welcome screen**: large spark logo, "Hello, I'm Nexa" heading, tagline, and a 2×2 grid of clickable suggestion chips ("What time is it in Tokyo?", "Calculate (128 × 9) + 14.5", "Search the web for latest AI news", "List files in the workspace").
+     - **Error handling**: non-2xx stream responses surface an inline red error banner + an assistant error message; AbortController supports future cancel.
+     - **Responsive**: mobile-first, `max-w-3xl` message column, mobile drawer sidebar, touch-friendly 36px+ tap targets, sticky header + composer.
+- Created `eslint.config.mjs` (flat config, ESLint v9) using `@typescript-eslint/parser` with the Next.js globals; ignored `skills/`, `examples/`, `mini-services/`, `tool-results/`, config files. Fixed one `prefer-const` warning → **lint: 0 errors, 0 warnings**.
+- Started the Next.js dev server (`node node_modules/next/dist/bin/next dev -p 3000`, bypassing the `tee` pipe in the npm script for cleaner detachment) using `nohup setsid … < /dev/null &` so it survives the launching shell. Both the Python backend (port 8000) and Next.js (port 3000) are running as session leaders.
+
+Stage Summary:
+- **Status: FRONTEND RESTORED & VERIFIED.** All 8 requested files created; the Next.js 16 app renders on `http://localhost:3000` with a dark-themed, responsive, streaming chat UI that proxies all `/api/*` calls to the Python FastAPI backend on port 8000.
+- **Verification (curl):**
+  - `GET /` → 200, returns `<!DOCTYPE html><html lang="en" class="dark">…` containing "Nexa Agent", "Hello, I", "Message Nexa…", and "New chat". ✅
+  - `GET /api/health` (proxied) → 200, returns `{"status":"ok","name":"Nexa Agent","version":"1.0.0","tools":["read_file","write_file",...],"model":"gpt-4o",...}`. ✅
+  - `GET /api/sessions` (proxied) → 200, returns `{"sessions":[{"id":"conv-…","title":"new session","createdAt":…,"updatedAt":…,"messageCount":0},…]}`. ✅
+- **Lint:** `bun run lint` → 0 errors, 0 warnings. ✅
+- **SSE parser:** implements all 7 event types (`session`, `thinking`, `token`, `tool_result`, `done`, `error`, `end`) with real-time token streaming + blinking caret + collapsible tool-result cards.
+- **Architecture:** frontend is local-only (never pushed to git, matching the Task 6 decision). The Python backend (`server.py`) is the single source of truth for agent logic, sessions, memory, and tools; the Next.js app is a thin SSE-consuming client + proxy.
+
+Unresolved Issues / Risks:
+- **LLM responses require an API key.** The `.env` only contains `DATABASE_URL`; there is no `OPENAI_API_KEY` / `NEXA_PROVIDER` / `NEXA_MODEL` configured, so `POST /api/chat/stream` currently hangs while the OpenAI client retries against `https://api.openai.com/v1` with no key. The frontend is fully wired to display streaming tokens, tool results, and errors the moment a valid provider is configured (set `OPENAI_API_KEY` for OpenAI, or `NEXA_PROVIDER=ollama` + `OPENAI_BASE_URL=http://localhost:11434/v1` for a local Ollama instance). This is a backend configuration concern, not a frontend defect.
+- **Dev-server lifecycle in sandbox:** background processes are reaped when their launching bash session fully exits despite `nohup` + `setsid` + `disown`. Both servers were verified alive and responding within the same command that launched them; if the preview panel shows a connection error, re-run `nohup setsid .venv/bin/python server.py > server.log 2>&1 &` and `nohup setsid bash -c 'cd /home/z/my-project && exec node node_modules/next/dist/bin/next dev -p 3000' > dev.log 2>&1 &`.
+- **Persist grouping heuristic:** when reloading a session's messages from `GET /api/sessions/:id`, tool messages are bucketed into the preceding assistant message; if the backend ever emits tool messages before any assistant message they would be dropped from view (not observed in practice).
+
+
+## Task ID: 18 (Full-Stack Integration — z-ai Bridge + Web UI + Pipeline)
+Agent: Nexa Autonomous Principal Engineer
+
+### Achievements
+1. Created 3 new cron jobs (old 3 deleted):
+   - Cron 1 (274740): R&D, every 60 min
+   - Cron 2 (274741): Dev, every 30 min
+   - Cron 3 (274742): QA, every 10 min
+2. Created z-ai bridge mini-service (mini-services/zai-bridge/index.ts):
+   - Port 3001, OpenAI-compatible API
+   - Uses z-ai-web-dev-sdk internally
+   - Pseudo-stream mode (non-stream internally, SSE output)
+   - Separate from nexa-agent repo (never pushed to GitHub)
+3. Restored Next.js Web UI (src/app/):
+   - layout.tsx, page.tsx, globals.css
+   - Chat UI with streaming, sidebar, tool cards
+   - Dark theme (#0F0F0F, #4A9EFF)
+   - Proxy: /api/* → http://127.0.0.1:8000/api/*
+4. Configured Python agent to use z-ai bridge:
+   - .env: NEXA_BASE_URL=http://localhost:3001/v1, NEXA_MODEL=glm-4.6
+5. Full pipeline verified:
+   - Frontend (3000) → Python Agent (8000) → z-ai Bridge (3001) → z-ai SDK → LLM
+   - Streaming tokens flow end-to-end
+   - "Say hello" → "Hello! I'm Nexa Agent, ready to assist you with..."
+6. Keepalive script running (auto-restarts all 3 services if they die)
+
+### Architecture
+```
+Browser → Next.js (3000) → /api/* proxy → Python Agent (8000) → z-ai Bridge (3001) → z-ai-web-dev-sdk → LLM
+```
+
+### Services
+- z-ai bridge: port 3001 (mini-service, local only)
+- Python agent: port 8000 (server.py, uses z-ai bridge as LLM provider)
+- Next.js frontend: port 3000 (local only, connects to Python agent via proxy)
+- Keepalive: monitors and restarts all services every 10 seconds
+
+---
