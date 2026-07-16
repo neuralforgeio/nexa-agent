@@ -126,7 +126,9 @@ class NexaAgent:
         transcript = self._build_transcript(user_input, history)
 
         accumulated: List[str] = []
-        async for event in run_conversation(self.provider, self.registry, transcript):
+        async for event in run_conversation(
+            self.provider, self.registry, transcript, db=self.db, user_input=user_input
+        ):
             if event["type"] == "token":
                 accumulated.append(event["text"])
             elif event["type"] == "tool_result":
