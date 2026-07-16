@@ -51,20 +51,25 @@ async def read_file(path: str, **_: Any) -> str:
         The file content as a string (truncated to 4000 chars if larger).
 
     Raises:
-        FileNotFoundError: If the file does not exist.
-        IsADirectoryError: If the path points to a directory.
-        ValueError: If the path escapes the workspace.
+        ValueError: If the path escapes the workspace or the file cannot be read.
     """
-    full = _resolve_in_workspace(path)
-    if full.is_dir():
-        raise IsADirectoryError(f"'{path}' is a directory, not a file")
-    size = full.stat().st_size
-    if size > 100_000:
-        raise ValueError(f"file too large ({size} bytes, max 100KB)")
-    content = full.read_text("utf-8")
-    if len(content) > 4000:
-        content = content[:4000] + f"\n…[truncated, {len(content)} chars total]"
-    return content
+    try:
+        full = _resolve_in_workspace(path)
+        if full.is_dir():
+            raise ValueError(f"'{path}' is a directory, not a file")
+        if not full.exists():
+            raise ValueError(f"file not found: '{path}'")
+        size = full.stat().st_size
+        if size > 100_000:
+            raise ValueError(f"file too large ({size} bytes, max 100KB)")
+        content = full.read_text("utf-8")
+        if len(content) > 4000:
+            content = content[:4000] + f"\n…[truncated, {len(content)} chars total]"
+        return content
+    except ValueError:
+        raise
+    except Exception as e:
+        raise ValueError(f"could not read '{path}': {e}")
 
 
 async def write_file(path: str, content: str, **_: Any) -> str:

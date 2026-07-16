@@ -46,6 +46,7 @@ console = Console()
 #: Available slash commands.
 SLASH_COMMANDS = {
     "/help": "Show available commands and providers",
+    "/tools": "Show all available tools with their schemas",
     "/clear": "Clear the current conversation and start fresh",
     "/model": "Show or change the current model",
     "/provider": "Show or change the LLM provider",
@@ -86,6 +87,46 @@ def print_help(agent: NexaAgent) -> None:
     console.print(f"\n[dim]Current: provider=[green]{agent.provider.base_url}[/green] model=[green]{agent.provider.model}[/green]\n")
 
 
+def _print_tools(agent: NexaAgent) -> None:
+    """
+    Display all registered tools with their names, descriptions, and parameter
+    schemas in a rich-formatted table.
+
+    Args:
+        agent: The active :class:`NexaAgent` instance with a tool registry.
+    """
+    from rich.table import Table
+
+    table = Table(title="🛠️  Nexa Agent Tools", border_style="cyan", show_lines=True)
+    table.add_column("Tool", style="cyan bold", no_wrap=True)
+    table.add_column("Description", style="white")
+    table.add_column("Parameters", style="dim")
+
+    for schema in agent.registry.get_openai_schemas():
+        fn = schema["function"]
+        name = fn["name"]
+        desc = fn["description"][:80] + ("…" if len(fn["description"]) > 80 else "")
+        params = fn["parameters"]
+        props = params.get("properties", {})
+        required = set(params.get("required", []))
+
+        if not props:
+            param_str = "[dim](none)[/dim]"
+        else:
+            parts = []
+            for pname, pinfo in props.items():
+                ptype = pinfo.get("type", "any")
+                req = " *" if pname in required else ""
+                parts.append(f"[cyan]{pname}[/cyan]({ptype}{req})")
+            param_str = ", ".join(parts)
+
+        table.add_row(name, desc, param_str)
+
+    console.print(table)
+    console.print(f"\n[dim]{len(agent.registry.list_names())} tools available. "
+                  f"The agent can call any of these via function-calling.[/dim]\n")
+
+
 async def handle_slash_command(cmd: str, agent: NexaAgent, db: ConversationDB) -> bool:
     """
     Handle a slash command. Returns True if the app should continue.
@@ -106,6 +147,8 @@ async def handle_slash_command(cmd: str, agent: NexaAgent, db: ConversationDB) -
         return False
     if command == "/help":
         print_help(agent)
+    elif command == "/tools":
+        _print_tools(agent)
     elif command == "/clear":
         console.clear()
         print_banner()
