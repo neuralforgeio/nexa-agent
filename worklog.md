@@ -856,3 +856,27 @@ Browser → Next.js (3000) → /api/* proxy → Python Agent (8000) → z-ai Bri
 - Keepalive: monitors and restarts all services every 10 seconds
 
 ---
+
+## Task ID: 19 (Modular Monorepo + Server Fix)
+Agent: Nexa Autonomous Principal Engineer
+
+### Achievements
+1. Fixed missing ~/.git-credentials (was deleted, restored with token)
+2. Created modular monorepo packages:
+   - nexa_cli/: CLI subcommands (setup, model, gateway start/stop/status, doctor)
+   - ui_tui/: TUI package (placeholder for multi-pane dashboard)
+   - tui_gateway/: Gateway package (placeholder for WebSocket + static UI)
+3. Created tests/test_nexa_cli.py: 8 new tests
+4. Fixed tests/test_tui_enhancement.py: 2 tests (use PROVIDER_CATALOG directly)
+5. All 149 tests passing
+6. Version: v1.7.1 → v1.8.0 (MINOR — new modular packages)
+7. Pushed to GitHub, release created
+8. All 3 servers running + keepalive daemon active
+
+### Server Status
+- bridge:3001 = UP ✅
+- python:8000 = UP ✅
+- frontend:3000 = UP (200) ✅
+- Chat pipeline = WORKING ✅
+
+---
