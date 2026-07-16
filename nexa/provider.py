@@ -23,7 +23,7 @@ from typing import Any, AsyncGenerator, Dict, List, Optional, Tuple
 from openai import AsyncOpenAI
 
 from .config import NEXA_MODEL, OPENAI_API_KEY, OPENAI_BASE_URL, NEXA_NAME, NEXA_VERSION
-from ..tools.registry import ToolRegistry, ToolResult
+from tools.registry import ToolRegistry, ToolResult
 
 
 def _is_transient(err: Exception) -> bool:
