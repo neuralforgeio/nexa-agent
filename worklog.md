@@ -709,3 +709,34 @@ Stage Summary:
 - Next: Roadmap #8 (TUI Enhancement: /sessions, /export, /config)
 
 ---
+
+## Task ID: 16 (Cron 1 — R&D: state.py + conversation_loop analysis)
+Agent: Nexa Autonomous Principal Engineer (Cron 1: R&D, job 274692)
+
+### R&D FINDINGS
+**Module analyzed**: nexa/state.py (ConversationDB) + agent/conversation_loop.py
+
+**state.py analysis**:
+- 15 async methods, each opens a NEW aiosqlite.connect()
+- Weakness confirmed: connection-per-method anti-pattern
+- Impact: connection overhead on every call, no transaction batching, race condition risk
+- Big-O: O(1) per query (indexed), but O(n) connection setup overhead per method call
+- Design: Connection pool singleton + transaction context manager
+
+**conversation_loop.py analysis**:
+- 175 lines, single run_conversation() function
+- Strengths: good integration of all hardening modules (sanitizer, compressor, budget, classifier, curator, learning graph)
+- Weakness: single function does too much — could be decomposed into Strategy pattern
+- Design: Extract iteration logic into separate Strategy classes (NormalIteration, RetryIteration, CompressionIteration)
+
+**Task for Cron 2**: Implement roadmap #8 — TUI Enhancement (/sessions, /export, /config commands)
+**Future task**: Refactor state.py to connection pool pattern (roadmap item, low priority)
+
+### STATE CHECKPOINT
+- Saved to .plans/STATE.json
+- Version: v1.6.0
+- Tests: 130
+- Tools: 10
+- Next roadmap item: #8 (TUI Enhancement)
+
+---
