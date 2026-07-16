@@ -261,4 +261,17 @@ def create_default_registry() -> ToolRegistry:
         description="Generate a random UUID v4 string.",
         parameters={"type": "object", "properties": {}, "required": []},
     )
+    # Register the delegate tool (sub-agent spawning).
+    from .delegate_tool import delegate, DELEGATE_SCHEMA
+    registry.register(
+        name="delegate",
+        fn=delegate,
+        description=(
+            "Spawn a sub-agent to handle a specific subtask in isolation. "
+            "The sub-agent gets its own context and tool access, then "
+            "returns a summary of its work. Use for breaking complex "
+            "tasks into smaller focused pieces."
+        ),
+        parameters=DELEGATE_SCHEMA,
+    )
     return registry

@@ -1,6 +1,6 @@
 [project]
 name = "nexa-agent"
-version = "1.2.0"
+version = "1.3.0"
 description = "Nexa Agent — The advanced AI agent by Dearly Febriano Irwansyah"
 authors = [{ name = "Dearly Febriano Irwansyah" }]
 license = "MIT"
