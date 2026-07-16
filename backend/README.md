@@ -1,88 +1,165 @@
 # Nexa Agent — Python Backend
 
-The Python backend is a standalone FastAPI service that mirrors the Hermes Agent
-architecture: agent loop with iterative tool calling, provider resolution,
-SQLite+FTS5 storage, and WebSocket streaming.
+> **The advanced AI agent by Dearly Febriano Irwansyah**
+> Version 1.0.0 · MIT License
+
+A standalone FastAPI backend that mirrors the Hermes Agent architecture: an
+iterative tool-calling agent loop, AsyncOpenAI streaming, SQLite+FTS5
+persistence, and a WebSocket gateway for real-time chat.
+
+## Features
+
+- **Iterative agent loop** — the LLM can call tools, see results, and continue
+  reasoning until it produces a final answer (up to 8 rounds per turn).
+- **Native OpenAI function-calling** — tools are exposed via the standard
+  `tools` parameter; the model calls them directly (no fragile text parsing).
+- **Streaming** — tokens stream to the client in real time over WebSocket.
+- **4 tools** — `read_file`, `write_file`, `run_terminal_command`, `generate_uuid`.
+- **Sandboxed** — file & terminal operations are confined to `nexa-workspace/`.
+- **SQLite persistence** — conversations and messages survive restarts.
+
+## Project Structure
+
+```
+backend/
+├── main.py              # FastAPI gateway (REST + WebSocket /ws/chat)
+├── agent.py             # NexaAgent — core loop (run_streaming)
+├── provider.py          # LLMProvider — AsyncOpenAI + streaming + tool dispatch
+├── storage.py           # ConversationDB — aiosqlite (conversations + messages)
+├── config.py            # Constants, env vars, NEXA_HOME resolution
+├── requirements.txt     # Python dependencies
+├── tools/
+│   ├── __init__.py
+│   ├── registry.py      # ToolRegistry + get_openai_schemas()
+│   ├── file_tools.py    # read_file, write_file (sandboxed)
+│   └── terminal_tool.py # run_terminal_command, generate_uuid
+├── .env.example         # Environment variable template
+└── README.md            # This file
+```
 
 ## Quick Start
+
+### 1. Install dependencies
 
 ```bash
 cd backend
 pip install -r requirements.txt
-
-# Set your API key
-export NEXA_API_KEY="sk-..."
-# Optional: custom OpenAI-compatible endpoint
-export NEXA_BASE_URL="https://openrouter.ai/api/v1"
-# Optional: model override
-export NEXA_MODEL="gpt-4o"
-
-# Run
-uvicorn nexa.main:app --reload --port 8000
 ```
 
-## Architecture
+### 2. Configure environment
 
-```
-backend/nexa/
-├── __init__.py
-├── constants.py          # NEXA_HOME, NEXA_VERSION, env vars
-├── agent.py              # NexaAgent — core loop (run_conversation + run_streaming)
-├── provider.py           # LLMProvider — AsyncOpenAI with retry/backoff + streaming
-├── state.py              # SQLite + FTS5 (conversations, messages, full-text search)
-├── memory.py             # ~/.nexa/memory/ manager (MEMORY.md, USER.md)
-├── main.py               # FastAPI gateway (REST + WebSocket)
-└── tools/
-    ├── __init__.py
-    ├── base.py           # NexaTool abstract class + ToolResult
-    ├── registry.py       # ToolRegistry + get_openai_schemas()
-    ├── builtin_tools.py  # echo, calculate, get_time, generate_uuid
-    ├── file_tools.py     # read_file, write_file, list_dir (sandboxed)
-    └── terminal_tool.py  # run_terminal_command (timeout + output cap)
+```bash
+cp .env.example .env
+# Edit .env and set your OPENAI_API_KEY
 ```
 
-## API Endpoints
+### 3. Run the server
+
+```bash
+uvicorn main:app --reload --port 8000
+```
+
+Or simply:
+
+```bash
+python main.py
+```
+
+The API will be available at `http://localhost:8000`.
+
+### 4. Test the WebSocket endpoint
+
+```python
+import asyncio
+import json
+import websockets
+
+async def test():
+    async with websockets.connect("ws://localhost:8000/ws/chat") as ws:
+        await ws.send(json.dumps({"conversation_id": None, "message": "Generate a UUID"}))
+        while True:
+            response = json.loads(await ws.recv())
+            print(response)
+            if response["type"] in ("done", "error"):
+                break
+
+asyncio.run(test())
+```
+
+## API Reference
+
+### REST Endpoints
 
 | Method | Path | Description |
-|---|---|---|
-| GET | `/api/conversations` | List all conversations |
-| POST | `/api/conversations` | Create a new conversation |
-| GET | `/api/conversations/:id` | Get conversation messages |
-| DELETE | `/api/conversations/:id` | Delete a conversation |
-| POST | `/api/chat` | Non-streaming chat |
-| GET | `/api/models` | List available models |
-| GET | `/api/health` | Health check |
-| WS | `/ws/chat` | WebSocket streaming chat |
+|--------|------|-------------|
+| `GET` | `/api/health` | Health check |
+| `GET` | `/api/conversations` | List all conversations |
+| `POST` | `/api/conversations` | Create a new conversation (`{"title": "..."}`) |
+| `GET` | `/api/conversations/{id}` | Get a conversation's messages |
+| `DELETE` | `/api/conversations/{id}` | Delete a conversation |
 
-## WebSocket Protocol
+### WebSocket Endpoint
 
-Send:
+**`WS /ws/chat`**
+
+**Send:**
 ```json
-{"message": "Generate a UUID", "conversation_id": null, "history": []}
+{"conversation_id": null, "message": "Hello, Nexa!"}
 ```
 
-Receive events:
+**Receive events:**
 ```json
+{"type": "session", "conversation_id": "conv-...", "is_new": true}
 {"type": "thinking"}
-{"type": "tool_call", "tool": "generate_uuid", "arguments": {}}
-{"type": "tool_result", "result": {"tool": "generate_uuid", "ok": true, "output": "..."}}
-{"type": "done", "answer": "Here's your UUID: ...", "iterations": 2}
+{"type": "token", "text": "Hello"}
+{"type": "token", "text": "!"}
+{"type": "tool_call", "name": "generate_uuid", "result": {"tool": "generate_uuid", "ok": true, "output": "...", "duration_ms": 1}}
+{"type": "done", "answer": "Here's your UUID: ..."}
+{"type": "error", "message": "..."}
 ```
 
 ## Environment Variables
 
-| Var | Default | Description |
-|---|---|---|
-| `NEXA_API_KEY` | — | OpenAI API key (or `OPENAI_API_KEY`) |
-| `NEXA_BASE_URL` | — | Custom OpenAI-compatible endpoint |
-| `NEXA_MODEL` | `gpt-4o` | Model to use |
-| `NEXA_HOME` | `~/.nexa` | Runtime home directory |
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `OPENAI_API_KEY` | *(required)* | Your OpenAI API key |
+| `OPENAI_BASE_URL` | *(optional)* | Custom OpenAI-compatible endpoint (e.g. OpenRouter) |
+| `NEXA_MODEL` | `gpt-4o` | The model to use |
+| `NEXA_HOME` | `~/.nexa` | Runtime home directory (DB, memory) |
 | `NEXA_WORKSPACE` | `./nexa-workspace` | File/terminal tool sandbox |
+
+## Architecture (adapted from Hermes Agent)
+
+```
+User Input
+    │
+    ▼
+NexaAgent.run_streaming()
+    │
+    ├─ Build system prompt (identity + tool catalog)
+    ├─ Build transcript (system + history + user input)
+    │
+    ▼
+LLMProvider.chat_stream()  ──── AsyncOpenAI (stream=True, tools=[...])
+    │
+    ├─ yield ("token", delta)          ──► WebSocket → frontend
+    │
+    ├─ if delta.tool_calls:
+    │     ├─ ToolRegistry.execute(name, **args)
+    │     ├─ yield ("tool_call", result) ──► WebSocket → frontend
+    │     └─ feed result back to LLM ──► loop
+    │
+    └─ yield ("done")
+    │
+    ▼
+ConversationDB.add_message()  ── SQLite persistence
+```
 
 ## Connecting the Next.js Frontend
 
-The frontend in `/src` can connect to this Python backend by pointing API
-requests to `http://localhost:8000`. Update `src/lib/api.ts` (or fetch calls)
-to use the Python backend URL instead of the built-in Next.js API routes.
+The Next.js frontend in `/src` can connect to this Python backend by
+pointing WebSocket/REST calls to `http://localhost:8000`.
 
-Copyright (c) 2026 Dearly Febriano Irwansyah · MIT License
+## License
+
+Copyright (c) 2026 Dearly Febriano Irwansyah. Released under the MIT License.
