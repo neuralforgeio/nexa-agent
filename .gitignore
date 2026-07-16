@@ -16,13 +16,16 @@ dist/
 *.tsbuildinfo
 next-env.d.ts
 
-# env
+# env files (never commit secrets)
 .env
-.env*.local
-.env.local
+.env*
+!.env.example
 
-# database (runtime data, not source)
-db/
+# database (runtime data)
+db/*.db
+db/*.db-journal
+db/*.db-wal
+db/*.db-shm
 
 # logs
 dev.log
@@ -36,17 +39,29 @@ nexa-workspace/
 upload/
 download/
 
-# test screenshots (not part of source)
+# test screenshots at repo root
 /nexa-*.png
+
+# python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+.python-version
 
 # panel defaults (not part of Nexa Agent source)
 skills/
 examples/
 Caddyfile
 
-# os
+# misc
 .DS_Store
 Thumbs.db
+*.zip
+.cache/
+coverage/
 
 # editor
 .vscode/
@@ -54,7 +69,5 @@ Thumbs.db
 *.swp
 *.swo
 
-# misc
-*.zip
-.cache/
-coverage/
+# vercel
+.vercel
