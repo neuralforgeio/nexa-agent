@@ -53,6 +53,7 @@ SLASH_COMMANDS = {
     "/provider": "Show or change the LLM provider",
     "/history": "Show conversation history",
     "/memories": "Show accumulated agent memories (learning store)",
+    "/memory": "Show memory files (MEMORY.md + USER.md). Usage: /memory [show|sync]",
     "/doctor": "Run self-health diagnostics",
     "/exit": "Exit Nexa Agent (or press Ctrl+D)",
 }
@@ -208,6 +209,31 @@ async def handle_slash_command(cmd: str, agent: NexaAgent, db: ConversationDB) -
                     f"[dim]({stars}, used {m['times_used']}x)[/dim]"
                 )
             console.print()
+    elif command == "/memory":
+        from agent.memory_files import (
+            read_memory_file, read_user_file, sync_db_to_files,
+            MEMORY_FILE, USER_FILE,
+        )
+        if arg == "sync":
+            # Sync DB memories to MEMORY.md file.
+            all_mems = await db.list_memories(limit=500)
+            sync_db_to_files(all_mems)
+            console.print(f"[green]Synced {len(all_mems)} memories to {MEMORY_FILE}[/green]\n")
+        elif arg == "show" or arg is None:
+            # Show both memory files.
+            mem_content = read_memory_file()
+            usr_content = read_user_file()
+            if mem_content:
+                console.print(Panel(mem_content, title=f"[magenta]MEMORY.md[/magenta]", border_style="magenta"))
+            else:
+                console.print(f"[dim]{MEMORY_FILE} does not exist yet.[/dim]")
+            if usr_content:
+                console.print(Panel(usr_content, title=f"[cyan]USER.md[/cyan]", border_style="cyan"))
+            else:
+                console.print(f"[dim]{USER_FILE} does not exist yet.[/dim]")
+            console.print()
+        else:
+            console.print("[yellow]Usage:[/yellow] /memory [show|sync]\n")
     elif command == "/doctor":
         console.print(Panel("[bold]Running self-health diagnostics...[/bold]", border_style="yellow"))
         health = SelfHealth(db)

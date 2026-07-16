@@ -4,12 +4,11 @@ Nexa Agent — Memory Curator (The "Getting Smarter" Loop)
 
 This module implements Nexa Agent's self-improvement system. After each
 conversation turn, the curator analyzes the exchange and distills durable
-insights into the memory store. Over time, the agent accumulates knowledge
-about the user's preferences, effective problem-solving patterns, and
-domain-specific facts — making it progressively smarter.
-
-Inspired by ``memory_manager`` and ``curator`` modules —
-original implementation.
+insights into both the SQLite memory store and the file-based memory
+system (``~/.nexa/memory/MEMORY.md`` and ``USER.md``). Over time, the
+agent accumulates knowledge about the user's preferences, effective
+problem-solving patterns, and domain-specific facts — making it
+progressively smarter.
 
 Memory kinds:
     insight     — A reusable problem-solving insight.
@@ -21,7 +20,8 @@ The curator runs the following pipeline after each turn:
     1. Extract candidate memories from the latest exchange.
     2. Deduplicate against existing memories (semantic similarity via FTS).
     3. Score and rank candidates by confidence.
-    4. Store the top candidates in the memories table.
+    4. Store the top candidates in the memories table (SQLite).
+    5. Append to the appropriate memory file (MEMORY.md or USER.md).
 
 Copyright (c) 2026 Dearly Febriano Irwansyah
 SPDX-License-Identifier: MIT
@@ -30,6 +30,7 @@ SPDX-License-Identifier: MIT
 import re
 from typing import Any, Dict, List, Optional
 
+from agent.memory_files import append_to_memory, append_to_user
 from nexa.state import ConversationDB
 
 
@@ -105,6 +106,15 @@ class MemoryCurator:
                     "confidence": candidate["confidence"],
                 }
             )
+            # Also persist to the file-based memory system.
+            # Preferences and facts go to USER.md; insights and skills go to MEMORY.md.
+            try:
+                if candidate["kind"] in ("preference", "fact"):
+                    append_to_user(candidate["content"], candidate["kind"])
+                else:
+                    append_to_memory(candidate["content"], candidate["kind"])
+            except Exception:
+                pass  # File write failure should not break the conversation.
             if len(new_memories) >= MAX_MEMORIES_PER_TURN:
                 break
 
@@ -209,23 +219,35 @@ class MemoryCurator:
         """
         Build a compact digest of current memories for the system prompt.
 
-        This is injected into the system prompt so the agent "remembers"
-        what it has learned across sessions.
+        This merges the SQLite memory store with the file-based memory
+        (MEMORY.md + USER.md) to provide the fullest context. The digest
+        is injected into the system prompt so the agent "remembers" what
+        it has learned across sessions.
 
         Args:
-            limit: Max memories to include.
+            limit: Max DB memories to include.
 
         Returns:
             A formatted string of memories, or empty string if none.
         """
-        memories = await self.db.list_memories(limit=limit)
-        if not memories:
-            return ""
+        from agent.memory_files import build_memory_file_digest
 
-        lines = ["## Agent memories (accumulated knowledge)"]
-        for m in memories:
-            confidence_bar = "★" * int(m["confidence"] * 5) or "·"
-            lines.append(
-                f"- [{m['kind']}] {m['content']} ({confidence_bar}, used {m['times_used']}x)"
-            )
-        return "\n".join(lines)
+        parts: List[str] = []
+
+        # DB memories.
+        memories = await self.db.list_memories(limit=limit)
+        if memories:
+            lines = ["## Agent memories (accumulated knowledge)"]
+            for m in memories:
+                confidence_bar = "★" * int(m["confidence"] * 5) or "·"
+                lines.append(
+                    f"- [{m['kind']}] {m['content']} ({confidence_bar}, used {m['times_used']}x)"
+                )
+            parts.append("\n".join(lines))
+
+        # File-based memories (MEMORY.md + USER.md).
+        file_digest = build_memory_file_digest()
+        if file_digest:
+            parts.append(file_digest)
+
+        return "\n\n".join(parts) if parts else ""
