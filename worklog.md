@@ -419,3 +419,46 @@ Stage Summary:
 - ZIP: nexa-agent-v1.1.0.zip (66KB, 36 files)
 
 ---
+
+## Task ID: 8
+Agent: Z.ai Code (cron setup + tests + /tools + server.py + v1.0.1 release)
+Task: Replace old cron with complex 30-min cycle, create tests/, add /tools TUI command, add server.py for web UI, version bump to v1.0.1, push.
+
+Work Log:
+- Deleted old cron job (273981, every 15 min) and created new complex cron job (274374, every 30 min, priority 10) with:
+  - Hermes Agent roadmap (10 items: context engine, FTS5 search, memory system, subagent delegation, prompt builder, terminal backends, more tools, TUI enhancement, provider failover, trajectory recording)
+  - Golden rules: No Test No Push, versioning (MAJOR/MINOR/PATCH), only Python to GitHub, deep docstrings, token safety
+  - Web UI testing instructions (agent-browser, Python server on port 8000)
+- Created tests/ folder with 22 pytest tests:
+  - tests/test_tool_registry.py: 14 tests (registry, schemas, UUID, file read/write, terminal exec, dangerous block, timeout)
+  - tests/test_error_classifier.py: 8 tests (429/503/401/403/400 classification, retry, context overflow)
+  - All 22 tests PASS
+- Added /tools command to cli.py:
+  - Rich table showing all 4 tools with name, description, parameters, required flags
+  - Uses rich.table.Table with cyan borders and show_lines
+- Created server.py (FastAPI SSE server for web UI integration):
+  - POST /api/chat/stream (SSE streaming, maps agent events to frontend format)
+  - POST /api/chat (persist mode)
+  - GET/POST/DELETE /api/sessions (camelCase for frontend compat)
+  - GET/POST/DELETE /api/memory
+  - GET /api/export/{id} (markdown export)
+  - GET /api/doctor (self-health)
+  - Runs on port 8000
+- Updated next.config.ts with rewrite rule: /api/* → http://127.0.0.1:8000/api/*
+  - This proxies all frontend API calls to the Python agent server
+  - Frontend stays local (not pushed to GitHub)
+- Fixed tools/file_tools.py: read_file now catches FileNotFoundError gracefully
+- Updated requirements.txt with all deps (fastapi, uvicorn, rich, prompt_toolkit, tenacity, httpx, pyyaml, pytest)
+- Version bump: 1.0.0 → 1.0.1 (PATCH)
+- Git: commit 945e0f6, tag v1.0.1, pushed to GitHub
+- GitHub release: https://github.com/neuralforgeio/nexa-agent/releases/tag/v1.0.1
+- ZIP: nexa-agent-v1.0.1.zip (75KB, 41 files)
+
+Stage Summary:
+- **Status: v1.0.1 RELEASED.** 22 tests passing, /tools command working, server.py for web UI, complex cron job active.
+- Cron: job 274374, every 30 min, will autonomously deepen Hermes features (FTS5 search, memory system, subagent delegation, etc.)
+- Web UI: Next.js proxies /api/* to Python server (port 8000). Testing web UI = testing Python agent.
+- GitHub: only Python files pushed (41 files, 0 frontend, 0 panel artifacts)
+- Token: safe in ~/.git-credentials, not in any tracked file
+
+---
