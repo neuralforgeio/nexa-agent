@@ -49,11 +49,26 @@ function rowToMessage(row: {
 }
 
 export async function POST(req: NextRequest) {
-  let body: { sessionId?: string; message?: string };
+  let body: {
+    sessionId?: string;
+    message?: string;
+    action?: string;
+    userMessage?: string;
+    assistantAnswer?: string;
+    toolResults?: Array<{ tool: string; output: string }>;
+    title?: string;
+  };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
+
+  // Persist-only mode: save a completed streaming turn without running the agent.
+  // This reuses this route's working Prisma connection (new route chunks have a
+  // Turbopack SQLite readonly issue in dev mode).
+  if (body.action === "persist") {
+    return persistTurn(body);
   }
 
   const message = (body.message ?? "").trim();
@@ -145,4 +160,74 @@ export async function POST(req: NextRequest) {
     steps: result.steps,
     iterations: result.iterations,
   });
+}
+
+/**
+ * Persist a completed streaming turn to the database without running the agent.
+ * Called by the frontend after /api/chat/stream finishes.
+ */
+async function persistTurn(body: {
+  sessionId?: string;
+  userMessage?: string;
+  assistantAnswer?: string;
+  toolResults?: Array<{ tool: string; output: string }>;
+  title?: string;
+}): Promise<Response> {
+  const userMessage = (body.userMessage ?? "").trim();
+  const assistantAnswer = body.assistantAnswer ?? "";
+  const toolResults = body.toolResults ?? [];
+  let sessionId = body.sessionId ?? "";
+
+  if (!userMessage && !assistantAnswer) {
+    return NextResponse.json(
+      { error: "userMessage or assistantAnswer is required" },
+      { status: 400 }
+    );
+  }
+
+  // Resolve or create the session.
+  if (!sessionId) {
+    const created = await db.nexaSession.create({
+      data: { title: body.title ?? deriveTitle(userMessage) },
+    });
+    sessionId = created.id;
+  } else {
+    const exists = await db.nexaSession.findUnique({ where: { id: sessionId } });
+    if (!exists) {
+      const created = await db.nexaSession.create({
+        data: { title: body.title ?? deriveTitle(userMessage) },
+      });
+      sessionId = created.id;
+    }
+  }
+
+  // Save user message.
+  if (userMessage) {
+    await db.nexaMessage.create({
+      data: { sessionId, role: "user", content: userMessage },
+    });
+  }
+  // Save tool results.
+  for (const tr of toolResults) {
+    await db.nexaMessage.create({
+      data: {
+        sessionId,
+        role: "tool",
+        content: tr.output,
+        toolName: tr.tool,
+      },
+    });
+  }
+  // Save assistant answer.
+  if (assistantAnswer) {
+    await db.nexaMessage.create({
+      data: { sessionId, role: "assistant", content: assistantAnswer },
+    });
+  }
+  await db.nexaSession.update({
+    where: { id: sessionId },
+    data: { updatedAt: new Date() },
+  });
+
+  return NextResponse.json({ ok: true, sessionId });
 }

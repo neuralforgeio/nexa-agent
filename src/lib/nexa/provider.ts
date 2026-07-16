@@ -103,6 +103,137 @@ export class LLMProvider {
     throw new Error(message);
   }
 
+  /**
+   * Stream a chat completion token-by-token. Yields content deltas as they
+   * arrive. Falls back to pseudo-streaming (chunking the full response) if
+   * the SDK does not return an async iterable when `stream: true` is set.
+   */
+  async *chatCompletionStream(
+    options: ChatCompletionOptions
+  ): AsyncGenerator<string, void, unknown> {
+    const client = (await getClient()) as {
+      chat: {
+        completions: {
+          create: (args: {
+            messages: { role: string; content: string }[];
+            thinking?: { type: "enabled" | "disabled" };
+            stream?: boolean;
+          }) => Promise<unknown>;
+        };
+      };
+    };
+
+    const messages = options.messages.map((m) => ({
+      role: m.role,
+      content: m.content,
+    }));
+
+    // Attempt 1: true streaming via SDK.
+    try {
+      const result = await client.chat.completions.create({
+        messages,
+        thinking: { type: options.thinking ? "enabled" : "disabled" },
+        stream: true,
+      });
+      // Determine the streaming response shape and handle accordingly.
+      const isIterable = result && typeof (result as AsyncIterable<unknown>)[Symbol.asyncIterator] === "function";
+      const isResponse = typeof Response !== "undefined" && result instanceof Response;
+      const isReadableStream = typeof ReadableStream !== "undefined" && result instanceof ReadableStream;
+
+      // Case A: Response object — read its body as SSE stream.
+      if (isResponse && result.body) {
+        const reader = (result as Response).body!.getReader();
+        const decoder = new TextDecoder();
+        let sseBuffer = "";
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          sseBuffer += decoder.decode(value, { stream: true });
+          const lines = sseBuffer.split("\n");
+          sseBuffer = lines.pop() ?? "";
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed.startsWith("data:")) continue;
+            const data = trimmed.slice(5).trim();
+            if (data === "[DONE]") return;
+            try {
+              const parsed = JSON.parse(data);
+              const delta = extractDelta(parsed);
+              if (delta) yield delta;
+            } catch {
+              /* skip non-JSON SSE line */
+            }
+          }
+        }
+        return;
+      }
+
+      // Case B: ReadableStream — decode and parse as SSE.
+      if (isReadableStream) {
+        const reader = (result as ReadableStream<Uint8Array>).getReader();
+        const decoder = new TextDecoder();
+        let sseBuffer = "";
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          sseBuffer += decoder.decode(value, { stream: true });
+          const lines = sseBuffer.split("\n");
+          sseBuffer = lines.pop() ?? "";
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed.startsWith("data:")) continue;
+            const data = trimmed.slice(5).trim();
+            if (data === "[DONE]") return;
+            try {
+              const parsed = JSON.parse(data);
+              const delta = extractDelta(parsed);
+              if (delta) yield delta;
+            } catch {
+              /* skip */
+            }
+          }
+        }
+        return;
+      }
+
+      // Case C: async-iterable of objects/strings.
+      if (isIterable) {
+        for await (const chunk of result as AsyncIterable<unknown>) {
+          if (typeof chunk === "string") {
+            if (chunk) yield chunk;
+          } else {
+            const delta = extractDelta(chunk);
+            if (delta) yield delta;
+          }
+        }
+        return;
+      }
+      // If result is a string, pseudo-stream it directly.
+      if (typeof result === "string" && result.length > 0) {
+        yield* pseudoStream(result);
+        return;
+      }
+      // If SDK returned a full response despite stream:true, fall through to pseudo-stream.
+      const fullContent = extractFullContent(result);
+      if (fullContent) {
+        yield* pseudoStream(fullContent);
+        return;
+      }
+    } catch (err) {
+      // If streaming failed with a transient error, the non-stream retry in
+      // chatCompletion will handle it. For non-transient, fall through to pseudo.
+      if (isTransientError(err)) {
+        // Let the non-stream path handle retries.
+      } else {
+        throw err;
+      }
+    }
+
+    // Attempt 2: fallback — non-streaming call, then pseudo-stream the result.
+    const response = await this.chatCompletion(options);
+    yield* pseudoStream(response.content);
+  }
+
   /** Stamp the system prompt with Nexa identity. */
   static buildSystemPrompt(body: string): string {
     return [
@@ -129,4 +260,40 @@ function isTransientError(err: unknown): boolean {
   if (/gateway timeout/i.test(text)) return true;
   if (/ECONNRESET|ETIMEDOUT|fetch failed/i.test(text)) return true;
   return false;
+}
+
+/** Extract a text delta from a streamed chunk (tolerant of multiple shapes). */
+function extractDelta(chunk: unknown): string {
+  if (!chunk || typeof chunk !== "object") return "";
+  const c = chunk as {
+    choices?: { delta?: { content?: string }; message?: { content?: string } }[];
+    content?: string;
+    response?: string;
+  };
+  const choice = c.choices?.[0];
+  if (choice) {
+    return choice.delta?.content ?? choice.message?.content ?? "";
+  }
+  return c.content ?? c.response ?? "";
+}
+
+/** Extract full content from a non-streamed response object. */
+function extractFullContent(result: unknown): string {
+  if (!result || typeof result !== "object") return "";
+  const r = result as {
+    choices?: { message?: { content?: string } }[];
+    content?: string;
+  };
+  return r.choices?.[0]?.message?.content ?? r.content ?? "";
+}
+
+/** Yield a string in small chunks to simulate token streaming. */
+async function* pseudoStream(text: string): AsyncGenerator<string, void, unknown> {
+  if (!text) return;
+  // Chunk by ~3-word groups for a natural typing feel.
+  const tokens = text.match(/\S+\s*/g) ?? [text];
+  for (const tok of tokens) {
+    yield tok;
+    await new Promise((r) => setTimeout(r, 18));
+  }
 }

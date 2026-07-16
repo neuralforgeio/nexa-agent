@@ -22,20 +22,11 @@ import { Transcript } from "@/components/nexa/transcript";
 import { NEXA_DEFAULT_MODEL, NEXA_VERSION } from "@/lib/nexa/constants";
 import type { AgentStep, NexaMessage } from "@/lib/nexa/types";
 
-interface ChatResponse {
-  sessionId: string;
-  isNew: boolean;
-  answer: string;
-  steps: AgentStep[];
-  iterations: number;
-  error?: string;
-  detail?: string;
-}
-
 export default function Home() {
   const [activeSession, setActiveSession] = useState<string | null>(null);
   const [messages, setMessages] = useState<NexaMessage[]>([]);
   const [pendingSteps, setPendingSteps] = useState<AgentStep[]>([]);
+  const [streamingText, setStreamingText] = useState("");
   const [thinking, setThinking] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [memoryOpen, setMemoryOpen] = useState(false);
@@ -198,6 +189,7 @@ export default function Home() {
     async (text: string) => {
       if (thinking) return;
 
+      // Optimistic user message.
       const optimistic: NexaMessage = {
         id: `tmp-${Date.now()}`,
         role: "user",
@@ -206,10 +198,21 @@ export default function Home() {
       };
       setMessages((m) => [...m, optimistic]);
       setPendingSteps([]);
+      setStreamingText("");
       setThinking(true);
 
+      // Streaming assistant placeholder.
+      const asstId = `asst-${Date.now()}`;
+      const placeholder: NexaMessage = {
+        id: asstId,
+        role: "assistant",
+        content: "",
+        createdAt: new Date().toISOString(),
+      };
+      setMessages((m) => [...m, placeholder]);
+
       try {
-        const res = await fetch("/api/chat", {
+        const res = await fetch("/api/chat/stream", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -217,82 +220,150 @@ export default function Home() {
             message: text,
           }),
         });
-        const data: ChatResponse = await res.json();
 
-        if (!res.ok) {
-          setMessages((m) => [
-            ...m,
-            {
-              id: `err-${Date.now()}`,
-              role: "assistant",
-              content: `⚠️ ${data.error ?? "request failed"}\n${data.detail ?? ""}`.trim(),
-              createdAt: new Date().toISOString(),
-            },
-          ]);
+        if (!res.ok || !res.body) {
+          const errText = await res.text().catch(() => "request failed");
+          setMessages((m) =>
+            m.map((msg) =>
+              msg.id === asstId
+                ? {
+                    ...msg,
+                    content: `⚠️ ${errText}`,
+                  }
+                : msg
+            )
+          );
           setThinking(false);
           return;
         }
 
-        if (data.isNew || !activeSession) {
-          setActiveSession(data.sessionId);
-        }
-        setRefreshKey((k) => k + 1);
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        let acc = "";
+        let finalAnswer = "";
+        const collectedTools: Array<{ tool: string; output: string }> = [];
 
-        const toolSteps = data.steps.filter(
-          (s) => s.kind === "tool_call" || s.kind === "tool_result"
-        );
-        if (toolSteps.length > 0) {
-          setPendingSteps([]);
-          for (let i = 0; i < toolSteps.length; i++) {
-            await delay(280);
-            setPendingSteps((prev) => [...prev, toolSteps[i]]);
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          // SSE events are separated by \n\n
+          const parts = buffer.split("\n\n");
+          buffer = parts.pop() ?? "";
+          for (const part of parts) {
+            const line = part.trim();
+            if (!line.startsWith("data: ")) continue;
+            const json = line.slice(6);
+            try {
+              const ev = JSON.parse(json);
+              if (ev.type === "thinking") {
+                setStreamingText("");
+              } else if (ev.type === "token") {
+                acc += ev.text;
+                setStreamingText(acc);
+                setMessages((m) =>
+                  m.map((msg) =>
+                    msg.id === asstId ? { ...msg, content: acc } : msg
+                  )
+                );
+              } else if (ev.type === "tool_call") {
+                setPendingSteps((prev) => [
+                  ...prev,
+                  {
+                    kind: "tool_call",
+                    toolRequest: ev.toolRequest,
+                    at: new Date().toISOString(),
+                  },
+                ]);
+              } else if (ev.type === "tool_result") {
+                collectedTools.push({
+                  tool: ev.toolResult.tool,
+                  output: ev.toolResult.output,
+                });
+                setPendingSteps((prev) => [
+                  ...prev,
+                  {
+                    kind: "tool_result",
+                    toolResult: ev.toolResult,
+                    at: new Date().toISOString(),
+                  },
+                ]);
+                // Reset accumulator for the next LLM round (after tool exec).
+                acc = "";
+                setStreamingText("");
+              } else if (ev.type === "done") {
+                finalAnswer = ev.answer;
+                setMessages((m) =>
+                  m.map((msg) =>
+                    msg.id === asstId
+                      ? { ...msg, content: ev.answer }
+                      : msg
+                  )
+                );
+              } else if (ev.type === "error") {
+                finalAnswer = `[Nexa] ${ev.message}`;
+                setMessages((m) =>
+                  m.map((msg) =>
+                    msg.id === asstId
+                      ? { ...msg, content: `⚠️ ${ev.message}` }
+                      : msg
+                  )
+                );
+              }
+            } catch {
+              /* skip malformed event */
+            }
           }
-          await delay(200);
         }
 
+        // Persist the completed turn to the database (separated from streaming
+        // to avoid the Turbopack SQLite readonly issue in the stream chunk).
         setPendingSteps([]);
+        setStreamingText("");
         try {
-          const sres = await fetch(`/api/sessions/${data.sessionId}`, {
-            cache: "no-store",
+          const pres = await fetch("/api/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              action: "persist",
+              sessionId: activeSession ?? undefined,
+              userMessage: text,
+              assistantAnswer: finalAnswer,
+              toolResults: collectedTools,
+            }),
           });
-          if (sres.ok) {
-            const sdata = await sres.json();
-            setMessages((sdata.messages ?? []) as NexaMessage[]);
-          } else {
-            setMessages((m) => [
-              ...m,
-              {
-                id: `asst-${data.sessionId}-${Date.now()}`,
-                role: "assistant",
-                content: data.answer,
-                createdAt: new Date().toISOString(),
-              },
-            ]);
+          if (pres.ok) {
+            const pdata = await pres.json();
+            if (pdata.sessionId) {
+              setActiveSession(pdata.sessionId);
+              setRefreshKey((k) => k + 1);
+              // Reload the authoritative transcript.
+              const sres = await fetch(`/api/sessions/${pdata.sessionId}`, {
+                cache: "no-store",
+              });
+              if (sres.ok) {
+                const sdata = await sres.json();
+                setMessages((sdata.messages ?? []) as NexaMessage[]);
+              }
+            }
           }
         } catch {
-          setMessages((m) => [
-            ...m,
-            {
-              id: `asst-${data.sessionId}-${Date.now()}`,
-              role: "assistant",
-              content: data.answer,
-              createdAt: new Date().toISOString(),
-            },
-          ]);
+          /* keep optimistic state if persistence fails */
         }
       } catch (err) {
-        const text = err instanceof Error ? err.message : String(err);
-        setMessages((m) => [
-          ...m,
-          {
-            id: `err-${Date.now()}`,
-            role: "assistant",
-            content: `⚠️ network error: ${text}`,
-            createdAt: new Date().toISOString(),
-          },
-        ]);
+        const errText = err instanceof Error ? err.message : String(err);
+        setMessages((m) =>
+          m.map((msg) =>
+            msg.id === asstId
+              ? { ...msg, content: `⚠️ network error: ${errText}` }
+              : msg
+          )
+        );
       } finally {
         setThinking(false);
+        setPendingSteps([]);
+        setStreamingText("");
       }
     },
     [activeSession, thinking]
@@ -423,6 +494,7 @@ export default function Home() {
                 pendingSteps={pendingSteps}
                 thinking={thinking}
                 welcome={welcome}
+                streaming={thinking && streamingText.length > 0}
               />
             </div>
             <Composer onSend={send} disabled={thinking} thinking={thinking} />
@@ -495,8 +567,4 @@ export default function Home() {
       />
     </div>
   );
-}
-
-function delay(ms: number) {
-  return new Promise((r) => setTimeout(r, ms));
 }

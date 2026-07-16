@@ -23,6 +23,7 @@ import type {
   AgentTurnResult,
   NexaMessage,
   ProviderMessage,
+  StreamEvent,
   ToolRequest,
 } from "./types";
 import { NexaTool } from "./tools/base";
@@ -230,6 +231,14 @@ function stripToolMarkup(content: string): string {
   return stripped;
 }
 
+/** Check if a delta is pure tool-call markup (so we skip forwarding it as a token). */
+function isPureMarkup(delta: string): boolean {
+  const trimmed = delta.trim();
+  if (!trimmed) return true;
+  // Deltas that are only tags, braces, or JSON punctuation.
+  return /^<\/?tool_call>|^[\s{}[\]",:]+$/.test(trimmed);
+}
+
 export interface NexaAgentOptions {
   provider?: LLMProvider;
   tools?: NexaTool[];
@@ -328,6 +337,98 @@ export class NexaAgent {
       `[${NEXA_NAME}] reached the tool-call iteration cap (${NEXA_MAX_TOOL_ITERATIONS}).`;
     steps.push({ kind: "answer", text: answer, at: now() });
     return { answer, steps, iterations };
+  }
+
+  /**
+   * Streaming variant of runConversation. Yields events as they happen:
+   *   { type: "thinking" }
+   *   { type: "token", text: "..." }       — content deltas
+   *   { type: "tool_call", toolRequest }
+   *   { type: "tool_result", toolResult }
+   *   { type: "done", answer, steps, iterations }
+   *   { type: "error", message }
+   *
+   * The caller is responsible for persisting messages — this method only
+   * runs the loop and emits events so the UI can render live.
+   */
+  async *runStreaming(
+    userInput: string,
+    history: NexaMessage[] = []
+  ): AsyncGenerator<StreamEvent, void, unknown> {
+    const steps: AgentStep[] = [];
+    const now = () => new Date().toISOString();
+
+    try {
+      const systemPrompt = await this.buildSystemPrompt();
+      const transcript: ProviderMessage[] = [
+        { role: "system", content: systemPrompt },
+      ];
+      const trimmed = history.slice(-NEXA_MAX_CONTEXT_MESSAGES);
+      for (const m of trimmed) {
+        if (m.role === "system") continue;
+        transcript.push({ role: m.role, content: m.content });
+      }
+      transcript.push({ role: "user", content: userInput });
+
+      yield { type: "thinking" as const };
+
+      let iterations = 0;
+      let lastContent = "";
+
+      while (iterations < NEXA_MAX_TOOL_ITERATIONS) {
+        iterations += 1;
+        let accumulated = "";
+        // Stream tokens from the provider, accumulate, and forward to UI.
+        for await (const delta of this.provider.chatCompletionStream({
+          messages: transcript,
+          thinking: false,
+        })) {
+          accumulated += delta;
+          // Forward deltas that aren't pure tool-call markup.
+          if (delta && !isPureMarkup(delta)) {
+            yield { type: "token" as const, text: delta };
+          }
+        }
+        lastContent = accumulated;
+
+        const toolRequest = parseToolCall(accumulated);
+        if (!toolRequest) {
+          const answer =
+            stripToolMarkup(accumulated) ||
+            "[Nexa] I tried to call a tool but the request was malformed. Please rephrase and try again.";
+          steps.push({ kind: "answer", text: answer, at: now() });
+          yield {
+            type: "done" as const,
+            answer,
+            steps,
+            iterations,
+          };
+          return;
+        }
+
+        steps.push({ kind: "tool_call", toolRequest, at: now() });
+        yield { type: "tool_call" as const, toolRequest };
+
+        const result = await this.registry.execute(toolRequest);
+        steps.push({ kind: "tool_result", toolResult: result, at: now() });
+        yield { type: "tool_result" as const, toolResult: result };
+
+        transcript.push({ role: "assistant", content: accumulated });
+        transcript.push({
+          role: "tool",
+          content: `Tool '${result.tool}' returned (ok=${result.ok}, ${result.durationMs}ms):\n${result.output}`,
+        });
+      }
+
+      const answer =
+        stripToolMarkup(lastContent) ||
+        `[${NEXA_NAME}] reached the tool-call iteration cap (${NEXA_MAX_TOOL_ITERATIONS}).`;
+      steps.push({ kind: "answer", text: answer, at: now() });
+      yield { type: "done" as const, answer, steps, iterations };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      yield { type: "error" as const, message };
+    }
   }
 
   /** Compose the system prompt: identity, tool catalog, memory digest. */
