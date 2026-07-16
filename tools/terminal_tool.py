@@ -48,9 +48,13 @@ async def run_terminal_command(command: str, **_: Any) -> str:
         A formatted string containing the exit code, stdout, and stderr.
 
     Raises:
-        ValueError: If the command matches a blocked pattern.
+        ValueError: If the command is empty or matches a blocked pattern.
         asyncio.TimeoutError: If the command does not finish in 15 seconds.
     """
+    # Reject empty or whitespace-only commands.
+    if not command or not command.strip():
+        raise ValueError("command is empty or whitespace-only")
+
     lower = command.lower()
     for bad in BLOCKED_PATTERNS:
         if bad in lower:

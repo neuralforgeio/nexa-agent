@@ -132,6 +132,22 @@ async def test_terminal_command_blocks_dangerous(registry: ToolRegistry) -> None
 
 
 @pytest.mark.asyncio
+async def test_terminal_command_rejects_empty(registry: ToolRegistry) -> None:
+    """run_terminal_command must reject empty or whitespace-only commands."""
+    result = await registry.execute("run_terminal_command", command="")
+    assert result.ok is False
+    assert "empty" in result.output.lower()
+
+
+@pytest.mark.asyncio
+async def test_terminal_command_rejects_whitespace(registry: ToolRegistry) -> None:
+    """run_terminal_command must reject whitespace-only commands."""
+    result = await registry.execute("run_terminal_command", command="   ")
+    assert result.ok is False
+    assert "empty" in result.output.lower() or "whitespace" in result.output.lower()
+
+
+@pytest.mark.asyncio
 async def test_terminal_command_timeout(registry: ToolRegistry) -> None:
     """run_terminal_command must timeout on long-running commands."""
     result = await registry.execute("run_terminal_command", command="sleep 30")
