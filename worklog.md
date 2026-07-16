@@ -239,3 +239,48 @@ Unresolved Issues / Risks:
 - Context compression not yet implemented (recommendation for next phase).
 
 ---
+
+## Task ID: 5
+Agent: Z.ai Code (Python backend + UI fix + GitHub push)
+Task: Fix unreadable text, build Python backend, push to GitHub with token, create tags & releases.
+
+Work Log:
+- **UI Fix — Suggestion Chips Readability**:
+  - Root cause: chips used `text-secondary` (#9A9A9A) on `bg-secondary` (#181818) — low contrast, appeared as blank rectangles.
+  - Fix: changed to `text-foreground/80` on `bg-tertiary` (#212121), larger text (13px), blue icons (`text-primary`), bigger padding (px-4 py-2).
+  - Added `showSuggestions` prop — chips now only show in empty/welcome state, disappear once chat starts (ChatGPT behavior).
+  - Verified via agent-browser: all 4 chip labels now readable ("What time is it in Tokyo?", "Calculate (128 × 9) + 14.5", etc.).
+
+- **Python Backend (backend/)**:
+  - Created standalone FastAPI implementation mirroring Hermes architecture:
+    - `nexa/agent.py` — NexaAgent with `run_conversation()` (non-streaming) + `run_streaming()` (async generator yielding events)
+    - `nexa/provider.py` — LLMProvider wrapping AsyncOpenAI with retry/backoff + streaming via `stream=True`
+    - `nexa/state.py` — SQLite + FTS5 (conversations, messages, full-text search via virtual table + triggers)
+    - `nexa/memory.py` — MemoryManager for ~/.nexa/memory/MEMORY.md and USER.md
+    - `nexa/tools/` — 8 tools: echo, calculate, get_time, generate_uuid, read_file, write_file, list_dir, run_terminal_command
+    - `nexa/main.py` — FastAPI gateway: REST endpoints + WebSocket `/ws/chat` for streaming
+    - `pyproject.toml` + `requirements.txt` + `README.md`
+  - Python syntax validated (ast.parse on all modules)
+
+- **GitHub Push**:
+  - Set up git credential store: token saved in `~/.git-credentials` (chmod 600, OUTSIDE repo, never pushed)
+  - Verified: `git grep "ghp_"` → 0 results in tracked files (token NOT in repo)
+  - Force pushed main branch (overwrote auto-generated README on remote)
+  - Pushed tag `v1.0.0`
+  - Created GitHub Release v1.0.0 via API with full release notes
+  - Release URL: https://github.com/neuralforgeio/nexa-agent/releases/tag/v1.0.0
+
+Stage Summary:
+- **Status: PUSHED & RELEASED.** Nexa Agent v1.0.0 is live on GitHub with both TypeScript (Next.js) and Python (FastAPI) backends.
+- Repo: https://github.com/neuralforgeio/nexa-agent
+- Release: https://github.com/neuralforgeio/nexa-agent/releases/tag/v1.0.0
+- Token stored securely in ~/.git-credentials for future pushes (never in repo files)
+- UI readability fixed (suggestion chips now clearly visible)
+- 119 source files committed, 0 panel-default files, 0 token leaks
+
+Unresolved Issues / Risks:
+- Dev server instability after manual restarts (Turbopack + Prisma SQLite issue). Original environment-managed server works fine.
+- Python backend is standalone (not running in this environment) — user can run it separately with `uvicorn nexa.main:app --port 8000`
+- Frontend currently uses Next.js API routes (TypeScript backend). To use Python backend, update fetch URLs to point to localhost:8000.
+
+---
