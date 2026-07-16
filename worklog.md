@@ -133,3 +133,69 @@ Priority Recommendations for Next Phase:
 - **Token/cost estimator**: show approximate token usage per turn in the status bar.
 
 ---
+
+## Task ID: 3
+Agent: Z.ai Code (user-directed Phase 2 + UI redesign + GitHub release)
+Task: Implement file & terminal tools (Phase 2), redesign UI to ChatGPT/Z.ai style, integrate Nexa logo, prepare GitHub release with zip.
+
+Work Log:
+- **Backend Phase 2 — File & Terminal Tools**:
+  - Created `src/lib/nexa/tools/fs-tools.ts` with 4 tools:
+    - `ReadFileTool` — reads text files from a sandboxed workspace (path escape prevention, 100KB/4000-char caps)
+    - `WriteFileTool` — writes files (creates parent dirs, overwrites existing)
+    - `ListDirTool` — lists directory entries with file/folder icons
+    - `RunTerminalCommandTool` — executes shell commands via `spawn` (15s timeout, 2000-char output cap, blocked dangerous patterns like `rm -rf /`, `mkfs`, `shutdown`)
+  - Added `NEXA_WORKSPACE` constant (sandboxed to `nexa-workspace/` directory)
+  - Added `getOpenAiSchemas()` method to `ToolRegistry` — returns OpenAI function-calling format (`{type:"function", function:{name, description, parameters}}`)
+  - Registered all 4 new tools in `createDefaultToolSet()` → **18 tools total**
+  - Wired `setActiveSessionId()` in chat API route so notes tools know the active session
+
+- **UI Redesign — ChatGPT/Z.ai Style**:
+  - Rewrote `globals.css` with the exact design system from user spec:
+    - Dark: `--bg-primary:#0F0F0F`, `--bg-secondary:#181818`, `--bg-tertiary:#212121`, `--accent-primary:#4A9EFF`
+    - Light: `--bg-primary:#FFF`, `--accent-primary:#2563EB`
+    - Inter + JetBrains Mono fonts, 6/8/12/16px radius scale
+  - Updated `layout.tsx`: Inter + JetBrains Mono via next/font, Nexa logo in metadata/icons/OG
+  - Redesigned `sidebar.tsx`: clean brand header with logo, "New chat" pill button, search bar, sessions grouped by date (Today/Yesterday/Previous 7 Days/Older), hover-reveal export/rename/delete actions, footer with clear-all + author
+  - Redesigned `message-block.tsx`: user messages as right-aligned rounded bubbles, assistant messages full-width (no bubble) with logo + name, per-message hover actions (copy/regenerate/like/dislike)
+  - Redesigned `markdown.tsx`: code blocks with language label header + copy button, GitHub-flavored tables, styled links/headings/lists/blockquotes
+  - Redesigned `tool-step.tsx`: collapsible tool-call cards with accent-subtle background, status dot (success/error), duration display
+  - Redesigned `composer.tsx`: pill-shaped (24px radius), "+" menu button, auto-grow textarea, send button (accent circle), suggestion chips, "Nexa can make mistakes" hint
+  - Redesigned `transcript.tsx`: empty state with large logo + "Halo, saya Nexa" greeting + tagline, thinking dots animation, tool-call counter badge
+  - Redesigned `status-bar.tsx`: slim, model name, session id, message count, ready/running/error status
+  - Redesigned `page.tsx`: 3-column layout (sidebar 260px + main + optional panels), slim header with editable title + model selector pill + ⌘K/theme/notes/memory toggles, removed boot sequence (clean ChatGPT-style)
+
+- **Logo Integration**:
+  - Copied `upload/nexa-agent.png` → `public/nexa-agent.png`
+  - Used in: sidebar header, assistant message avatar, empty state, layout metadata (favicon, apple icon, OG image)
+
+- **Bug Fix — Malformed JSON tool calls**:
+  - The model produced `"arguments {` (missing colon) which broke JSON parsing
+  - Added `repairJson()` function that fixes missing colons (`"key" {` → `"key": {`) and trailing commas
+  - Updated `safeParseRequest()` to try strict JSON first, then repaired JSON
+  - Fixed markup leakage: if `stripToolMarkup` returns empty (content was only malformed markup), return a clean fallback message instead of raw scaffolding
+  - Updated shorthand regex to include all 18 tool names
+  - Verified: agent successfully called `write_file` (wrote hello.txt) and `run_terminal_command` (ls -la + echo)
+
+- **GitHub Release Preparation**:
+  - Set git identity: `neuralforgeio` / `dearlyfebrianoi@gmail.com`
+  - Created comprehensive `.gitignore` excluding: node_modules, .next, db/*.db, dev.log, nexa-workspace/, upload/, skills/, examples/, Caddyfile, test screenshots
+  - Committed as `feat: Nexa Agent v1.0.0 — initial release` (31 files changed, 2082 insertions, 1352 deletions)
+  - Created annotated tag `v1.0.0`
+  - Added remote: `origin → https://github.com/neuralforgeio/nexa-agent.git`
+  - Created `nexa-agent-v1.0.0.zip` (1.1MB) excluding all panel/runtime files
+  - Verified: 0 panel-default files in git tree, logo included, all source files present
+  - Note: push requires user authentication (old token compromised, not used)
+
+Stage Summary:
+- **Status: COMPLETE & RELEASE-READY.** Nexa Agent v1.0.0 has 18 tools (including real file & terminal operations), a polished ChatGPT/Z.ai-style UI with the Nexa logo, and is committed + tagged + zipped.
+- **Verified end-to-end**: write_file creates real files in workspace, run_terminal_command executes shell commands (ls, echo), all UI components render correctly, 0 errors.
+- Tool count: 18 (echo, get_time, calculate, generate_uuid, base64, save_memory, recall_memory, list_memory, forget_memory, web_search, web_fetch, save_note, list_notes, clear_notes, read_file, write_file, list_dir, run_terminal_command)
+- Git: commit `ad2b4f9`, tag `v1.0.0`, remote `origin` set, zip `nexa-agent-v1.0.0.zip` ready.
+
+Unresolved Issues / Risks:
+- **GitHub push requires user action**: the previously-shared token is compromised and must not be used. User must create a new PAT and push. Instructions provided.
+- Terminal tool runs real shell commands in the sandbox — powerful but requires trust in the agent. Mitigated by: workspace confinement, blocked dangerous patterns, timeout, output cap.
+- `gh` CLI could not be installed (no root) — push must use raw git commands.
+
+---
