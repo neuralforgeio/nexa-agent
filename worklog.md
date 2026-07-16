@@ -284,3 +284,45 @@ Unresolved Issues / Risks:
 - Frontend currently uses Next.js API routes (TypeScript backend). To use Python backend, update fetch URLs to point to localhost:8000.
 
 ---
+
+## Task ID: 6
+Agent: Z.ai Code (root-level restructure + multi-provider TUI + GitHub cleanup)
+Task: Restructure to root-level (Hermes-style), remove frontend from GitHub, add Ollama/llama.cpp support, build TUI, test in terminal.
+
+Work Log:
+- Analyzed Hermes Agent repo structure (subagent research): root-level Python modules, agent/ package, tools/ package, prompt_toolkit + rich TUI.
+- Created NEXA_MASTER_PLAN.md with 6-phase roadmap (restructure → multi-provider → TUI → hardening → tools → distribution).
+- Phase 1 — Root-Level Restructure:
+  - Moved all Python from backend/ to repo root (flat structure, no backend/ wrapper).
+  - Root files: cli.py, run_agent.py, provider.py, storage.py, config.py, nexa_bootstrap.py, nexa_constants.py.
+  - Packages: agent/ (conversation_loop.py, prompt_builder.py), tools/ (registry, file_tools, terminal_tool), providers/ (catalog.py).
+  - Removed old agent.py (conflicted with agent/ package) and main.py (FastAPI server — not needed for terminal agent).
+- Removed frontend from git tracking: src/, prisma/, public/, components.json, next.config.ts, tailwind.config.ts, tsconfig.json, package.json, bun.lock, eslint.config.mjs, postcss.config.mjs. Frontend stays local in dev panel only.
+- Removed panel artifacts: .zscripts/, mini-services/, download/.
+- Phase 2 — Multi-Provider Support:
+  - providers/catalog.py with 6 providers: openai, openrouter, ollama, llamacpp, lmstudio, vllm.
+  - resolve_provider() function: name → (base_url, model, api_key) with env var fallback.
+  - Local providers (ollama, llamacpp, lmstudio, vllm) accept dummy API key.
+  - --provider and --model CLI flags.
+- Phase 3 — TUI (prompt_toolkit + rich):
+  - cli.py: interactive REPL with banner, slash commands (/help, /clear, /model, /provider, /history, /exit).
+  - Streaming token rendering, tool-call visualization (rich panels), Ctrl+C interrupt.
+  - Provider switching at runtime, model switching, conversation history.
+- Bug fix: Storage ID collision — changed from timestamp-based to uuid4-based IDs.
+- Verified end-to-end:
+  - CLI help works (cli.py --help, run_agent.py --help).
+  - Provider catalog lists all 6 providers.
+  - TUI slash commands work (/help shows commands + providers, /provider switches, /model changes, /exit exits).
+  - All 4 tools work: generate_uuid (62445f48-...), write_file (16 bytes), read_file (Hello from Nexa!), run_terminal_command (exit code 0).
+  - Agent loop with mock provider: streaming events (thinking → token → done) + SQLite persistence (2 messages saved).
+
+Stage Summary:
+- **Status: ROOT-LEVEL PYTHON AGENT COMPLETE & PUSHED.** GitHub repo now contains ONLY the terminal agent (no frontend, no panel artifacts).
+- Repo: https://github.com/neuralforgeio/nexa-agent — 26 Python files at root level.
+- Multi-provider: OpenAI, Ollama, llama.cpp, LM Studio, vLLM, OpenRouter.
+- TUI tested: banner, slash commands, provider switching all functional.
+- Tools tested: all 4 tools (read_file, write_file, terminal, uuid) verified.
+- Agent loop tested: streaming + persistence verified with mock provider.
+- ZIP: nexa-agent-v1.0.0.zip (33KB, 26 files).
+
+---
