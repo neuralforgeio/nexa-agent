@@ -185,12 +185,15 @@ class TestBlockedPatterns:
 class TestRegistryIntegration:
     """Tests that the new tools are registered correctly."""
 
-    def test_seven_tools_registered(self, registry: ToolRegistry) -> None:
-        """The registry must now have 7 tools (5 + list_bg + kill_bg)."""
+    def test_ten_tools_registered(self, registry: ToolRegistry) -> None:
+        """The registry must now have 10 tools (7 + web_search + code_execution + file_patch)."""
         names = set(registry.list_names())
         assert "list_background_processes" in names
         assert "kill_background_process" in names
-        assert len(names) == 7
+        assert "web_search" in names
+        assert "code_execution" in names
+        assert "file_patch" in names
+        assert len(names) == 10
 
     def test_bg_tools_have_schemas(self, registry: ToolRegistry) -> None:
         """Background tools must have valid OpenAI schemas."""

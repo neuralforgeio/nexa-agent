@@ -297,4 +297,37 @@ def create_default_registry() -> ToolRegistry:
             "required": ["pid"],
         },
     )
+    # Register web search tool.
+    from .web_search_tool import web_search, WEB_SEARCH_SCHEMA
+    registry.register(
+        name="web_search",
+        fn=web_search,
+        description=(
+            "Search the web for a query. Returns formatted results with "
+            "title, URL, and snippet. Uses DuckDuckGo (no API key needed)."
+        ),
+        parameters=WEB_SEARCH_SCHEMA,
+    )
+    # Register code execution tool.
+    from .code_execution_tool import code_execution, CODE_EXECUTION_SCHEMA
+    registry.register(
+        name="code_execution",
+        fn=code_execution,
+        description=(
+            "Execute a Python code snippet in a sandboxed subprocess. "
+            "Returns stdout and stderr. 10-second timeout."
+        ),
+        parameters=CODE_EXECUTION_SCHEMA,
+    )
+    # Register file patch tool.
+    from .file_patch_tool import file_patch, FILE_PATCH_SCHEMA
+    registry.register(
+        name="file_patch",
+        fn=file_patch,
+        description=(
+            "Apply a unified diff patch to a file in the workspace. "
+            "Enables surgical modifications without rewriting the entire file."
+        ),
+        parameters=FILE_PATCH_SCHEMA,
+    )
     return registry

@@ -654,3 +654,26 @@ Stage Summary:
 - Next: Cron 1 will research next module; Cron 2 will implement roadmap #7 (More Tools)
 
 ---
+
+## Task ID: 14 (Cron 1 — R&D: state.py connection pool analysis)
+Agent: Nexa Autonomous Principal Engineer (Cron 1: R&D, job 274567)
+
+### R&D FINDINGS
+**Module analyzed**: nexa/state.py (ConversationDB)
+**Weakness found**: Connection-per-method anti-pattern
+- Every method (15 total) opens a NEW aiosqlite.connect() call
+- No connection pooling or reuse
+- No transaction batching (add_message + update conversation timestamp use separate connections)
+- Race condition risk: parallel writes can conflict
+- FTS5 trigger overhead amplified by per-call connection setup
+
+**Superior design (for Cron 2 to implement later)**:
+- Singleton connection pool with configurable size
+- Transaction context manager for batching related operations
+- Prepared statement cache for frequent queries
+- Connection health check + auto-reconnect
+
+**Task for Cron 2 (this cycle)**: Implement roadmap #7 — More Tools (web_search, code_execution, file_patch)
+**Task for future Cron 2**: Refactor state.py to use connection pool pattern
+
+---
