@@ -1,6 +1,32 @@
+"""
+Nexa Agent — Python Dependencies
+================================
+
+Requirements file for the Nexa Agent Python backend.
+
+Copyright (c) 2026 Dearly Febriano Irwansyah
+SPDX-License-Identifier: MIT
+"""
+
+# FastAPI is the web framework powering the REST + WebSocket gateway.
 fastapi>=0.115.0
+
+# Uvicorn is the ASGI server that runs the FastAPI app.
 uvicorn[standard]>=0.30.0
+
+# OpenAI Python SDK — provides AsyncOpenAI for streaming chat completions
+# and native function-calling (tool_calls) support.
 openai>=1.50.0
+
+# python-dotenv loads environment variables from a .env file.
+python-dotenv>=1.0.1
+
+# aiosqlite provides async access to the SQLite database used for
+# conversation persistence (conversations + messages tables).
 aiosqlite>=0.20.0
-pydantic>=2.9.0
+
+# websockets is used by the WebSocket endpoint for real-time streaming.
 websockets>=13.0
+
+# pydantic is used by FastAPI for request/response validation.
+pydantic>=2.9.0
