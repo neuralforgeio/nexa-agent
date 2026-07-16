@@ -462,3 +462,40 @@ Stage Summary:
 - Token: safe in ~/.git-credentials, not in any tracked file
 
 ---
+
+## Task ID: 9 (Autonomous Cycle — Memory System)
+Agent: Nexa Autonomous Engineer (cron job 274406)
+Task: Roadmap item #3 — Memory System: file-based memory (MEMORY.md + USER.md), /memory command, tests.
+
+Work Log:
+- Created agent/memory_files.py: file-based memory persistence at ~/.nexa/memory/
+  - MEMORY.md: agent notes, insights, skills (sectioned by kind)
+  - USER.md: user profile (preferences, facts)
+  - Functions: read/write/append_to_memory, read/write/append_to_user, build_memory_file_digest, sync_db_to_files
+  - All functions have comprehensive docstrings with Args/Returns/Raises
+- Updated agent/memory_curator.py: now writes to files when curating turns
+  - Preferences and facts → USER.md
+  - Insights and skills → MEMORY.md
+  - build_memory_digest merges DB + file memories for richer system prompt
+- Added /memory command to cli.py:
+  - /memory or /memory show: display both memory files in rich panels
+  - /memory sync: sync DB memories to MEMORY.md file
+- Created tests/test_memory_system.py: 15 tests
+  - File I/O: write/read memory and user files
+  - Section management: append creates sections, adds to existing
+  - Digest: empty + with content
+  - Sync: rebuild from DB list, empty list
+  - Curator integration: writes to files, digest includes files
+- Fixed nexa/provider.py import: '..tools.registry' → 'tools.registry' (absolute import)
+- Fixed test dedup issue: use unique phrase to avoid DB leftover dedup
+- Version bump: 1.1.0 → 1.2.0 (MINOR — new feature)
+- All 45 tests passing (30 existing + 15 new)
+
+Stage Summary:
+- **Status: v1.2.0 RELEASED.** Memory system with file persistence complete.
+- GitHub: commit ea98a30 + 01ba560, tag v1.2.0, pushed
+- Release: https://github.com/neuralforgeio/nexa-agent/releases/tag/v1.2.0
+- Tests: 45 passing
+- Next roadmap item: #4 (Subagent Delegation — tools/delegate_tool.py)
+
+---
