@@ -740,3 +740,32 @@ Agent: Nexa Autonomous Principal Engineer (Cron 1: R&D, job 274692)
 - Next roadmap item: #8 (TUI Enhancement)
 
 ---
+
+## Task ID: 17 (Cron 2+3 — TUI Enhancement + Bug Fix)
+Agent: Nexa Autonomous Principal Engineer (Cron 2+3, jobs 274694+274696)
+
+### Cron 2 (Dev): TUI Enhancement
+- Added 3 new slash commands to cli.py:
+  /sessions [list|switch <id>] — list conversations, switch to a session
+  /export <session_id> — export session as markdown to workspace
+  /config [show|set <key> <value>] — view/edit configuration
+- tests/test_tui_enhancement.py: 11 new tests
+- Version: v1.6.0 → v1.7.0 (MINOR)
+
+### Cron 3 (QA): Bug Found + Auto-Heal
+- Bug: /config command imported NEXA_PROVIDER which doesn't exist in nexa/config.py
+- Fix: removed unused import
+- Tested: /config show and /sessions commands now work correctly
+- Version: v1.7.0 → v1.7.1 (PATCH)
+
+### Server Status
+- Python server: ALIVE (port 8000, 10 tools, health OK)
+- Frontend: OFFLINE (src/ folder was deleted during cleanup, needs restoration)
+- Testing via TUI: WORKING (python cli.py --provider ollama)
+
+Stage Summary:
+- Status: v1.7.1 RELEASED. TUI enhancement complete.
+- Tests: 141 passing | Tools: 10 | TUI commands: 14
+- Next: Roadmap #9 (Provider Failover) or restore frontend for preview testing
+
+---
