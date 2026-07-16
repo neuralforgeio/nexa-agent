@@ -15,12 +15,12 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Zap } from "lucide-react";
-import { Sidebar } from "../nexa_web/components/Sidebar";
-import { MessageBubble } from "../nexa_web/components/MessageBubble";
-import { ThinkingIndicator } from "../nexa_web/components/ThinkingIndicator";
-import { Composer } from "../nexa_web/components/Composer";
-import { sendChatMessage, persistTurn } from "../nexa_web/lib/stream";
-import type { Message, ChatEvent } from "../nexa_web/lib/theme";
+import { Sidebar } from "../components/Sidebar";
+import { MessageBubble } from "../components/MessageBubble";
+import { ThinkingIndicator } from "../components/ThinkingIndicator";
+import { Composer } from "../components/Composer";
+import { sendChatMessage, persistTurn } from "../lib/stream";
+import type { Message, ChatEvent } from "../lib/theme";
 
 export default function Page() {
   const [sessionId, setSessionId] = useState<string | null>(null);
