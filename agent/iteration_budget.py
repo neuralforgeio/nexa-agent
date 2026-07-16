@@ -3,7 +3,7 @@ Nexa Agent — Iteration Budget
 =============================
 
 Tracks and enforces tool-call iteration limits per conversation turn.
-Inspired by Hermes Agent's ``iteration_budget`` module — original
+Inspired by ``iteration_budget`` module — original
 implementation.
 
 The budget prevents infinite tool-calling loops where the model

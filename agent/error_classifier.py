@@ -3,7 +3,7 @@ Nexa Agent — Error Classifier
 =============================
 
 Classifies LLM API errors into categories so the agent can apply the
-appropriate retry strategy. Inspired by Hermes Agent's ``error_classifier``
+appropriate retry strategy. Inspired by ``error_classifier``
 module — original implementation.
 
 Error categories:

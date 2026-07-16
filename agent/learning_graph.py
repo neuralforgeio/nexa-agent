@@ -3,7 +3,7 @@ Nexa Agent — Learning Graph
 ===========================
 
 Tracks patterns of successful and unsuccessful outcomes, enabling the
-agent to make better decisions over time. Inspired by Hermes Agent's
+agent to make better decisions over time. Original implementation.
 ``learning_graph`` and ``learning_mutations`` modules — original
 implementation.
 

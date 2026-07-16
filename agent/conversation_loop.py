@@ -12,7 +12,7 @@ now enhanced with:
     - Memory curation after each turn (the "getting smarter" loop).
     - Learning graph recording (tracks tool success rates).
 
-Separated from ``run_agent.py`` for clarity, mirroring Hermes Agent's
+Separated from ``run_agent.py`` for clarity.
 ``agent/conversation_loop.py`` pattern.
 
 Copyright (c) 2026 Dearly Febriano Irwansyah

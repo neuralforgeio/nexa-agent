@@ -3,7 +3,7 @@ Nexa Agent — Self-Health Diagnostics
 ====================================
 
 Provides health-check diagnostics for the agent's subsystems. Inspired by
-Hermes Agent's ``doctor`` command — original implementation.
+``doctor`` command — original implementation.
 
 Checks:
     - Database connectivity and integrity.

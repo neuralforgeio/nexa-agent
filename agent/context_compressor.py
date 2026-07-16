@@ -3,7 +3,7 @@ Nexa Agent — Context Compressor
 ==============================
 
 Manages the conversation context window to prevent token-overflow errors.
-Inspired by Hermes Agent's ``context_compressor`` and
+Inspired by ``context_compressor`` and
 ``conversation_compression`` modules — original implementation.
 
 Strategy:

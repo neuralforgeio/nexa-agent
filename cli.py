@@ -3,7 +3,7 @@ Nexa Agent — Interactive TUI (prompt_toolkit + rich)
 ====================================================
 
 This module implements the interactive terminal UI for Nexa Agent, inspired
-by Claude Code and Hermes Agent's ``cli.py``.
+by Claude Code.
 
 Features:
     - Multiline input with prompt_toolkit (Shift+Enter for newline).

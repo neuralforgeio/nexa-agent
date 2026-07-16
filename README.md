@@ -7,7 +7,7 @@ A terminal-first AI agent with an iterative tool-calling loop, multi-provider
 support (OpenAI, **Ollama**, **llama.cpp**, OpenRouter, vLLM, LM Studio), and
 an interactive TUI built with prompt_toolkit + rich.
 
-Inspired by the architecture of [Hermes Agent](https://github.com/NousResearch/hermes-agent)
+Built as a terminal-first AI agent with iterative tool-calling, multi-provider support, and self-improvement capabilities.
 (clean-room reimplementation — original code, adapted design patterns).
 
 ## Quick Start

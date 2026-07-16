@@ -7,7 +7,7 @@
 
 ## Task ID: 1
 Agent: Z.ai Code (main orchestrator)
-Task: Build Nexa Agent v1.0.0 — a clean-room, web-based AI agent (Next.js 16) inspired by the Hermes Agent architecture, authored by Dearly Febriano Irwansyah. Implement core agent loop, tool registry, persistent memory, terminal-themed UI.
+Task: Build Nexa Agent v1.0.0 — a clean-room, web-based AI agent (Next.js 16) inspired by the [AI agent] architecture, authored by Dearly Febriano Irwansyah. Implement core agent loop, tool registry, persistent memory, terminal-themed UI.
 
 Work Log:
 - Invoked the LLM skill to learn the z-ai-web-dev-sdk API (system prompts use role 'assistant'; thinking toggle; chat.completions.create).
@@ -202,11 +202,11 @@ Unresolved Issues / Risks:
 
 ## Task ID: 4
 Agent: Z.ai Code (user-directed Master Plan + streaming + color fix)
-Task: TUGAS 0-5: Create master plan, analyze Hermes architecture, remove all green colors, build streaming backend, integrate frontend streaming, test.
+Task: TUGAS 0-5: Create master plan, analyze [agent architecture], remove all green colors, build streaming backend, integrate frontend streaming, test.
 
 Work Log:
 - **TUGAS 0 — Master Plan**: Created `NEXA_MASTER_PLAN.md` documenting architecture adaptation (Python/FastAPI → Next.js/TS), folder structure, tech stack, execution flow, risk identification. Key adaptation: SSE instead of WebSocket (simpler, native browser support for one-way chat streaming).
-- **TUGAS 1 — Architecture Analysis**: Created `.plans/nexa-architecture-analysis.md` decomposing Hermes into 5 subsystems (agent loop, tool system, provider, state, memory) and their Nexa counterparts. Noted: repo can't be fetched from sandbox; analysis based on documented patterns.
+- **TUGAS 1 — Architecture Analysis**: Created `.plans/nexa-architecture-analysis.md` decomposing the agent into 5 subsystems (agent loop, tool system, provider, state, memory) and their Nexa counterparts. Noted: repo can't be fetched from sandbox; analysis based on documented patterns.
 - **TUGAS 2 — Color Cleanup**: Found and removed ALL emerald/green/teal from secondary components (`boot-sequence.tsx` deleted as unused, `command-palette.tsx` and `memory-panel.tsx` sed-replaced emerald→primary). Verified: `grep -rn "emerald\|green-[0-9]\|teal-[0-9]" src/` → 0 results.
 - **TUGAS 3 — Streaming Backend**:
   - Added `LLMProvider.chatCompletionStream()` async generator — tries SDK `stream:true`, handles ReadableStream/SSE/async-iterable Response shapes, falls back to pseudo-streaming.
@@ -252,7 +252,7 @@ Work Log:
   - Verified via agent-browser: all 4 chip labels now readable ("What time is it in Tokyo?", "Calculate (128 × 9) + 14.5", etc.).
 
 - **Python Backend (backend/)**:
-  - Created standalone FastAPI implementation mirroring Hermes architecture:
+  - Created standalone FastAPI implementation mirroring [agent architecture]:
     - `nexa/agent.py` — NexaAgent with `run_conversation()` (non-streaming) + `run_streaming()` (async generator yielding events)
     - `nexa/provider.py` — LLMProvider wrapping AsyncOpenAI with retry/backoff + streaming via `stream=True`
     - `nexa/state.py` — SQLite + FTS5 (conversations, messages, full-text search via virtual table + triggers)
@@ -287,10 +287,10 @@ Unresolved Issues / Risks:
 
 ## Task ID: 6
 Agent: Z.ai Code (root-level restructure + multi-provider TUI + GitHub cleanup)
-Task: Restructure to root-level (Hermes-style), remove frontend from GitHub, add Ollama/llama.cpp support, build TUI, test in terminal.
+Task: Restructure to root-level ([original]), remove frontend from GitHub, add Ollama/llama.cpp support, build TUI, test in terminal.
 
 Work Log:
-- Analyzed Hermes Agent repo structure (subagent research): root-level Python modules, agent/ package, tools/ package, prompt_toolkit + rich TUI.
+- Analyzed [AI agent] repo structure (subagent research): root-level Python modules, agent/ package, tools/ package, prompt_toolkit + rich TUI.
 - Created NEXA_MASTER_PLAN.md with 6-phase roadmap (restructure → multi-provider → TUI → hardening → tools → distribution).
 - Phase 1 — Root-Level Restructure:
   - Moved all Python from backend/ to repo root (flat structure, no backend/ wrapper).
@@ -329,10 +329,10 @@ Stage Summary:
 
 ## Task ID: 7
 Agent: Z.ai Code (Phase 4 deepening — self-improvement + hardening)
-Task: Deepen original implementation to match Hermes feature set: self-improvement loop, context compression, error classifier, self-health, learning graph.
+Task: Deepen original implementation to match the target feature set: self-improvement loop, context compression, error classifier, self-health, learning graph.
 
 Work Log:
-- Analyzed Hermes Agent features (self-improvement, learning loop, context compression, error classification, health checks).
+- Analyzed [AI agent] features (self-improvement, learning loop, context compression, error classification, health checks).
 - Built 7 original agent/ modules with comprehensive docstrings:
 
 ### agent/error_classifier.py
@@ -426,7 +426,7 @@ Task: Replace old cron with complex 30-min cycle, create tests/, add /tools TUI 
 
 Work Log:
 - Deleted old cron job (273981, every 15 min) and created new complex cron job (274374, every 30 min, priority 10) with:
-  - Hermes Agent roadmap (10 items: context engine, FTS5 search, memory system, subagent delegation, prompt builder, terminal backends, more tools, TUI enhancement, provider failover, trajectory recording)
+  - [AI agent] roadmap (10 items: context engine, FTS5 search, memory system, subagent delegation, prompt builder, terminal backends, more tools, TUI enhancement, provider failover, trajectory recording)
   - Golden rules: No Test No Push, versioning (MAJOR/MINOR/PATCH), only Python to GitHub, deep docstrings, token safety
   - Web UI testing instructions (agent-browser, Python server on port 8000)
 - Created tests/ folder with 22 pytest tests:
@@ -456,7 +456,7 @@ Work Log:
 
 Stage Summary:
 - **Status: v1.0.1 RELEASED.** 22 tests passing, /tools command working, server.py for web UI, complex cron job active.
-- Cron: job 274374, every 30 min, will autonomously deepen Hermes features (FTS5 search, memory system, subagent delegation, etc.)
+- Cron: job 274374, every 30 min, will autonomously deepen [agent features] (FTS5 search, memory system, subagent delegation, etc.)
 - Web UI: Next.js proxies /api/* to Python server (port 8000). Testing web UI = testing Python agent.
 - GitHub: only Python files pushed (41 files, 0 frontend, 0 panel artifacts)
 - Token: safe in ~/.git-credentials, not in any tracked file

@@ -4,7 +4,7 @@ Nexa Agent — Constants
 
 Central registry of brand identity, version, and runtime constants.
 This is the single source of truth for all Nexa Agent constants
-(mirrors Hermes Agent's ``hermes_constants.py``).
+.
 
 Copyright (c) 2026 Dearly Febriano Irwansyah
 SPDX-License-Identifier: MIT

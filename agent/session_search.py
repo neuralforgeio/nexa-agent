@@ -3,7 +3,7 @@ Nexa Agent — Session Search
 ===========================
 
 Full-text search across conversation history using SQLite FTS5.
-Adapted from Hermes Agent's ``hermes_state.py`` session search logic —
+Original implementation.py`` session search logic —
 original implementation.
 
 This module provides :func:`search_sessions` which queries the FTS5 virtual

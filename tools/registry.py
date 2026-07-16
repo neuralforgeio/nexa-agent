@@ -187,7 +187,7 @@ def create_default_registry() -> ToolRegistry:
     """
     Create a :class:`ToolRegistry` pre-populated with the default Nexa tools.
 
-    The default set mirrors Hermes Agent's core capabilities:
+    The default tool set includes:
     ``read_file``, ``write_file``, ``run_terminal_command``, ``generate_uuid``.
 
     Returns:

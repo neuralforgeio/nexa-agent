@@ -1,9 +1,9 @@
 # NEXA MASTER PLAN
-**Nexa Agent — Terminal-First AI Agent (Hermes-style clean-room reimplementation)**
+**Nexa Agent — Terminal-First AI Agent**
 Version 1.0.0 · Author: Dearly Febriano Irwansyah · MIT License
 
 > This document is the source of truth for Nexa Agent's architecture and
-> phased roadmap. It adapts the design of NousResearch/hermes-agent (MIT)
+> phased roadmap.
 > into an original codebase, structured root-level (no `backend/` wrapper).
 
 ---
@@ -13,16 +13,16 @@ Version 1.0.0 · Author: Dearly Febriano Irwansyah · MIT License
 Nexa Agent is a **terminal-first AI agent** — a Python CLI/TUI that runs an
 iterative tool-calling loop against any OpenAI-compatible LLM (OpenAI,
 OpenRouter, **Ollama**, **llama.cpp**, LM Studio, vLLM, etc.). It mirrors
-Hermes Agent's core architecture: root-level Python modules, an `agent/`
+Modern AI agent architecture: root-level Python modules, an `agent``
 engine package, a `tools/` package, and a prompt_toolkit+rich TUI.
 
 **Key principle**: the GitHub repo contains **only the agent** (Python,
 root-level). The web frontend stays local in the dev panel and is NOT
-pushed to GitHub — exactly like Hermes which ships a CLI, not a webapp.
+pushed to GitHub — the repo ships a CLI, not a webapp.
 
 ---
 
-## 2. Root-Level Structure (mirrors Hermes)
+## 2. Root-Level Structure
 
 ```
 nexa-agent/

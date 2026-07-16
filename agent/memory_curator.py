@@ -8,7 +8,7 @@ insights into the memory store. Over time, the agent accumulates knowledge
 about the user's preferences, effective problem-solving patterns, and
 domain-specific facts — making it progressively smarter.
 
-Inspired by Hermes Agent's ``memory_manager`` and ``curator`` modules —
+Inspired by ``memory_manager`` and ``curator`` modules —
 original implementation.
 
 Memory kinds:

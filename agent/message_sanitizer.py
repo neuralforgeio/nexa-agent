@@ -3,7 +3,7 @@ Nexa Agent — Message Sanitizer
 =============================
 
 Cleans and repairs message transcripts before sending them to the LLM.
-Inspired by Hermes Agent's ``message_sanitization`` module — original
+Inspired by ``message_sanitization`` module — original
 implementation.
 
 Operations:
