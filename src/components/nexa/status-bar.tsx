@@ -1,6 +1,6 @@
 "use client";
 
-import { Circle, Loader2, Wifi } from "lucide-react";
+import { Circle, Loader2 } from "lucide-react";
 import { NEXA_DEFAULT_MODEL, NEXA_VERSION } from "@/lib/nexa/constants";
 
 interface StatusBarProps {
@@ -11,45 +11,36 @@ interface StatusBarProps {
 
 export function StatusBar({ sessionId, messageCount, status }: StatusBarProps) {
   return (
-    <div className="flex items-center gap-3 border-t border-border bg-sidebar/60 px-3 py-1.5 text-[11px] text-muted-foreground backdrop-blur">
-      <span className="flex items-center gap-1.5">
-        <Wifi className="h-3 w-3 text-emerald-400" />
-        <span className="text-emerald-400">nexa-core</span>
+    <div className="flex items-center gap-2.5 border-t border-border bg-secondary px-4 py-1.5 text-[11px] text-tertiary">
+      <span className="flex items-center gap-1">
+        {status === "thinking" ? (
+          <>
+            <Loader2 className="h-3 w-3 animate-spin text-primary" />
+            <span className="text-primary">running</span>
+          </>
+        ) : status === "error" ? (
+          <>
+            <Circle className="h-2 w-2 fill-error text-error" />
+            <span className="text-error">error</span>
+          </>
+        ) : (
+          <>
+            <Circle className="h-2 w-2 fill-success text-success nexa-pulse" />
+            <span className="text-success">ready</span>
+          </>
+        )}
       </span>
-      <Sep />
+      <span className="text-border">·</span>
       <span>model: {NEXA_DEFAULT_MODEL}</span>
-      <Sep />
-      <span className="hidden sm:inline">v{NEXA_VERSION}</span>
-      <Sep className="hidden sm:inline" />
-      <span className="truncate hidden md:inline">
-        session: {sessionId ? sessionId.slice(0, 12) + "…" : "—"}
+      <span className="text-border">·</span>
+      <span>v{NEXA_VERSION}</span>
+      <span className="text-border hidden sm:inline">·</span>
+      <span className="hidden sm:inline">
+        {sessionId ? `${sessionId.slice(0, 8)}…` : "no session"}
       </span>
-      <div className="ml-auto flex items-center gap-3">
-        <span className="hidden sm:inline">{messageCount} msg</span>
-        <Sep className="hidden sm:inline" />
-        <span className="flex items-center gap-1.5">
-          {status === "thinking" ? (
-            <>
-              <Loader2 className="h-3 w-3 animate-spin text-amber-400" />
-              <span className="text-amber-400">running</span>
-            </>
-          ) : status === "error" ? (
-            <>
-              <Circle className="h-2.5 w-2.5 fill-red-500 text-red-500" />
-              <span className="text-red-400">error</span>
-            </>
-          ) : (
-            <>
-              <Circle className="h-2.5 w-2.5 fill-emerald-500 text-emerald-500 nexa-pulse-dot" />
-              <span className="text-emerald-400">ready</span>
-            </>
-          )}
-        </span>
-      </div>
+      <span className="ml-auto hidden sm:inline">
+        {messageCount} message{messageCount !== 1 ? "s" : ""}
+      </span>
     </div>
   );
-}
-
-function Sep({ className = "" }: { className?: string }) {
-  return <span className={`text-border ${className}`}>|</span>;
 }

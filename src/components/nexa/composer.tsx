@@ -1,97 +1,46 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  ArrowUp,
-  Brain,
-  Download,
-  Eraser,
-  Globe,
-  Hash,
-  HelpCircle,
-  Loader2,
-  Plus,
-  Search,
-  SquareTerminal,
-} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ArrowUp, Globe, Hash, Loader2, Plus, SquareTerminal, Brain } from "lucide-react";
 
 interface ComposerProps {
   onSend: (text: string) => void;
   onCommand?: (cmd: string) => void;
   disabled: boolean;
   thinking: boolean;
+  onStop?: () => void;
 }
 
 const SUGGESTIONS = [
-  { label: "What time is it in Jakarta?", icon: Hash },
-  { label: "Calculate (128 * 9) + 14.5", icon: SquareTerminal },
-  { label: "Remember that I prefer concise answers", icon: Brain },
+  { label: "What time is it in Tokyo?", icon: Hash },
+  { label: "Calculate (128 × 9) + 14.5", icon: SquareTerminal },
   { label: "Search the web for latest AI news", icon: Globe },
+  { label: "Remember that I prefer concise answers", icon: Brain },
 ];
 
-interface SlashCommand {
-  name: string;
-  desc: string;
-  icon: React.ComponentType<{ className?: string }>;
-}
-
-const SLASH_COMMANDS: SlashCommand[] = [
-  { name: "/new", desc: "start a new session", icon: Plus },
-  { name: "/clear", desc: "clear current conversation", icon: Eraser },
-  { name: "/memory", desc: "toggle memory panel", icon: Brain },
-  { name: "/export", desc: "download this session as markdown", icon: Download },
-  { name: "/help", desc: "show what nexa can do", icon: HelpCircle },
-];
-
-export function Composer({ onSend, onCommand, disabled, thinking }: ComposerProps) {
+export function Composer({ onSend, disabled, thinking, onStop }: ComposerProps) {
   const [value, setValue] = useState("");
-  const [paletteIndex, setPaletteIndex] = useState(0);
-  const [paletteDismissed, setPaletteDismissed] = useState(false);
   const ref = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
     el.style.height = "auto";
-    el.style.height = Math.min(el.scrollHeight, 160) + "px";
+    el.style.height = Math.min(el.scrollHeight, 200) + "px";
   }, [value]);
-
-  const filtered = useMemo(() => {
-    const q = value.trim().toLowerCase();
-    if (!q.startsWith("/")) return [];
-    return SLASH_COMMANDS.filter((c) => c.name.startsWith(q));
-  }, [value]);
-
-  const paletteOpen = filtered.length > 0 && !paletteDismissed;
-
-  const runCommand = (name: string) => {
-    setValue("");
-    setPaletteDismissed(false);
-    setPaletteIndex(0);
-    onCommand?.(name);
-  };
 
   const submit = () => {
     const text = value.trim();
     if (!text || disabled) return;
-    if (text.startsWith("/") && filtered.length > 0) {
-      runCommand(filtered[paletteIndex].name);
-      return;
-    }
-    if (text.startsWith("/")) {
-      runCommand(text);
-      return;
-    }
     onSend(text);
     setValue("");
-    setPaletteDismissed(false);
   };
 
   return (
-    <div className="border-t border-border bg-background/80 p-3 backdrop-blur">
-      <div className="mx-auto max-w-3xl">
-        {/* suggestion chips */}
-        <div className="mb-2 flex flex-wrap gap-1.5">
+    <div className="bg-gradient-to-t from-background via-background to-transparent px-4 pb-4 pt-2">
+      <div className="mx-auto max-w-[768px]">
+        {/* Suggestion chips (empty state only) */}
+        <div className="mb-3 flex flex-wrap justify-center gap-2">
           {SUGGESTIONS.map((s) => {
             const Icon = s.icon;
             return (
@@ -99,7 +48,7 @@ export function Composer({ onSend, onCommand, disabled, thinking }: ComposerProp
                 key={s.label}
                 onClick={() => !disabled && onSend(s.label)}
                 disabled={disabled}
-                className="flex items-center gap-1 rounded-full border border-border bg-muted/40 px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:border-emerald-500/40 hover:bg-emerald-500/10 hover:text-emerald-300 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex items-center gap-1.5 rounded-full border border-border bg-secondary px-3 py-1.5 text-[12px] text-secondary transition-colors hover:border-primary/30 hover:bg-accent hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <Icon className="h-3 w-3" />
                 {s.label}
@@ -108,73 +57,45 @@ export function Composer({ onSend, onCommand, disabled, thinking }: ComposerProp
           })}
         </div>
 
-        <div className="relative">
-          {/* slash command palette */}
-          {paletteOpen && (
-            <div className="absolute bottom-full left-0 mb-2 w-full overflow-hidden rounded-lg border border-border bg-popover shadow-xl nexa-fade-in">
-              <div className="border-b border-border px-2.5 py-1.5 text-[10px] uppercase tracking-wider text-muted-foreground">
-                commands
-              </div>
-              {filtered.map((c, i) => {
-                const Icon = c.icon;
-                return (
-                  <button
-                    key={c.name}
-                    onMouseEnter={() => setPaletteIndex(i)}
-                    onClick={() => runCommand(c.name)}
-                    className={`flex w-full items-center gap-2.5 px-2.5 py-2 text-left text-xs transition-colors ${
-                      i === paletteIndex
-                        ? "bg-emerald-500/15 text-emerald-200"
-                        : "text-foreground/90 hover:bg-muted/60"
-                    }`}
-                  >
-                    <Icon className="h-3.5 w-3.5 text-emerald-400" />
-                    <span className="font-mono font-semibold">{c.name}</span>
-                    <span className="text-muted-foreground">— {c.desc}</span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-
-          <div className="flex items-end gap-2 rounded-xl border border-border bg-input/50 px-3 py-2 focus-within:border-emerald-500/50 focus-within:ring-1 focus-within:ring-emerald-500/30 transition-colors">
-            <span className="select-none pb-1.5 text-sm text-emerald-400">▸</span>
-            <textarea
-              ref={ref}
-              value={value}
-              onChange={(e) => {
-                setValue(e.target.value);
-                setPaletteDismissed(false);
-              }}
-              onKeyDown={(e) => {
-                if (paletteOpen && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
-                  e.preventDefault();
-                  setPaletteIndex((i) => {
-                    const len = filtered.length;
-                    if (e.key === "ArrowDown") return (i + 1) % len;
-                    return (i - 1 + len) % len;
-                  });
-                  return;
-                }
-                if (paletteOpen && e.key === "Escape") {
-                  setPaletteDismissed(true);
-                  return;
-                }
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  submit();
-                }
-              }}
-              placeholder="message nexa…  (enter to send · type / for commands)"
-              rows={1}
-              disabled={disabled}
-              className="flex-1 resize-none bg-transparent py-1.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none disabled:opacity-50 nexa-scroll"
-            />
+        {/* Pill composer */}
+        <div className="flex items-end gap-2 rounded-[24px] border border-border bg-tertiary px-3 py-2 transition-colors focus-within:border-primary/40">
+          <button
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-tertiary transition-colors hover:bg-elevated hover:text-foreground"
+            aria-label="more options"
+            title="Tools & options"
+          >
+            <Plus className="h-5 w-5" />
+          </button>
+          <textarea
+            ref={ref}
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                submit();
+              }
+            }}
+            placeholder="Ask Nexa anything…"
+            rows={1}
+            disabled={disabled}
+            className="flex-1 resize-none bg-transparent py-1.5 text-[15px] leading-relaxed text-foreground placeholder:text-tertiary focus:outline-none disabled:opacity-50 nexa-scroll"
+          />
+          {thinking && onStop ? (
+            <button
+              onClick={onStop}
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-elevated text-foreground transition-colors hover:bg-tertiary"
+              aria-label="stop"
+              title="Stop generating"
+            >
+              <span className="h-3 w-3 rounded-sm bg-foreground" />
+            </button>
+          ) : (
             <button
               onClick={submit}
               disabled={disabled || !value.trim()}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-emerald-500/40 bg-emerald-500/15 text-emerald-300 transition-colors hover:bg-emerald-500/25 disabled:opacity-40 disabled:cursor-not-allowed"
-              aria-label="send message"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-30"
+              aria-label="send"
             >
               {thinking ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -182,11 +103,10 @@ export function Composer({ onSend, onCommand, disabled, thinking }: ComposerProp
                 <ArrowUp className="h-4 w-4" />
               )}
             </button>
-          </div>
+          )}
         </div>
-        <p className="mt-1.5 px-1 text-center text-[10px] text-muted-foreground/50">
-          <span className="font-mono text-muted-foreground/70">/</span> for commands ·
-          nexa can search the web, calculate, recall memory &amp; more
+        <p className="mt-2 text-center text-[11px] text-tertiary">
+          Nexa can make mistakes. Verify important info.
         </p>
       </div>
     </div>

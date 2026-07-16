@@ -34,11 +34,22 @@ import {
   GetTimeTool,
 } from "./tools/builtins";
 import {
+  ListDirTool,
+  ReadFileTool,
+  RunTerminalCommandTool,
+  WriteFileTool,
+} from "./tools/fs-tools";
+import {
   ForgetMemoryTool,
   ListMemoryTool,
   RecallMemoryTool,
   SaveMemoryTool,
 } from "./tools/memory-tools";
+import {
+  ClearNotesTool,
+  ListNotesTool,
+  SaveNoteTool,
+} from "./tools/notes-tools";
 import { ToolRegistry } from "./tools/registry";
 import { WebFetchTool, WebSearchTool } from "./tools/web-tools";
 
@@ -84,7 +95,7 @@ function parseToolCall(content: string): ToolRequest | null {
 
   // 5. Lenient "tool_name(args)" shorthand like `save_memory(...)`.
   const shorthand = content.match(
-    /\b(echo|get_time|calculate|generate_uuid|base64|save_memory|recall_memory|list_memory|forget_memory)\s*\(\s*([\s\S]*?)\s*\)/i
+    /\b(echo|get_time|calculate|generate_uuid|base64|save_memory|recall_memory|list_memory|forget_memory|save_note|list_notes|clear_notes|read_file|write_file|list_dir|run_terminal_command|web_search|web_fetch)\s*\(\s*([\s\S]*?)\s*\)/i
   );
   if (shorthand) {
     const tool = shorthand[1].toLowerCase();
@@ -153,34 +164,70 @@ function parseShorthandArgs(raw: string): Record<string, unknown> | null {
 }
 
 function safeParseRequest(raw: string): ToolRequest | null {
+  // First try strict JSON.
   try {
     const obj = JSON.parse(raw.trim());
-    if (
-      obj &&
-      typeof obj === "object" &&
-      typeof obj.tool === "string" &&
-      (!obj.arguments || typeof obj.arguments === "object")
-    ) {
-      return {
-        tool: obj.tool,
-        arguments: (obj.arguments ?? {}) as Record<string, unknown>,
-      };
-    }
+    if (isValidToolRequest(obj)) return toToolRequest(obj);
   } catch {
-    /* not JSON, ignore */
+    /* fall through to repair */
+  }
+  // Try repairing common JSON malformations the model produces.
+  const repaired = repairJson(raw.trim());
+  if (repaired !== raw.trim()) {
+    try {
+      const obj = JSON.parse(repaired);
+      if (isValidToolRequest(obj)) return toToolRequest(obj);
+    } catch {
+      /* still broken */
+    }
   }
   return null;
 }
 
+function isValidToolRequest(obj: unknown): obj is { tool: string; arguments?: unknown } {
+  return (
+    !!obj &&
+    typeof obj === "object" &&
+    typeof (obj as { tool?: unknown }).tool === "string" &&
+    (!(obj as { arguments?: unknown }).arguments ||
+      typeof (obj as { arguments?: unknown }).arguments === "object")
+  );
+}
+
+function toToolRequest(obj: { tool: string; arguments?: unknown }): ToolRequest {
+  return {
+    tool: obj.tool,
+    arguments: (obj.arguments ?? {}) as Record<string, unknown>,
+  };
+}
+
+/**
+ * Repair common JSON malformations the model produces:
+ * - `"key" {` → `"key": {`  (missing colon after key)
+ * - `"key"value` → `"key": "value"` (missing colon + space)
+ * - trailing comma before `}` or `]`
+ */
+function repairJson(s: string): string {
+  let out = s;
+  // Fix missing colon between key and value: "key" {  or  "key" "
+  out = out.replace(/"(\w+)"\s*(?=["{[\d\-])/g, '"$1": ');
+  // Remove trailing commas
+  out = out.replace(/,\s*([}\]])/g, "$1");
+  return out;
+}
+
 /** Strip tool-call markup so the user never sees raw scaffolding. */
 function stripToolMarkup(content: string): string {
-  return content
+  const stripped = content
     .replace(TOOL_CALL_RE, "")
     .replace(/<tool_call>[\s\S]*$/i, "")
     .replace(/<\/?tool_call>/gi, "")
     .replace(/```(?:json)?\s*[\s\S]*?```/g, "")
-    .replace(/\b(echo|get_time|calculate|generate_uuid|base64|save_memory|recall_memory|list_memory|forget_memory)\s*\([\s\S]*?\)/gi, "")
     .trim();
+  // If stripping removed everything (the content was ONLY tool-call markup),
+  // return empty so the caller can fall back to a clean message instead of
+  // showing raw markup.
+  return stripped;
 }
 
 export interface NexaAgentOptions {
@@ -236,8 +283,11 @@ export class NexaAgent {
 
       const toolRequest = parseToolCall(response.content);
       if (!toolRequest) {
-        // Final answer.
-        const answer = stripToolMarkup(response.content) || lastContent;
+        // Final answer. If stripping removes everything (content was only
+        // malformed tool-call markup), return a clean fallback message
+        // instead of leaking raw scaffolding to the user.
+        const stripped = stripToolMarkup(response.content);
+        const answer = stripped || "[Nexa] I tried to call a tool but the request was malformed. Please rephrase and try again.";
         steps.push({
           kind: "answer",
           text: answer,
@@ -326,7 +376,7 @@ export class NexaAgent {
   }
 }
 
-/** Convenience factory bundling the default tool set with memory + web tools. */
+/** Convenience factory bundling the default tool set with memory + web + notes + fs tools. */
 export function createDefaultToolSet(): NexaTool[] {
   return [
     new EchoTool(),
@@ -340,6 +390,13 @@ export function createDefaultToolSet(): NexaTool[] {
     new ForgetMemoryTool(),
     new WebSearchTool(),
     new WebFetchTool(),
+    new SaveNoteTool(),
+    new ListNotesTool(),
+    new ClearNotesTool(),
+    new ReadFileTool(),
+    new WriteFileTool(),
+    new ListDirTool(),
+    new RunTerminalCommandTool(),
   ];
 }
 

@@ -59,6 +59,12 @@ export const NEXA_MAX_CONTEXT_MESSAGES = 30;
 export const NEXA_DEFAULT_MODEL = "nexa-core";
 
 /**
+ * Filesystem sandbox root for file & terminal tools. All file operations
+ * are confined here to prevent arbitrary host access.
+ */
+export const NEXA_WORKSPACE = `${process.cwd()}/nexa-workspace`;
+
+/**
  * Boot banner shown in the terminal UI on startup.
  */
 export const NEXA_BANNER = [

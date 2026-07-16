@@ -1,54 +1,60 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# Nexa Agent — .gitignore
+# Copyright (c) 2026 Dearly Febriano Irwansyah
 
 # dependencies
-node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
-
-# testing
-/coverage
+node_modules/
+.pnp
+.pnp.js
 
 # next.js
-/.next/
-/out/
+.next/
+out/
+build/
+dist/
 
 # production
-/build
-
-# misc
-.DS_Store
-*.pem
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# env files (can opt-in for committing if needed)
-.env*
-
-# vercel
-.vercel
-
-
-# typescript
 *.tsbuildinfo
 next-env.d.ts
-local-*
-.claude
-.z-ai-config
-*.log
-dev.log
-dev.out.log
-test
-prompt
 
+# env
+.env
+.env*.local
+.env.local
+
+# database (runtime data, not source)
+db/
+
+# logs
+dev.log
 server.log
-# Skills directory
-/skills/
+*.log
+
+# runtime workspace (agent file/terminal tool sandbox)
+nexa-workspace/
+
+# uploads & downloads (user-supplied, not source)
+upload/
+download/
+
+# test screenshots (not part of source)
+/nexa-*.png
+
+# panel defaults (not part of Nexa Agent source)
+skills/
+examples/
+Caddyfile
+
+# os
+.DS_Store
+Thumbs.db
+
+# editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# misc
+*.zip
+.cache/
+coverage/

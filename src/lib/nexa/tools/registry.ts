@@ -40,6 +40,48 @@ export class ToolRegistry {
     return this.list().map((t) => t.getSchema());
   }
 
+  /**
+   * OpenAI function-calling schema array. Each entry follows the format
+   * `{ type: "function", function: { name, description, parameters } }`
+   * so it can be passed directly to a chat-completions `tools` field.
+   */
+  getOpenAiSchemas(): Array<{
+    type: "function";
+    function: {
+      name: string;
+      description: string;
+      parameters: {
+        type: "object";
+        properties: Record<string, unknown>;
+        required: string[];
+      };
+    };
+  }> {
+    return this.list().map((t) => {
+      const properties: Record<string, unknown> = {};
+      const required: string[] = [];
+      for (const [key, param] of Object.entries(t.parameters)) {
+        properties[key] = {
+          type: param.type,
+          description: param.description,
+        };
+        if (param.required) required.push(key);
+      }
+      return {
+        type: "function" as const,
+        function: {
+          name: t.name,
+          description: t.description,
+          parameters: {
+            type: "object" as const,
+            properties,
+            required,
+          },
+        },
+      };
+    });
+  }
+
   /** Human-readable summary for the system prompt. */
   describe(): string {
     const lines = this.list().map((t) => {

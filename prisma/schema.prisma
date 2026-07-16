@@ -18,6 +18,7 @@ model NexaSession {
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
   messages  NexaMessage[]
+  notes     NexaNote[]
 
   @@index([updatedAt])
 }
@@ -44,4 +45,17 @@ model NexaMemory {
   createdAt DateTime @default(now())
 
   @@index([kind])
+}
+
+/// Per-session scratchpad notes. Ephemeral working state for complex tasks,
+/// scoped to a single session (deleted with the session via cascade).
+model NexaNote {
+  id        String     @id @default(cuid())
+  sessionId String
+  content   String
+  pinned    Boolean    @default(false)
+  createdAt DateTime   @default(now())
+  session   NexaSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
 }

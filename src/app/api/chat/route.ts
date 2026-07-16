@@ -12,6 +12,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { NexaAgent } from "@/lib/nexa/agent";
+import { setActiveSessionId } from "@/lib/nexa/tools/notes-tools";
 import type { NexaMessage } from "@/lib/nexa/types";
 
 // A single long-lived agent instance per server process.
@@ -95,6 +96,7 @@ export async function POST(req: NextRequest) {
   // Run the agent turn.
   let result;
   try {
+    setActiveSessionId(sessionId);
     result = await agent.runConversation(message, history);
   } catch (err) {
     const text = err instanceof Error ? err.message : String(err);

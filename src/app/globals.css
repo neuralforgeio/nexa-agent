@@ -4,199 +4,150 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--bg-primary);
+  --color-foreground: var(--text-primary);
+  --color-card: var(--bg-elevated);
+  --color-card-foreground: var(--text-primary);
+  --color-popover: var(--bg-elevated);
+  --color-popover-foreground: var(--text-primary);
+  --color-primary: var(--accent-primary);
+  --color-primary-foreground: #ffffff;
+  --color-secondary: var(--bg-tertiary);
+  --color-secondary-foreground: var(--text-primary);
+  --color-muted: var(--bg-tertiary);
+  --color-muted-foreground: var(--text-secondary);
+  --color-accent: var(--accent-subtle);
+  --color-accent-foreground: var(--accent-primary);
+  --color-destructive: var(--error);
+  --color-border: var(--border-subtle);
+  --color-input: var(--bg-tertiary);
+  --color-ring: var(--accent-primary);
+  --color-sidebar: var(--bg-secondary);
+  --color-sidebar-foreground: var(--text-primary);
+  --color-sidebar-primary: var(--accent-primary);
+  --color-sidebar-primary-foreground: #ffffff;
+  --color-sidebar-accent: var(--bg-tertiary);
+  --color-sidebar-accent-foreground: var(--text-primary);
+  --color-sidebar-border: var(--border-subtle);
+  --color-sidebar-ring: var(--accent-primary);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
 }
 
+/* Dark mode (default) */
 :root {
-  --radius: 0.5rem;
-  /* Nexa light theme (rarely used — terminal is canonical dark) */
-  --background: oklch(0.98 0.005 150);
-  --foreground: oklch(0.18 0.02 160);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0.02 160);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0.02 160);
-  --primary: oklch(0.62 0.16 158);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.95 0.01 150);
-  --secondary-foreground: oklch(0.22 0.02 160);
-  --muted: oklch(0.95 0.01 150);
-  --muted-foreground: oklch(0.5 0.02 160);
-  --accent: oklch(0.92 0.04 158);
-  --accent-foreground: oklch(0.22 0.02 160);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.9 0.01 150);
-  --input: oklch(0.92 0.01 150);
-  --ring: oklch(0.62 0.16 158);
-  --chart-1: oklch(0.62 0.16 158);
-  --chart-2: oklch(0.7 0.15 180);
-  --chart-3: oklch(0.72 0.14 130);
-  --chart-4: oklch(0.75 0.18 95);
-  --chart-5: oklch(0.68 0.18 40);
-  --sidebar: oklch(0.97 0.005 150);
-  --sidebar-foreground: oklch(0.18 0.02 160);
-  --sidebar-primary: oklch(0.62 0.16 158);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.92 0.04 158);
-  --sidebar-accent-foreground: oklch(0.22 0.02 160);
-  --sidebar-border: oklch(0.9 0.01 150);
-  --sidebar-ring: oklch(0.62 0.16 158);
+  --bg-primary: #0f0f0f;
+  --bg-secondary: #181818;
+  --bg-tertiary: #212121;
+  --bg-elevated: #2a2a2a;
+  --border-subtle: #2e2e2e;
+  --text-primary: #ececec;
+  --text-secondary: #9a9a9a;
+  --text-tertiary: #6a6a6a;
+  --accent-primary: #4a9eff;
+  --accent-hover: #3a8eef;
+  --accent-subtle: rgba(74, 158, 255, 0.12);
+  --success: #4ade80;
+  --error: #f87171;
+  --warning: #fbbf24;
 }
 
-.dark {
-  /* Nexa terminal theme — emerald on near-black */
-  --background: oklch(0.14 0.012 160);
-  --foreground: oklch(0.93 0.015 150);
-  --card: oklch(0.175 0.014 160);
-  --card-foreground: oklch(0.93 0.015 150);
-  --popover: oklch(0.17 0.014 160);
-  --popover-foreground: oklch(0.93 0.015 150);
-  --primary: oklch(0.78 0.17 158);
-  --primary-foreground: oklch(0.16 0.02 160);
-  --secondary: oklch(0.22 0.015 160);
-  --secondary-foreground: oklch(0.93 0.015 150);
-  --muted: oklch(0.21 0.012 160);
-  --muted-foreground: oklch(0.62 0.02 155);
-  --accent: oklch(0.26 0.03 158);
-  --accent-foreground: oklch(0.85 0.14 158);
-  --destructive: oklch(0.68 0.2 25);
-  --border: oklch(0.26 0.014 160);
-  --input: oklch(0.2 0.012 160);
-  --ring: oklch(0.7 0.16 158);
-  --chart-1: oklch(0.78 0.17 158);
-  --chart-2: oklch(0.72 0.14 180);
-  --chart-3: oklch(0.72 0.14 130);
-  --chart-4: oklch(0.78 0.18 95);
-  --chart-5: oklch(0.7 0.2 40);
-  --sidebar: oklch(0.12 0.012 160);
-  --sidebar-foreground: oklch(0.9 0.012 150);
-  --sidebar-primary: oklch(0.78 0.17 158);
-  --sidebar-primary-foreground: oklch(0.16 0.02 160);
-  --sidebar-accent: oklch(0.22 0.02 160);
-  --sidebar-accent-foreground: oklch(0.85 0.14 158);
-  --sidebar-border: oklch(0.24 0.014 160);
-  --sidebar-ring: oklch(0.7 0.16 158);
+/* Light mode */
+:root:not(.dark) {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f9f9f9;
+  --bg-tertiary: #f0f0f0;
+  --bg-elevated: #ffffff;
+  --border-subtle: #e5e5e5;
+  --text-primary: #1a1a1a;
+  --text-secondary: #6b6b6b;
+  --text-tertiary: #9ca3af;
+  --accent-primary: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-subtle: rgba(37, 99, 235, 0.08);
+  --success: #16a34a;
+  --error: #dc2626;
+  --warning: #d97706;
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    border-color: var(--border-subtle);
   }
   body {
-    @apply bg-background text-foreground;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
     font-feature-settings: "cv11", "ss01";
+    -webkit-font-smoothing: antialiased;
   }
 }
 
-/* ---- Nexa terminal utilities ---- */
-.nexa-scanlines {
-  background-image: repeating-linear-gradient(
-    to bottom,
-    transparent 0,
-    transparent 2px,
-    oklch(1 0 0 / 0.015) 2px,
-    oklch(1 0 0 / 0.015) 3px
-  );
-}
-
-.nexa-glow {
-  text-shadow: 0 0 8px oklch(0.78 0.17 158 / 0.45);
-}
-
-.nexa-cursor::after {
-  content: "▋";
-  margin-left: 2px;
-  animation: nexa-blink 1s steps(2, start) infinite;
-  color: oklch(0.78 0.17 158);
-}
-
-@keyframes nexa-blink {
-  to {
-    opacity: 0;
-  }
-}
-
+/* ---- Nexa UI utilities ---- */
 .nexa-scroll::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 .nexa-scroll::-webkit-scrollbar-track {
   background: transparent;
 }
 .nexa-scroll::-webkit-scrollbar-thumb {
-  background: oklch(0.35 0.02 160);
+  background: var(--border-subtle);
   border-radius: 999px;
 }
 .nexa-scroll::-webkit-scrollbar-thumb:hover {
-  background: oklch(0.45 0.05 158);
+  background: var(--text-tertiary);
 }
 
-.nexa-grid-bg {
-  background-image:
-    linear-gradient(oklch(1 0 0 / 0.025) 1px, transparent 1px),
-    linear-gradient(90deg, oklch(1 0 0 / 0.025) 1px, transparent 1px);
-  background-size: 28px 28px;
+/* Streaming caret */
+.nexa-caret::after {
+  content: "▋";
+  margin-left: 1px;
+  animation: nexa-blink 1s steps(2, start) infinite;
+  color: var(--accent-primary);
+}
+@keyframes nexa-blink {
+  to { opacity: 0; }
 }
 
+/* Fade-in animation */
 .nexa-fade-in {
-  animation: nexa-fade-in 0.35s ease-out both;
+  animation: nexa-fade 0.3s ease-out both;
 }
-@keyframes nexa-fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+@keyframes nexa-fade {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.nexa-pulse-dot {
-  animation: nexa-pulse 1.4s ease-in-out infinite;
+/* Pulse dot */
+.nexa-pulse {
+  animation: nexa-pulse 1.6s ease-in-out infinite;
 }
 @keyframes nexa-pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.3;
-  }
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+/* Thinking dots */
+.nexa-dots span {
+  animation: nexa-dots 1.4s ease-in-out infinite;
+}
+.nexa-dots span:nth-child(2) { animation-delay: 0.2s; }
+.nexa-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes nexa-dots {
+  0%, 60%, 100% { opacity: 0.3; }
+  30% { opacity: 1; }
+}
+
+/* Slide up for panels/drawers */
+.nexa-slide-up {
+  animation: nexa-slide-up 0.25s ease-out both;
+}
+@keyframes nexa-slide-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }

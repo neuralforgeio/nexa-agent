@@ -1,30 +1,26 @@
 "use client";
 
-import { Copy, Cpu, Terminal, User, Wrench } from "lucide-react";
 import { useState } from "react";
+import { Check, Copy, RefreshCw, ThumbsDown, ThumbsUp, User } from "lucide-react";
 import type { NexaMessage } from "@/lib/nexa/types";
 import { Markdown } from "./markdown";
 
-/**
- * Renders a single persisted message in the transcript.
- */
-export function MessageBlock({ message }: { message: NexaMessage }) {
-  const ts = formatTime(message.createdAt);
-
+export function MessageBlock({
+  message,
+  onRegenerate,
+}: {
+  message: NexaMessage;
+  onRegenerate?: () => void;
+}) {
   if (message.role === "user") {
     return (
-      <div className="flex justify-end nexa-fade-in">
-        <div className="flex max-w-[85%] gap-2.5">
-          <div className="order-2 flex flex-col items-center gap-1">
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border bg-muted">
-              <User className="h-3.5 w-3.5 text-muted-foreground" />
-            </div>
-            <span className="text-[9px] text-muted-foreground/50">{ts}</span>
+      <div className="group flex justify-end nexa-fade-in">
+        <div className="flex max-w-[75%] items-start gap-2.5">
+          <div className="rounded-2xl rounded-tr-sm bg-tertiary px-4 py-2.5 text-[15px] leading-relaxed text-foreground">
+            <div className="whitespace-pre-wrap break-words">{message.content}</div>
           </div>
-          <div className="order-1 space-y-1">
-            <div className="rounded-lg rounded-tr-sm border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-2 text-sm text-foreground">
-              <div className="whitespace-pre-wrap break-words">{message.content}</div>
-            </div>
+          <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-tertiary">
+            <User className="h-3.5 w-3.5 text-secondary" />
           </div>
         </div>
       </div>
@@ -33,18 +29,13 @@ export function MessageBlock({ message }: { message: NexaMessage }) {
 
   if (message.role === "tool") {
     return (
-      <div className="ml-9 nexa-fade-in">
-        <div className="rounded-md border border-border bg-black/30 px-3 py-2">
-          <div className="mb-1 flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground">
-            <Terminal className="h-3 w-3 text-emerald-400" />
-            <span className="text-emerald-400">{message.toolName ?? "tool"}</span>
-            <Wrench className="h-2.5 w-2.5" />
+      <div className="ml-1 nexa-fade-in">
+        <div className="rounded-lg border border-border bg-secondary px-3.5 py-2.5">
+          <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-tertiary">
+            <span className="text-primary">{message.toolName ?? "tool"}</span>
             <span>output</span>
-            <span className="ml-auto text-muted-foreground/50 normal-case tracking-normal">
-              {ts}
-            </span>
           </div>
-          <pre className="whitespace-pre-wrap break-words text-[11px] text-foreground/80 nexa-scroll overflow-x-auto max-h-40">
+          <pre className="nexa-scroll max-h-40 overflow-x-auto whitespace-pre-wrap break-words font-mono text-[12px] leading-relaxed text-foreground/80">
             {message.content}
           </pre>
         </div>
@@ -52,57 +43,66 @@ export function MessageBlock({ message }: { message: NexaMessage }) {
     );
   }
 
-  // assistant
+  // assistant — full-width, no bubble
   return (
-    <div className="flex max-w-full gap-2.5 nexa-fade-in">
-      <div className="flex flex-col items-center gap-1">
-        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-emerald-500/40 bg-emerald-500/10">
-          <Cpu className="h-3.5 w-3.5 text-emerald-400" />
+    <div className="group nexa-fade-in">
+      <div className="mb-1 flex items-center gap-2">
+        <div className="relative h-6 w-6 overflow-hidden rounded-md">
+          <img
+            src="/nexa-agent.png"
+            alt="Nexa"
+            className="h-full w-full object-cover"
+          />
         </div>
-        <span className="text-[9px] text-muted-foreground/50">{ts}</span>
+        <span className="text-[13px] font-semibold text-foreground">Nexa</span>
       </div>
-      <div className="min-w-0 flex-1">
-        <div className="mb-1 flex items-center gap-2 text-[10px] uppercase tracking-wider text-muted-foreground">
-          <span className="text-emerald-400 font-semibold">nexa</span>
-          <span className="text-muted-foreground/60">agent</span>
-          <CopyButton text={message.content} />
-        </div>
-        <div className="rounded-lg rounded-tl-sm border border-border bg-card/60 px-3.5 py-2.5">
+      <div className="pl-8">
+        <div className="text-[15px] leading-[1.7] text-foreground">
           <Markdown content={message.content} />
+        </div>
+        {/* per-message actions */}
+        <div className="mt-2 flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+          <ActionButton
+            icon={Copy}
+            onClick={() => navigator.clipboard.writeText(message.content)}
+            title="Copy"
+          />
+          {onRegenerate && (
+            <ActionButton icon={RefreshCw} onClick={onRegenerate} title="Regenerate" />
+          )}
+          <ActionButton icon={ThumbsUp} onClick={() => {}} title="Good response" />
+          <ActionButton icon={ThumbsDown} onClick={() => {}} title="Bad response" />
         </div>
       </div>
     </div>
   );
 }
 
-function CopyButton({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false);
+function ActionButton({
+  icon: Icon,
+  onClick,
+  title,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  onClick: () => void;
+  title: string;
+}) {
+  const [active, setActive] = useState(false);
   return (
     <button
       onClick={() => {
-        navigator.clipboard.writeText(text);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 1200);
+        onClick();
+        setActive(true);
+        setTimeout(() => setActive(false), 1200);
       }}
-      className="ml-auto inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] text-muted-foreground/60 transition-colors hover:bg-muted hover:text-foreground"
-      aria-label="copy answer"
+      className="rounded-md p-1.5 text-tertiary transition-colors hover:bg-tertiary hover:text-foreground"
+      title={title}
     >
-      {copied ? (
-        <span className="text-emerald-400">copied</span>
+      {active && title === "Copy" ? (
+        <Check className="h-3.5 w-3.5 text-success" />
       ) : (
-        <Copy className="h-2.5 w-2.5" />
+        <Icon className="h-3.5 w-3.5" />
       )}
     </button>
   );
-}
-
-function formatTime(iso: string): string {
-  try {
-    return new Date(iso).toLocaleTimeString(undefined, {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  } catch {
-    return "";
-  }
 }
