@@ -29,14 +29,40 @@ except ImportError:
     pass
 
 
+def _read_version_from_pyproject() -> str:
+    """
+    Read the version from ``pyproject.toml`` so there's a single source of truth.
+
+    Falls back to ``"1.9.0"`` if the file cannot be read (e.g. when the
+    package is installed in a non-source layout).
+
+    Returns:
+        The version string from ``[project].version`` in pyproject.toml.
+    """
+    try:
+        toml_path = Path(__file__).resolve().parent.parent / "pyproject.toml"
+        for line in toml_path.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if line.startswith("version") and "=" in line:
+                # e.g. version = "1.9.0"
+                return line.split("=", 1)[1].strip().strip('"').strip("'")
+    except Exception:
+        pass
+    return "1.9.0"
+
+
 # ---------------------------------------------------------------------------
 # Brand identity
 # ---------------------------------------------------------------------------
 NEXA_NAME: str = "Nexa Agent"
 """The human-readable product name."""
 
-NEXA_VERSION: str = "1.0.0"
-"""The current semantic version of Nexa Agent."""
+NEXA_VERSION: str = _read_version_from_pyproject()
+"""
+The current semantic version of Nexa Agent. Read from ``pyproject.toml``
+so there is a single source of truth (no drift between the package
+metadata and the runtime banner).
+"""
 
 NEXA_AUTHOR: str = "Dearly Febriano Irwansyah"
 """The copyright holder and primary author."""

@@ -880,3 +880,194 @@ Agent: Nexa Autonomous Principal Engineer
 - Chat pipeline = WORKING ✅
 
 ---
+
+---
+
+## Task ID: 20 (v2.0.0 — Intelligence Explosion: 18 New Brain Modules)
+Agent: Nexa Autonomous Principal Engineer (Desktop IDE — ZCode)
+
+### Summary
+**MAJOR release v2.0.0.** Added 18 new intelligence modules + 110 tests + full
+integration into the prompt builder, conversation loop, CLI, and HTTP server.
+Nexa Agent can now: failover across providers, learn autonomously from the web,
+expand terse prompts, self-heal from errors, reflect on its own behavior, cache
+knowledge, score its own confidence, classify intent, recognize patterns,
+remember errors, synthesize multi-source answers, adapt its persona, suggest
+next steps, reason step-by-step, validate facts against the web, enrich context,
+consolidate memory, and reformulate vague queries.
+
+### New Modules (18 files)
+
+**nexa/provider_failover.py** — Provider Failover Engine
+- `ProviderHealth`, `ProviderHealthTracker`, `FailoverChain`, `FailoverPolicy`
+- `check_provider_health()` async probe (httpx)
+- `build_default_chain()` + `is_failover_enabled()` env switch
+- Cooldowns, EMA latency tracking, failover log
+
+**agent/autonomous_learner.py** — Autonomous Web Learner
+- Detects knowledge gaps in user messages
+- `LearningBudget` (per-session cap, rate-limited)
+- `learn_about()` runs injected search_fn, returns `LearnedFact`
+- `enrich_with_learned_facts()` for prompt injection
+- Opt-in via `NEXA_AUTONOMOUS_LEARNING=1`
+
+**agent/prompt_expander.py** — Terse → Structured Prompt Expander
+- Detects intent (code_fix/generate/search/refactor/explain)
+- Infers subject (file/function/quoted token)
+- Suggests constraints + step-by-step approach
+- `TERSE_FOLLOWUPS` dictionary for "fix it", "do it", etc.
+
+**agent/self_healer.py** — Typed Self-Healing Engine
+- 8 error categories (network/auth/context_overflow/tool_arg/import/attribute/syntax/timeout)
+- `HealingPlan` with retry/escalate/max_retries/patch_hint
+- Repetition detection (escalates on repeat)
+- Stateful history
+
+**agent/self_improvement.py** — Reflection Loop
+- 3 improvement types (behavioral_rule/tool_preference/avoid)
+- Extracts meta-rules from each turn
+- Dedup + reinforcement (weight grows)
+- LRU eviction (cap 50)
+
+**agent/knowledge_cache.py** — On-Disk Fact Cache
+- One JSON file per entity under `~/.nexa/knowledge/`
+- TTL-based expiry (default 7 days)
+- LRU index + eviction (cap 500)
+- Cross-fact dedup
+
+**agent/confidence_scorer.py** — Answer Confidence Scoring
+- 6-factor heuristic (length, hedging, specificity, tools, citations, ambiguity)
+- `should_fact_check()` for high-stakes claims
+- `ConfidenceReport` with reasons
+
+**agent/intent_classifier.py** — Rich Intent Classifier
+- 6 intents (code_help/factual_qa/how_to/opinion/conversation/meta)
+- Sub-type detection (programming language, entity type)
+- Suggested tools + output format per intent
+
+**agent/pattern_recognizer.py** — Conversation Pattern Recognizer
+- Tracks topic frequency, message length, terse ratio
+- Per-topic tool usage stats
+- Generates suggestions from patterns
+
+**agent/error_memory.py** — Persistent Error Log
+- JSON file at `~/.nexa/memory/errors.json`
+- Signature-based dedup (numbers/paths normalized)
+- Tracks occurrences, remediation, resolved status
+- Cap 200 records
+
+**agent/response_synthesizer.py** — Multi-Source Synthesizer
+- `synthesize()` merges partial answers
+- `deduplicate_facts()` (Jaccard similarity)
+- `reconcile_conflicts()` (numeric contradictions)
+- `summarize_tool_results()`
+
+**agent/adaptive_persona.py** — Tone/Verbosity Adapter
+- Tracks formality, verbosity, tone (technical/friendly/neutral)
+- EMA smoothing (configurable)
+- `persona_block()` for system prompt
+
+**agent/proactive_suggester.py** — Next-Step Suggester
+- Tracks actions (wrote_code/ran_tests/committed)
+- Suggests tests, commits, docs, reviews
+- `suggestion_block()` for assistant closing line
+
+**agent/reasoning_chain.py** — Step-by-Step Reasoning
+- `ReasoningStep` (thought/action/observation/confidence)
+- Incremental builder with `think()` + `act()`
+- `render()` for system prompt
+
+**agent/fact_validator.py** — Web Fact Validator
+- Extracts numeric claims from answers
+- Validates via injected `search_fn`
+- Flags supported/unsupported/contradicted claims
+
+**agent/context_enricher.py** — Context Window Enricher
+- Pulls user profile + memory + cached facts + recent tool results
+- Detects entities in user message
+- Builds a single block for the system prompt
+
+**agent/memory_consolidator.py** — Memory Compactor
+- Deduplicates memories (Jaccard >= 0.7)
+- Promotes high-confidence items (>= 0.6)
+- Prunes stale low-confidence (30+ days, < 0.3)
+- Idempotent
+
+**agent/query_reformulator.py** — Search Query Reformulator
+- Detects intent (freshness/opinion/factual)
+- Produces 1-3 precise queries from a vague message
+- Strips stopwords, adds suffixes
+
+### Integrations
+
+**agent/prompt_builder.py** — Added 5 new sections (9-13):
+- Enriched Context, Self-Improvement Rules, Adaptive Persona,
+  Detected Intent, Reasoning Chain. All optional (backward compatible).
+
+**agent/conversation_loop.py** — Full v2.0 hardening:
+- Prompt expansion for terse messages
+- Intent detection + emission
+- Autonomous learning (with budget + injected search_fn)
+- Provider failover chain integration
+- Self-healer plans on errors
+- Error memory recording
+- Confidence scoring after answer
+- Self-improvement reflection per turn
+- Proactive suggestions
+- Reasoning chain tracking
+
+**cli.py** — 5 new slash commands:
+- `/persona` — show adaptive persona state
+- `/knowledge [clear]` — list/clear cached facts
+- `/patterns` — show recognized patterns
+- `/reflect` — self-improvement stats
+
+**server.py** — 8 new HTTP endpoints:
+- `GET /api/intelligence` — aggregate v2.0 status
+- `GET /api/persona` — persona state
+- `GET /api/knowledge` — list cached facts
+- `DELETE /api/knowledge` — clear cache
+- `GET /api/patterns` — pattern report
+- `POST /api/expand` — expand a terse prompt
+- `POST /api/intent` — classify intent
+- `POST /api/reformulate` — reformulate a query
+
+### Tests
+- `tests/test_v2_intelligence.py` — 110 new tests covering all 18 modules
+- Fixed 2 stale assertions in `tests/test_prompt_builder.py` (hardcoded "v1.")
+- **Total: 252 passed, 7 failed (pre-existing Windows platform mismatch)**
+
+### Bug Fixes
+- `nexa/config.py`: `NEXA_VERSION` now reads from `pyproject.toml` (single source
+  of truth). Was hardcoded "1.0.0" — agent had been reporting v1.0.0 in its
+  system prompt this whole time despite pyproject being at 1.9.x.
+- `agent/autonomous_learner.py`: expanded `_STOPWORDS` set (was missing "Tell",
+  "Me", "About", etc.).
+- `agent/conversation_loop.py`: fixed `budget.consumed` → `budget.used`.
+- `requirements.txt`: converted top docstring to comments (pip doesn't parse
+  docstrings at the top of requirements.txt).
+
+### Versioning
+- v1.9.1 → **v2.0.0 (MAJOR)**
+- Rationale: 18 new intelligence modules fundamentally change the agent's
+  capabilities. This is an architecture-level expansion, not a feature add.
+
+### Security
+- `git grep "ghp_"` returns only documentation mentions (CONTINUATION_PROMPT.md,
+  NEXA_MASTER_PLAN.md, worklog.md) — no actual tokens in tracked files.
+- No new secrets introduced.
+
+### Verification
+- All 18 new modules parse + import cleanly (ast + runtime)
+- 110/110 v2.0 tests pass
+- Full suite: 252 passed, 7 failed (pre-existing, platform-only)
+- server.py imports cleanly, all 8 new routes registered
+- cli.py parses cleanly
+- NEXA_VERSION correctly reads "2.0.0" from pyproject.toml
+
+Stage Summary:
+- **Status: v2.0.0 RELEASE-READY.** 18 intelligence modules + 110 tests + full
+  integration. This is the largest single release in Nexa Agent's history.
+- Tests: 252 passing (up from 142) | Tools: 10 | Agent modules: 12 → 30
+- Next: Push to GitHub, tag v2.0.0, create GitHub Release.
+

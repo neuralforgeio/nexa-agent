@@ -34,6 +34,11 @@ def build_system_prompt(
     context_summary: str = "",
     learning_stats: Optional[Dict[str, Any]] = None,
     provider_hint: str = "",
+    enriched_context: str = "",
+    improvement_digest: str = "",
+    persona_block_text: str = "",
+    intent_block_text: str = "",
+    reasoning_block_text: str = "",
 ) -> str:
     """
     Build a comprehensive system prompt for the agent.
@@ -49,16 +54,24 @@ def build_system_prompt(
     6. **Memory Digest** — Accumulated knowledge from past conversations.
     7. **Context Summary** — Summary of the current conversation so far.
     8. **Provider Hints** — Model-specific guidance (if applicable).
+    9. **Enriched Context** — Cached facts + recent tool results (v2.0).
+    10. **Self-Improvement Rules** — Lessons learned from past turns (v2.0).
+    11. **Adaptive Persona** — Tone/verbosity hints (v2.0).
+    12. **Intent** — Detected user intent (v2.0).
+    13. **Reasoning Chain** — Step-by-step reasoning so far (v2.0).
 
     Args:
-        registry:        The tool registry (to list available tools).
-        memory_digest:   A memory summary string from the memory curator.
-        user_profile:    The user profile text (from USER.md or DB).
-        context_summary: A summary of the conversation so far (from
-                         context compression, if triggered).
-        learning_stats:  Optional dict with tool success/failure stats
-                         from the learning graph.
-        provider_hint:   Optional model-specific guidance string.
+        registry:            The tool registry (to list available tools).
+        memory_digest:       A memory summary string from the memory curator.
+        user_profile:        The user profile text (from USER.md or DB).
+        context_summary:     A summary of the conversation so far.
+        learning_stats:      Optional dict with tool success/failure stats.
+        provider_hint:       Optional model-specific guidance string.
+        enriched_context:    Cached facts + recent tool results (v2.0).
+        improvement_digest:  Self-improvement rules from past turns (v2.0).
+        persona_block_text:  Adaptive persona block (v2.0).
+        intent_block_text:   Detected intent block (v2.0).
+        reasoning_block_text:Reasoning chain so far (v2.0).
 
     Returns:
         The full system prompt as a single string with newline separators.
@@ -95,6 +108,26 @@ def build_system_prompt(
     # --- Section 8: Provider Hints ---
     if provider_hint and provider_hint.strip():
         sections.append(_build_provider_section(provider_hint))
+
+    # --- Section 9: Enriched Context (v2.0) ---
+    if enriched_context and enriched_context.strip():
+        sections.append(_build_enriched_context_section(enriched_context))
+
+    # --- Section 10: Self-Improvement Rules (v2.0) ---
+    if improvement_digest and improvement_digest.strip():
+        sections.append(_build_improvement_section(improvement_digest))
+
+    # --- Section 11: Adaptive Persona (v2.0) ---
+    if persona_block_text and persona_block_text.strip():
+        sections.append(_build_persona_section(persona_block_text))
+
+    # --- Section 12: Intent (v2.0) ---
+    if intent_block_text and intent_block_text.strip():
+        sections.append(_build_intent_section(intent_block_text))
+
+    # --- Section 13: Reasoning Chain (v2.0) ---
+    if reasoning_block_text and reasoning_block_text.strip():
+        sections.append(_build_reasoning_section(reasoning_block_text))
 
     return "\n\n".join(sections)
 
@@ -289,5 +322,106 @@ def _build_provider_section(hint: str) -> str:
         [
             "# Provider Information",
             hint.strip(),
+        ]
+    )
+
+
+# ---------------------------------------------------------------------------
+# v2.0 sections
+# ---------------------------------------------------------------------------
+def _build_enriched_context_section(block: str) -> str:
+    """
+    Build the enriched context section (cached facts + recent tool results).
+
+    Args:
+        block: The enriched context block from the context enricher.
+
+    Returns:
+        A formatted string with enriched context.
+    """
+    return "\n".join(
+        [
+            "# Enriched Context",
+            "The following cached facts and recent tool results are",
+            "relevant to the user's current message:",
+            "",
+            block.strip(),
+        ]
+    )
+
+
+def _build_improvement_section(digest: str) -> str:
+    """
+    Build the self-improvement rules section.
+
+    Args:
+        digest: The improvement digest from the self-improvement loop.
+
+    Returns:
+        A formatted string with self-improvement rules.
+    """
+    return "\n".join(
+        [
+            "# Self-Improvement Rules",
+            "The following rules were learned from past conversation turns.",
+            "Apply them when the situation matches:",
+            "",
+            digest.strip(),
+        ]
+    )
+
+
+def _build_persona_section(block: str) -> str:
+    """
+    Build the adaptive persona section.
+
+    Args:
+        block: The persona block text.
+
+    Returns:
+        A formatted string with persona guidance.
+    """
+    return "\n".join(
+        [
+            "# Adaptive Persona",
+            block.strip(),
+        ]
+    )
+
+
+def _build_intent_section(block: str) -> str:
+    """
+    Build the detected intent section.
+
+    Args:
+        block: The intent block text.
+
+    Returns:
+        A formatted string with intent guidance.
+    """
+    return "\n".join(
+        [
+            "# Detected Intent",
+            block.strip(),
+        ]
+    )
+
+
+def _build_reasoning_section(block: str) -> str:
+    """
+    Build the reasoning chain section.
+
+    Args:
+        block: The reasoning chain block text.
+
+    Returns:
+        A formatted string with the reasoning so far.
+    """
+    return "\n".join(
+        [
+            "# Reasoning So Far",
+            "Here is the step-by-step reasoning established so far in this turn:",
+            "",
+            block.strip(),
         ]
     )

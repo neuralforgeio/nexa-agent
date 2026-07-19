@@ -1,12 +1,10 @@
-"""
-Nexa Agent — Python Dependencies
-================================
-
-Requirements file for the Nexa Agent Python backend.
-
-Copyright (c) 2026 Dearly Febriano Irwansyah
-SPDX-License-Identifier: MIT
-"""
+# Nexa Agent — Python Dependencies
+# ================================
+#
+# Requirements file for the Nexa Agent Python backend.
+#
+# Copyright (c) 2026 Dearly Febriano Irwansyah
+# SPDX-License-Identifier: MIT
 
 # FastAPI is the web framework powering the REST + SSE server (server.py).
 fastapi>=0.115.0

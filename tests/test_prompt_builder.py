@@ -53,7 +53,9 @@ class TestBuildSystemPrompt:
         """The prompt must include the agent identity."""
         prompt = build_system_prompt(registry)
         assert "Nexa Agent" in prompt
-        assert "v1.3.0" in prompt or "v1." in prompt  # Version is present.
+        # Version is present (any "vX.Y.Z" pattern, version-agnostic).
+        import re
+        assert re.search(r"v\d+\.\d+\.\d+", prompt), "Version must be present in identity"
 
     def test_includes_behavior_section(self, registry) -> None:
         """The prompt must include behavioral guidelines."""
@@ -152,7 +154,9 @@ class TestIdentitySection:
     def test_includes_version(self) -> None:
         """The identity must include the version."""
         section = _build_identity_section()
-        assert "v1." in section
+        # Version-agnostic: any "vX.Y.Z" pattern is acceptable.
+        import re
+        assert re.search(r"v\d+\.\d+\.\d+", section), "Version must be present"
 
     def test_includes_author(self) -> None:
         """The identity must include the author."""

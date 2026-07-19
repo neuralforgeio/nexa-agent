@@ -58,6 +58,10 @@ SLASH_COMMANDS = {
     "/memories": "Show accumulated agent memories (learning store)",
     "/memory": "Show memory files (MEMORY.md + USER.md). Usage: /memory [show|sync]",
     "/doctor": "Run self-health diagnostics",
+    "/persona": "Show the adaptive persona state (v2.0)",
+    "/knowledge": "Show cached learned facts (v2.0). Usage: /knowledge [clear]",
+    "/patterns": "Show recognized conversation patterns (v2.0)",
+    "/reflect": "Reflect on the last turn (v2.0 self-improvement)",
     "/exit": "Exit Nexa Agent (or press Ctrl+D)",
 }
 
@@ -324,6 +328,68 @@ async def handle_slash_command(cmd: str, agent: NexaAgent, db: ConversationDB) -
         health = SelfHealth(db)
         report = await health.run_full_check()
         console.print(report.summary())
+        console.print()
+    elif command == "/persona":
+        # v2.0: show adaptive persona state.
+        from agent.adaptive_persona import AdaptivePersona
+        p = AdaptivePersona()
+        # In a full integration the persona would be a long-lived object
+        # on the agent; here we display the neutral default for inspection.
+        persona = p.persona()
+        console.print(Panel("[bold]Adaptive Persona (v2.0)[/bold]", border_style="magenta"))
+        console.print(f"  formality : [cyan]{persona.formality:.2f}[/cyan]")
+        console.print(f"  verbosity : [cyan]{persona.verbosity:.2f}[/cyan]")
+        console.print(f"  tone      : [cyan]{persona.tone}[/cyan]")
+        console.print(f"  samples   : [cyan]{persona.samples}[/cyan]")
+        console.print()
+    elif command == "/knowledge":
+        # v2.0: show cached learned facts.
+        from agent.knowledge_cache import KnowledgeCache
+        cache = KnowledgeCache()
+        facts = cache.list_all()
+        if arg and arg.strip().lower() == "clear":
+            n = cache.clear()
+            console.print(f"[green]Cleared {n} cached fact(s).[/green]\n")
+            return True
+        if not facts:
+            console.print("[yellow]No cached facts yet.[/yellow]\n")
+            return True
+        console.print(Panel(f"[bold]Cached Knowledge ({len(facts)})[/bold]", border_style="magenta"))
+        for f in facts[:20]:
+            console.print(f"  [cyan]{f.entity}[/cyan]: {f.summary[:80]}")
+            console.print(f"    [dim]conf={f.confidence:.2f} hits={f.hits} src={f.source_title or 'N/A'}[/dim]")
+        console.print()
+    elif command == "/patterns":
+        # v2.0: show recognized conversation patterns.
+        from agent.pattern_recognizer import PatternRecognizer
+        r = PatternRecognizer()
+        report = r.report()
+        console.print(Panel("[bold]Conversation Patterns (v2.0)[/bold]", border_style="magenta"))
+        console.print(f"  avg message length : [cyan]{report.avg_msg_length}[/cyan] words")
+        console.print(f"  terse ratio        : [cyan]{report.terse_ratio:.2f}[/cyan]")
+        if report.top_topics:
+            console.print("  top topics         :")
+            for topic, count in report.top_topics:
+                console.print(f"    - [green]{topic}[/green] ({count}x)")
+        if report.tool_per_topic:
+            console.print("  tool per topic     :")
+            for topic, tool in report.tool_per_topic.items():
+                console.print(f"    - {topic} → [green]{tool}[/green]")
+        if report.suggestions:
+            console.print("  [dim]suggestions:[/dim]")
+            for s in report.suggestions:
+                console.print(f"    - {s}")
+        console.print()
+    elif command == "/reflect":
+        # v2.0: run a self-improvement reflection on the last turn.
+        from agent.self_improvement import SelfImprovementLoop
+        loop = SelfImprovementLoop()
+        # Without a stored last-turn, we just show the loop's stats.
+        stats = loop.stats()
+        console.print(Panel("[bold]Self-Improvement Reflection (v2.0)[/bold]", border_style="magenta"))
+        console.print(f"  total improvements : [cyan]{stats['total']}[/cyan]")
+        console.print(f"  by kind            : [cyan]{stats['by_kind']}[/cyan]")
+        console.print(f"  top trigger        : [cyan]{stats.get('top_trigger') or 'N/A'}[/cyan]")
         console.print()
     else:
         console.print(f"[red]Unknown command:[/red] {command}. Type /help.\n")

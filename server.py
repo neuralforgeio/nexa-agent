@@ -44,6 +44,7 @@ from pydantic import BaseModel
 from nexa import bootstrap as nexa_bootstrap  # noqa: F401 — must be imported first for UTF-8 stdio.
 from agent.self_health import SelfHealth
 from nexa.config import NEXA_NAME, NEXA_VERSION
+from nexa.provider_failover import is_failover_enabled
 from run_agent import NexaAgent
 from nexa.state import ConversationDB
 
@@ -401,6 +402,128 @@ async def doctor() -> Dict[str, Any]:
             for c in report.checks
         ],
     }
+
+
+# ---------------------------------------------------------------------------
+# v2.0 Intelligence endpoints
+# ---------------------------------------------------------------------------
+@app.get("/api/intelligence")
+async def intelligence() -> Dict[str, Any]:
+    """
+    Return a summary of every v2.0 intelligence subsystem.
+
+    Aggregates: provider failover status, knowledge cache stats,
+    self-improvement stats, healer stats, and error memory stats.
+    """
+    from agent.error_memory import ErrorMemory
+    from agent.knowledge_cache import KnowledgeCache
+    from agent.self_healer import SelfHealer
+    from agent.self_improvement import SelfImprovementLoop
+
+    healer = SelfHealer()
+    loop = SelfImprovementLoop()
+    cache = KnowledgeCache()
+    err_mem = ErrorMemory()
+
+    return {
+        "version": "2.0.0",
+        "failover_enabled": is_failover_enabled(),
+        "knowledge_cache": {
+            "count": len(cache.list_all()),
+        },
+        "self_improvement": loop.stats(),
+        "healer": healer.stats(),
+        "error_memory": err_mem.stats(),
+    }
+
+
+@app.get("/api/persona")
+async def persona() -> Dict[str, Any]:
+    """Return the current adaptive persona state (neutral default)."""
+    from agent.adaptive_persona import AdaptivePersona
+    p = AdaptivePersona().persona()
+    return p.to_dict()
+
+
+@app.get("/api/knowledge")
+async def knowledge_list() -> Dict[str, Any]:
+    """List all cached learned facts."""
+    from agent.knowledge_cache import KnowledgeCache
+    cache = KnowledgeCache()
+    facts = cache.list_all()
+    return {
+        "count": len(facts),
+        "facts": [
+            {
+                "entity": f.entity,
+                "summary": f.summary,
+                "source_url": f.source_url,
+                "source_title": f.source_title,
+                "confidence": f.confidence,
+                "hits": f.hits,
+                "learned_at": f.learned_at,
+            }
+            for f in facts
+        ],
+    }
+
+
+@app.delete("/api/knowledge")
+async def knowledge_clear() -> Dict[str, Any]:
+    """Clear all cached learned facts."""
+    from agent.knowledge_cache import KnowledgeCache
+    cache = KnowledgeCache()
+    n = cache.clear()
+    return {"cleared": n}
+
+
+@app.get("/api/patterns")
+async def patterns() -> Dict[str, Any]:
+    """Return recognized conversation patterns (empty until observed)."""
+    from agent.pattern_recognizer import PatternRecognizer
+    r = PatternRecognizer()
+    return r.report().to_dict()
+
+
+@app.post("/api/expand")
+async def expand_prompt_endpoint(req: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Expand a terse user message into a structured prompt.
+
+    Request body: ``{"message": "fix it"}``
+    """
+    from agent.prompt_expander import expand_prompt
+    message = (req.get("message") or "").strip()
+    if not message:
+        return JSONResponse(
+            status_code=400, content={"error": "message is required"}
+        )
+    result = expand_prompt(message)
+    return result.to_dict()
+
+
+@app.post("/api/intent")
+async def intent_endpoint(req: Dict[str, Any]) -> Dict[str, Any]:
+    """Classify the intent of a user message."""
+    from agent.intent_classifier import classify_intent
+    message = (req.get("message") or "").strip()
+    if not message:
+        return JSONResponse(
+            status_code=400, content={"error": "message is required"}
+        )
+    return classify_intent(message).to_dict()
+
+
+@app.post("/api/reformulate")
+async def reformulate_endpoint(req: Dict[str, Any]) -> Dict[str, Any]:
+    """Reformulate a vague user message into precise search queries."""
+    from agent.query_reformulator import reformulate
+    message = (req.get("message") or "").strip()
+    if not message:
+        return JSONResponse(
+            status_code=400, content={"error": "message is required"}
+        )
+    return reformulate(message).to_dict()
 
 
 # ---------------------------------------------------------------------------
