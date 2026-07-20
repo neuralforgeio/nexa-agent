@@ -1,8 +1,12 @@
 /**
- * Nexa Agent — Theme Configuration
+ * Nexa Agent — Theme Configuration & Design Tokens
  *
- * Centralized color palette, typography, and design tokens.
+ * Centralized color palette, typography, design tokens, and shared types.
  * Dark mode #141618 (Z.ai-style), accent #4A9EFF.
+ *
+ * Also hosts formatting helpers (formatTime, formatDate) that previously
+ * lived in lib/utils.ts (which depended on clsx + tailwind-merge that
+ * weren't in package.json). Those deps are unnecessary; we use plain TS.
  *
  * Copyright (c) 2026 Dearly Febriano Irwansyah
  */
@@ -38,7 +42,17 @@ export const spacing = {
   cardRadius: "8px",
 } as const;
 
-export type EventType = "session" | "thinking" | "token" | "tool_call" | "tool_result" | "done" | "error" | "end" | "compressing" | "memory";
+export type EventType =
+  | "session"
+  | "thinking"
+  | "token"
+  | "tool_call"
+  | "tool_result"
+  | "done"
+  | "error"
+  | "end"
+  | "compressing"
+  | "memory";
 
 export interface ChatEvent {
   type: EventType;
@@ -68,4 +82,43 @@ export interface Session {
   createdAt: string;
   updatedAt: string;
   messageCount: number;
+}
+
+/**
+ * Shape of a message as returned by GET /api/sessions/:id.
+ * Used when reloading a session's transcript.
+ */
+export interface SessionMessage {
+  id: string;
+  role: "user" | "assistant" | "tool";
+  content: string;
+  toolName?: string;
+  createdAt: string;
+}
+
+/**
+ * Format an ISO timestamp as HH:MM.
+ * Returns "" if the input is invalid.
+ */
+export function formatTime(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+/**
+ * Format an ISO timestamp as a relative day label ("Today", "Yesterday",
+ * or "Mon DD"). Returns "" if the input is invalid.
+ */
+export function formatDate(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const now = new Date();
+  const isToday = d.toDateString() === now.toDateString();
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  const isYesterday = d.toDateString() === yesterday.toDateString();
+  if (isToday) return "Today";
+  if (isYesterday) return "Yesterday";
+  return d.toLocaleDateString([], { month: "short", day: "numeric" });
 }

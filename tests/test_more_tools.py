@@ -93,38 +93,46 @@ class TestCodeExecution:
     @pytest.mark.asyncio
     async def test_simple_print(self) -> None:
         """Executing a simple print statement must capture output."""
-        result = await code_execution('print("hello from nexa")')
+        result = await code_execution('print("hello from nexa")', requires_approval=False)
         assert "exit code: 0" in result
         assert "hello from nexa" in result
 
     @pytest.mark.asyncio
     async def test_math_computation(self) -> None:
         """Executing math must produce correct output."""
-        result = await code_execution('print(2 + 3)')
+        result = await code_execution('print(2 + 3)', requires_approval=False)
         assert "5" in result
 
     @pytest.mark.asyncio
     async def test_stderr_capture(self) -> None:
         """stderr output must be captured."""
-        result = await code_execution('import sys; sys.stderr.write("error msg")')
+        result = await code_execution(
+            'import sys; sys.stderr.write("error msg")',
+            requires_approval=False,
+        )
         assert "error msg" in result
 
     @pytest.mark.asyncio
     async def test_timeout_exceeds_max(self) -> None:
         """Timeout above MAX_CODE_TIMEOUT must raise ValueError."""
         with pytest.raises(ValueError, match="exceeds maximum"):
-            await code_execution('print("hi")', timeout=999.0)
+            await code_execution('print("hi")', timeout=999.0, requires_approval=False)
 
     @pytest.mark.asyncio
     async def test_timeout_triggers(self) -> None:
-        """Code that runs too long must be killed."""
-        with pytest.raises(Exception, match="timed out"):
-            await code_execution('import time; time.sleep(10)', timeout=1.0)
+        """Code that runs too long must be killed and return a timeout message."""
+        result = await code_execution(
+            'import time; time.sleep(10)',
+            timeout=1.0,
+            requires_approval=False,
+        )
+        # v2.1.0: returns a friendly timeout message instead of raising.
+        assert "timed out" in result.lower() or "killed" in result.lower()
 
     @pytest.mark.asyncio
     async def test_no_output_message(self) -> None:
         """Code with no output must show '(no output)'."""
-        result = await code_execution('x = 1')
+        result = await code_execution('x = 1', requires_approval=False)
         assert "(no output)" in result
 
 

@@ -1,9 +1,17 @@
 """
-Nexa Agent — File Tools
-=======================
+Nexa Agent — File Tools (Hardened v2.1.0)
+=========================================
 
 Filesystem tools (``read_file``, ``write_file``) sandboxed to the
 ``NEXA_WORKSPACE`` directory to prevent arbitrary host access.
+
+Hardening (v2.1.0):
+    - Uses the shared :func:`tools._paths.resolve_in_workspace` helper (DRY).
+    - ``write_file`` enforces a 1MB size cap and an ``is_dir`` guard.
+    - ``write_file`` catches ``PermissionError`` / ``IsADirectoryError``
+      / ``OSError`` specifically and returns a friendly ValueError.
+    - ``read_file`` distinguishes FileNotFoundError / PermissionError /
+      IsADirectoryError for clearer error messages.
 
 Copyright (c) 2026 Dearly Febriano Irwansyah
 SPDX-License-Identifier: MIT
@@ -13,31 +21,10 @@ from pathlib import Path
 from typing import Any
 
 from nexa.config import NEXA_WORKSPACE
+from tools._paths import MAX_FILE_SIZE, resolve_in_workspace
 
-
-def _resolve_in_workspace(raw: str) -> Path:
-    """
-    Resolve a user-supplied path safely inside the workspace.
-
-    Args:
-        raw: A relative path (e.g. ``"notes.txt"`` or ``"src/app.py"``).
-
-    Returns:
-        The resolved absolute :class:`~pathlib.Path`.
-
-    Raises:
-        ValueError: If the path escapes the workspace (via ``..`` or an
-            absolute path).
-    """
-    base = NEXA_WORKSPACE.resolve()
-    resolved = (base / raw).resolve()
-    try:
-        resolved.relative_to(base)
-    except ValueError as exc:
-        raise ValueError(
-            f"path '{raw}' escapes the nexa workspace ({base})"
-        ) from exc
-    return resolved
+# Re-export for backward compatibility (file_tools._resolve_in_workspace).
+_resolve_in_workspace = resolve_in_workspace
 
 
 async def read_file(path: str, **_: Any) -> str:
@@ -51,25 +38,47 @@ async def read_file(path: str, **_: Any) -> str:
         The file content as a string (truncated to 4000 chars if larger).
 
     Raises:
-        ValueError: If the path escapes the workspace or the file cannot be read.
+        ValueError: If the path escapes the workspace, the file is a
+            directory, the file is not found, the user lacks permission,
+            or the file exceeds 100KB.
+
+    Example:
+        >>> await read_file("notes.txt")  # doctest: +SKIP
+        'this is the file content'
     """
     try:
-        full = _resolve_in_workspace(path)
-        if full.is_dir():
-            raise ValueError(f"'{path}' is a directory, not a file")
-        if not full.exists():
-            raise ValueError(f"file not found: '{path}'")
-        size = full.stat().st_size
-        if size > 100_000:
-            raise ValueError(f"file too large ({size} bytes, max 100KB)")
-        content = full.read_text("utf-8")
-        if len(content) > 4000:
-            content = content[:4000] + f"\n…[truncated, {len(content)} chars total]"
-        return content
+        full = resolve_in_workspace(path)
     except ValueError:
         raise
-    except Exception as e:
-        raise ValueError(f"could not read '{path}': {e}")
+
+    # Specific checks for clearer error messages.
+    if not full.exists():
+        raise ValueError(f"file not found: '{path}'")
+    if full.is_dir():
+        raise ValueError(f"'{path}' is a directory, not a file")
+
+    try:
+        size = full.stat().st_size
+    except PermissionError as exc:
+        raise ValueError(f"permission denied reading '{path}': {exc}") from exc
+    except OSError as exc:
+        raise ValueError(f"could not stat '{path}': {exc}") from exc
+
+    if size > 100_000:
+        raise ValueError(f"file too large ({size} bytes, max 100KB)")
+
+    try:
+        content = full.read_text("utf-8")
+    except PermissionError as exc:
+        raise ValueError(f"permission denied reading '{path}': {exc}") from exc
+    except UnicodeDecodeError as exc:
+        raise ValueError(f"file '{path}' is not valid UTF-8: {exc}") from exc
+    except OSError as exc:
+        raise ValueError(f"could not read '{path}': {exc}") from exc
+
+    if len(content) > 4000:
+        content = content[:4000] + f"\n…[truncated, {len(content)} chars total]"
+    return content
 
 
 async def write_file(path: str, content: str, **_: Any) -> str:
@@ -81,15 +90,41 @@ async def write_file(path: str, content: str, **_: Any) -> str:
 
     Args:
         path:    Relative path to the file inside the workspace.
-        content: The text content to write.
+        content: The text content to write (max 1MB).
 
     Returns:
         A confirmation message with the byte count.
 
     Raises:
-        ValueError: If the path escapes the workspace.
+        ValueError: If the path escapes the workspace, the target is an
+            existing directory, the content exceeds 1MB, or a permission
+            / OS error occurs during the write.
+
+    Example:
+        >>> await write_file("notes.txt", "hello")  # doctest: +SKIP
+        'wrote 5 bytes to notes.txt'
     """
-    full = _resolve_in_workspace(path)
-    full.parent.mkdir(parents=True, exist_ok=True)
-    full.write_text(content, "utf-8")
-    return f"wrote {len(content.encode('utf-8'))} bytes to {path}"
+    # Size cap.
+    encoded = content.encode("utf-8")
+    if len(encoded) > MAX_FILE_SIZE:
+        raise ValueError(
+            f"content too large ({len(encoded)} bytes, max {MAX_FILE_SIZE} bytes = 1MB)"
+        )
+
+    full = resolve_in_workspace(path)
+
+    # Guard against writing to an existing directory.
+    if full.exists() and full.is_dir():
+        raise ValueError(f"cannot write file: '{path}' is an existing directory")
+
+    try:
+        full.parent.mkdir(parents=True, exist_ok=True)
+        full.write_text(content, "utf-8")
+    except PermissionError as exc:
+        raise ValueError(f"permission denied writing '{path}': {exc}") from exc
+    except IsADirectoryError as exc:
+        raise ValueError(f"'{path}' is a directory, not a file: {exc}") from exc
+    except OSError as exc:
+        raise ValueError(f"could not write '{path}': {exc}") from exc
+
+    return f"wrote {len(encoded)} bytes to {path}"

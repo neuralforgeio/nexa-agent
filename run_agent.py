@@ -35,6 +35,41 @@ from nexa.state import ConversationDB
 from tools.registry import ToolRegistry, create_default_registry
 
 
+# ---------------------------------------------------------------------------
+# Module-level active-agent singleton
+# ---------------------------------------------------------------------------
+# Used by tools that need to access the running agent instance (e.g. the
+# ``delegate`` tool spawns a sub-agent via the same provider/registry).
+# This avoids passing the agent through every tool call (which would break
+# the tool registry's flat ``**kwargs`` interface) while still allowing
+# tools to discover the active agent at runtime.
+_agent_singleton: Optional["NexaAgent"] = None
+
+
+def set_active_agent(agent: "NexaAgent") -> None:
+    """
+    Register the currently-active agent instance.
+
+    Called by the CLI / server / TUI at startup so that tools like
+    ``delegate`` can discover the agent at runtime.
+
+    Args:
+        agent: The :class:`NexaAgent` instance to register.
+    """
+    global _agent_singleton
+    _agent_singleton = agent
+
+
+def get_active_agent() -> Optional["NexaAgent"]:
+    """
+    Return the currently-active agent instance, or ``None`` if none set.
+
+    Returns:
+        The registered :class:`NexaAgent`, or ``None``.
+    """
+    return _agent_singleton
+
+
 class NexaAgent:
     """
     The core Nexa Agent — orchestrates LLM calls, tool execution, and storage.

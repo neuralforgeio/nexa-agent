@@ -47,6 +47,7 @@ Caddyfile
 
 # Next.js build cache
 .next/
+*.tsbuildinfo
 
 # Editor
 .vscode/

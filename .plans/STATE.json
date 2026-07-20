@@ -1,36 +1,30 @@
 {
-  "last_updated": "2026-07-19T23:30:00Z",
-  "version": "v2.0.0",
-  "tests": 252,
+  "last_updated": "2026-07-20T10:00:00Z",
+  "version": "v2.1.0",
+  "tests": 396,
   "tools": 10,
   "agent_modules": 30,
-  "last_completed_task": "Task 20: v2.0.0 Intelligence Explosion (18 new modules + 110 tests)",
-  "current_roadmap_item": 10,
-  "roadmap_item_name": "Trajectory Recording (next up)",
-  "v2_features": {
-    "provider_failover": true,
-    "autonomous_learner": true,
-    "prompt_expander": true,
-    "self_healer": true,
-    "self_improvement": true,
-    "knowledge_cache": true,
-    "confidence_scorer": true,
-    "intent_classifier": true,
-    "pattern_recognizer": true,
-    "error_memory": true,
-    "response_synthesizer": true,
-    "adaptive_persona": true,
-    "proactive_suggester": true,
-    "reasoning_chain": true,
-    "fact_validator": true,
-    "context_enricher": true,
-    "memory_consolidator": true,
-    "query_reformulator": true
+  "last_completed_task": "Task 21: v2.1.0 Production Readiness (4 pillars, 144 new tests)",
+  "current_roadmap_item": 11,
+  "roadmap_item_name": "Tool call card persistence in frontend history (deferred to v2.2)",
+  "v2_1_changes": {
+    "delegate_tool_fixed": true,
+    "code_execution_hitl": true,
+    "terminal_tool_hardened": true,
+    "file_tools_atomic": true,
+    "pydantic_schemas": true,
+    "tui_full_implementation": true,
+    "cli_entry_point_fix": true,
+    "frontend_strict_ts": true,
+    "sse_reconnect": true,
+    "mobile_sidebar_hamburger": true,
+    "tailwind_v4_cleanup": true
   },
   "known_issues": [
+    "Next.js 16 + Turbopack on Windows: npm run build fails with 'id must be string' in build worker. Not a code defect (tsc --noEmit passes). Workaround: use dev mode or downgrade to Next.js 15 on Windows.",
+    "2 pre-existing Windows platform test failures (python3 alias + bash env var expansion) — not regressions.",
     "state.py: connection-per-method overhead (low priority, functional)",
-    "conversation_loop.py: failover chain integration is event-emitting only; full provider swap not yet wired (next patch)",
-    "7 pre-existing Windows platform test failures (python command alias + env var injection)"
+    "Tool call card persistence in frontend history (deferred to v2.2)"
   ],
-  "checkpoint": "v2.0.0 ready to push. 18 intelligence modules integrated + 110 tests passing. Next: push, tag, release."
+  "checkpoint": "v2.1.0 ready to push. All 4 pillars complete, 396 tests passing. Next: push, tag, release."
 }

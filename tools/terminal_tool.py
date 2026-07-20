@@ -26,14 +26,18 @@ SPDX-License-Identifier: MIT
 
 import asyncio
 import os
+import sys
 import uuid
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from nexa.config import NEXA_WORKSPACE
 
 #: Substrings that cause a command to be rejected outright.
+# Includes both Unix and Windows dangerous patterns (case-insensitive match).
 BLOCKED_PATTERNS: list[str] = [
+    # Unix destructive patterns.
     "rm -rf /",
     "mkfs",
     "dd if=",
@@ -42,6 +46,19 @@ BLOCKED_PATTERNS: list[str] = [
     "reboot",
     "halt",
     "poweroff",
+    # Windows destructive patterns (PowerShell + cmd).
+    "del /s",
+    "del /f",
+    "format ",
+    "rmdir /s",
+    "rd /s",
+    "remove-item -recurse",
+    "remove-item -force",
+    "remove-item -r",
+    "shutdown /s",
+    "shutdown /r",
+    "diskpart",
+    "reg delete",
 ]
 
 #: Maximum stdout output length (characters).
@@ -55,6 +72,9 @@ DEFAULT_TIMEOUT: float = 15.0
 
 #: Maximum allowed timeout in seconds (prevents excessively long commands).
 MAX_TIMEOUT: float = 60.0
+
+#: After this many completed background processes accumulate, prune runs.
+PRUNE_THRESHOLD: int = 10
 
 
 @dataclass
@@ -151,17 +171,22 @@ async def run_terminal_command(
     if env:
         full_env.update(env)
 
-    # Resolve working directory.
-    work_dir = cwd or str(NEXA_WORKSPACE)
+    # Resolve working directory (project-scoped boundary).
+    work_dir = _validate_cwd(cwd)
 
-    # Spawn the process.
-    proc = await asyncio.create_subprocess_shell(
-        command,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE,
-        cwd=work_dir,
-        env=full_env,
-    )
+    # Spawn the process with a new process group (so timeout can kill the tree).
+    popen_kwargs: Dict[str, Any] = {
+        "stdout": asyncio.subprocess.PIPE,
+        "stderr": asyncio.subprocess.PIPE,
+        "cwd": str(work_dir),
+        "env": full_env,
+    }
+    if sys.platform == "win32":
+        popen_kwargs["creationflags"] = 0x00000200  # CREATE_NEW_PROCESS_GROUP
+    else:
+        popen_kwargs["start_new_session"] = True
+
+    proc = await asyncio.create_subprocess_shell(command, **popen_kwargs)
 
     # Background mode: register and return immediately.
     if background:
@@ -184,8 +209,12 @@ async def run_terminal_command(
             proc.communicate(), timeout=timeout
         )
     except asyncio.TimeoutError:
-        proc.kill()
-        await proc.wait()
+        # Robust kill: take down the whole process tree.
+        await _kill_process_tree(proc)
+        try:
+            await proc.wait()
+        except Exception:
+            pass
         raise asyncio.TimeoutError(f"command timed out ({timeout}s)")
 
     # Decode and truncate output.
@@ -285,3 +314,136 @@ async def generate_uuid(**_: Any) -> str:
         A 36-character UUID string (e.g., ``"550e8400-e29b-41d4-a716-446655440000"``).
     """
     return str(uuid.uuid4())
+
+
+# ---------------------------------------------------------------------------
+# v2.1.0 hardening helpers
+# ---------------------------------------------------------------------------
+def _validate_cwd(cwd: Optional[str]) -> Path:
+    """
+    Validate and resolve the working directory against NEXA_WORKSPACE.
+
+    Args:
+        cwd: The requested working directory (may be ``None``).
+
+    Returns:
+        The resolved absolute :class:`~pathlib.Path`.
+
+    Raises:
+        ValueError: If ``cwd`` is outside the workspace.
+
+    Example:
+        >>> _validate_cwd(None)  # doctest: +SKIP
+        PosixPath('.../nexa-workspace')
+    """
+    if cwd is None:
+        return NEXA_WORKSPACE.resolve()
+    try:
+        candidate = Path(cwd).resolve()
+    except (OSError, ValueError) as exc:
+        raise ValueError(f"invalid cwd '{cwd}': {exc}") from exc
+    workspace = NEXA_WORKSPACE.resolve()
+    try:
+        candidate.relative_to(workspace)
+    except ValueError as exc:
+        raise ValueError(
+            f"cwd '{cwd}' escapes the nexa workspace ({workspace}). "
+            f"Terminal commands are project-scoped for safety."
+        ) from exc
+    return candidate
+
+
+async def _kill_process_tree(proc: asyncio.subprocess.Process) -> None:
+    """
+    Kill the subprocess and its entire process tree.
+
+    On Windows, uses ``taskkill /F /T /PID`` (force + tree).
+    On Unix, uses ``os.killpg`` on the process group (if the process was
+    started with ``start_new_session=True``).
+
+    Args:
+        proc: The :class:`asyncio.subprocess.Process` to kill.
+    """
+    pid = proc.pid
+    if pid is None:
+        return
+    if sys.platform == "win32":
+        # Windows: taskkill /F /T /PID <pid> — kills the whole tree.
+        try:
+            kill_proc = await asyncio.create_subprocess_exec(
+                "taskkill", "/F", "/T", "/PID", str(pid),
+                stdout=asyncio.subprocess.DEVNULL,
+                stderr=asyncio.subprocess.DEVNULL,
+            )
+            await asyncio.wait_for(kill_proc.wait(), timeout=5.0)
+            return
+        except Exception:
+            pass  # fall through to proc.kill()
+    else:
+        # Unix: kill the whole process group.
+        try:
+            os.killpg(os.getpgid(pid), 9)
+            return
+        except Exception:
+            pass  # fall through to proc.kill()
+    # Last resort: kill only the parent process.
+    try:
+        proc.kill()
+    except ProcessLookupError:
+        pass
+
+
+def _prune_completed_processes() -> int:
+    """
+    Remove completed/killed background processes from the registry.
+
+    This prevents the module-level ``_background_processes`` dict from
+    growing unboundedly over a long-running session.
+
+    Returns:
+        The number of processes pruned.
+    """
+    global _background_processes
+    to_remove = [
+        pid for pid, bg in _background_processes.items()
+        if bg.status in ("completed", "killed", "error")
+    ]
+    for pid in to_remove:
+        _background_processes.pop(pid, None)
+    return len(to_remove)
+
+
+#: OpenAI function-calling schema for run_terminal_command.
+RUN_TERMINAL_COMMAND_SCHEMA: Dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        "command": {
+            "type": "string",
+            "description": "The shell command to execute.",
+        },
+        "timeout": {
+            "type": "number",
+            "description": "Max execution time in seconds (default: 15, max: 60).",
+        },
+        "cwd": {
+            "type": "string",
+            "description": (
+                "Working directory inside the workspace. Defaults to the "
+                "workspace root. Must be inside NEXA_WORKSPACE."
+            ),
+        },
+        "env": {
+            "type": "object",
+            "description": "Additional environment variables to merge with os.environ.",
+            "additionalProperties": {"type": "string"},
+        },
+        "background": {
+            "type": "boolean",
+            "description": (
+                "If true, the process runs in the background and its PID "
+                "is returned immediately."
+            ),
+        },
+    },
+    "required": ["command"],
+}

@@ -2,9 +2,6 @@
  * Nexa Agent — Sidebar Component
  *
  * Minimalist sidebar with logo, New Chat button, session history.
- * Z.ai-style: only "Chat" menu (no separate Agent menu).
- *
- * Copyright (c) 2026 Dearly Febriano Irwansyah
  */
 
 "use client";

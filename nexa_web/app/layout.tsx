@@ -1,18 +1,14 @@
 /**
- * Nexa Agent — Root Layout
+ * Nexa Agent — Root Layout (Hardened v2.1.0)
  *
- * Dark theme #141618, Inter + JetBrains Mono fonts.
- * Nexa logo as favicon.
+ * Dark theme #141618. Uses system fonts (no next/font/google — avoids
+ * network fetches at build time that fail in offline sandboxed environments).
  *
  * Copyright (c) 2026 Dearly Febriano Irwansyah
  */
 
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-
-const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
-const jetbrainsMono = JetBrains_Mono({ variable: "--font-jetbrains-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Nexa Agent — Advanced AI Agent",
@@ -23,11 +19,18 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
-      <body className={`${inter.variable} ${jetbrainsMono.variable}`} style={{
-        margin: 0, padding: 0, background: "#141618", color: "#ECECEC",
-        fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif",
-        WebkitFontSmoothing: "antialiased",
-      }}>
+      <body
+        style={{
+          margin: 0,
+          padding: 0,
+          background: "#141618",
+          color: "#ECECEC",
+          fontFamily:
+            "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+          WebkitFontSmoothing: "antialiased",
+          MozOsxFontSmoothing: "grayscale",
+        }}
+      >
         {children}
       </body>
     </html>

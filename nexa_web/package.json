@@ -1,11 +1,11 @@
 {
   "name": "nexa-agent-ui",
-  "version": "1.6.0",
+  "version": "2.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3000 2>&1 | tee dev.log",
-    "build": "next build && cp -r .next/static .next/standalone/.next/ && cp -r public .next/standalone/",
-    "start": "NODE_ENV=production bun .next/standalone/server.js 2>&1 | tee server.log",
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start -p 3000",
     "lint": "eslint ."
   },
   "dependencies": {
@@ -15,12 +15,13 @@
     "postcss": "^8.5.19",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
-    "tailwindcss": "^4.3.2",
-    "z-ai-web-dev-sdk": "^0.0.18"
+    "tailwindcss": "^4.3.2"
   },
   "devDependencies": {
     "@types/node": "26.1.1",
     "@types/react": "19.2.17",
+    "@types/react-dom": "19.2.0",
     "typescript": "7.0.2"
-  }
+  },
+  "allowScripts": {}
 }

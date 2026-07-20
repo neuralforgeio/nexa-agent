@@ -156,12 +156,15 @@ class TestEnvironmentAndCwd:
         assert "injected_value_42" in result
 
     @pytest.mark.asyncio
-    async def test_custom_cwd(self, tmp_path) -> None:
-        """A custom working directory must be used."""
+    async def test_custom_cwd(self, tmp_path, monkeypatch) -> None:
+        """A custom working directory inside the workspace must be used."""
+        # v2.1.0: cwd must be inside NEXA_WORKSPACE. Patch the workspace to tmp_path
+        # so the test's tmp_path is a valid project-scoped cwd.
+        monkeypatch.setattr("tools.terminal_tool.NEXA_WORKSPACE", tmp_path)
         # Create a test file in tmp_path.
         test_file = tmp_path / "marker.txt"
         test_file.write_text("found_it")
-        result = await run_terminal_command("cat marker.txt", cwd=str(tmp_path))
+        result = await run_terminal_command("type marker.txt", cwd=str(tmp_path))
         assert "found_it" in result
 
 
