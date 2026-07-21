@@ -345,6 +345,12 @@ async def run_tui_interactive(
         if user_input.strip().lower() in ("exit", "quit", "/exit"):
             break
 
+        # v3.0.0: slash-command dispatcher.
+        if user_input.strip().startswith("/"):
+            handled = await _handle_tui_slash_command(state, agent, user_input.strip())
+            if handled:
+                continue  # don't send slash command to the LLM
+
         add_user_message(state, user_input)
         state.streaming = True
 
@@ -357,6 +363,127 @@ async def run_tui_interactive(
             state.messages.append(ChatMessage(
                 role="assistant", content=f"[error] {exc}"
             ))
+
+
+async def _handle_tui_slash_command(
+    state: TUIState,
+    agent: Any,
+    raw: str,
+) -> bool:
+    """
+    Handle a slash command inside the TUI.
+
+    Returns ``True`` if the command was handled (and should NOT be sent to
+    the LLM), ``False`` if it should be passed through as a normal message.
+
+    Supported commands:
+        /help, /exit, /provider [list|use|test|add|remove], /model <name>,
+        /doctor (shows health summary inline).
+
+    Args:
+        state:  The current TUI state.
+        agent:  The NexaAgent instance.
+        raw:    The raw slash command string (e.g. ``"/provider list"``).
+
+    Returns:
+        ``True`` if handled, ``False`` to pass through.
+    """
+    parts = raw.split()
+    cmd = parts[0].lower()
+    if cmd in ("/help", "/?"):
+        state.messages.append(ChatMessage(
+            role="tool",
+            content=(
+                "TUI commands: /help, /exit, /provider [list|use <n>|test <n>|add|remove <n>], "
+                "/model <name>, /doctor"
+            ),
+        ))
+        return True
+    if cmd in ("/exit", "/quit"):
+        raise KeyboardInterrupt  # break the outer loop
+    if cmd == "/provider":
+        from nexa.provider_registry import ProviderRegistry
+        reg = ProviderRegistry()
+        sub = parts[1].lower() if len(parts) > 1 else ""
+        if not sub or sub == "list":
+            lines = ["Providers:"]
+            active = reg.get_active()
+            for p in reg.list_all():
+                marker = "→" if active and active.name == p.name else " "
+                lines.append(f"  {marker} {p.name}: {p.base_url or '(env)'} | {p.model}")
+            state.messages.append(ChatMessage(role="tool", content="\n".join(lines)))
+            return True
+        if sub == "use" and len(parts) >= 3:
+            name = parts[2]
+            if reg.set_active(name):
+                cfg = reg.get_active()
+                if cfg:
+                    agent.provider.base_url = cfg.base_url
+                    agent.provider.model = cfg.model
+                    agent.provider.api_key = cfg.api_key
+                    agent.provider._client = None
+                    state.model = cfg.model
+                    state.messages.append(ChatMessage(
+                        role="tool", content=f"✓ Switched to {name} ({cfg.base_url})"
+                    ))
+            else:
+                state.messages.append(ChatMessage(
+                    role="tool", content=f"✗ Unknown provider: {name}"
+                ))
+            return True
+        if sub == "test" and len(parts) >= 3:
+            name = parts[2]
+            state.messages.append(ChatMessage(role="tool", content=f"Probing {name}..."))
+            try:
+                healthy = await reg.test(name)
+                state.messages.append(ChatMessage(
+                    role="tool",
+                    content=f"{'✓' if healthy else '✗'} {name} {'healthy' if healthy else 'unreachable'}",
+                ))
+            except Exception as exc:
+                state.messages.append(ChatMessage(
+                    role="tool", content=f"✗ {name}: {exc}"
+                ))
+            return True
+        if sub == "add":
+            state.messages.append(ChatMessage(
+                role="tool",
+                content="Use 'nexa provider add' in a terminal (interactive prompts not supported in TUI).",
+            ))
+            return True
+        if sub == "remove" and len(parts) >= 3:
+            name = parts[2]
+            if reg.remove(name):
+                state.messages.append(ChatMessage(role="tool", content=f"✓ Removed {name}"))
+            else:
+                state.messages.append(ChatMessage(role="tool", content=f"✗ No such provider: {name}"))
+            return True
+        # Unknown /provider subcommand — show usage.
+        state.messages.append(ChatMessage(
+            role="tool",
+            content="Usage: /provider [list|use <n>|test <n>|add|remove <n>]",
+        ))
+        return True
+    if cmd == "/model" and len(parts) >= 2:
+        agent.provider.model = parts[1]
+        state.model = parts[1]
+        state.messages.append(ChatMessage(role="tool", content=f"✓ Model set to {parts[1]}"))
+        return True
+    if cmd == "/doctor":
+        try:
+            from agent.self_health import SelfHealth
+            from nexa.state import ConversationDB
+            db = agent.db if hasattr(agent, "db") and agent.db else ConversationDB()
+            health = SelfHealth(db)
+            report = await health.run_full_check()
+            state.messages.append(ChatMessage(
+                role="tool", content=f"Health: {'ALL OK' if report.all_healthy else 'ISSUES'}"
+            ))
+        except Exception as exc:
+            state.messages.append(ChatMessage(role="tool", content=f"✗ {exc}"))
+        return True
+    # Unknown slash command — let it pass through to the LLM.
+    return False
 
 
 # ---------------------------------------------------------------------------

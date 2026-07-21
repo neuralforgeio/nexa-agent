@@ -91,6 +91,30 @@ PROVIDER_CATALOG: Dict[str, ProviderConfig] = {
         api_key_hint="Any non-empty string",
         description="vLLM inference server",
     ),
+    "tokenrouter": ProviderConfig(
+        name="tokenrouter",
+        base_url="https://api.tokenrouter.io/v1",
+        default_model="auto:balance",
+        api_key_hint="Requires TOKENROUTER_API_KEY (key prefix tr_)",
+        description=(
+            "TokenRouter — OpenAI-compatible LLM routing gateway. "
+            "Model can be a routing mode (auto:balance/cost/quality/latency) "
+            "or a pinned model (gpt-4o, claude-3-7-sonnet-latest:quality, "
+            "anthropic:claude-3-5-sonnet, gemini:..., mistral:..., deepseek:...)."
+        ),
+    ),
+    "databricks": ProviderConfig(
+        name="databricks",
+        base_url="",  # user must override via NEXA_BASE_URL (workspace host)
+        default_model="databricks-claude-sonnet-4-6",
+        api_key_hint="Requires DATABRICKS_TOKEN (PAT, prefix dapi); also set NEXA_BASE_URL=<workspace>/serving-endpoints",
+        description=(
+            "Databricks Foundation Model APIs / AI Gateway (OpenAI-compatible). "
+            "Set NEXA_BASE_URL to https://<workspace-host>/serving-endpoints and "
+            "DATABRICKS_TOKEN to your PAT. Models: databricks-claude-sonnet-*, "
+            "databricks-gpt-oss-*, databricks-meta-llama-*, etc."
+        ),
+    ),
 }
 
 
@@ -151,12 +175,20 @@ def resolve_provider(
     model = os.environ.get("NEXA_MODEL", config.default_model)
 
     # Resolve API key.
+    # Resolution order:
+    #   1. OPENAI_API_KEY (universal fallback)
+    #   2. NEXA_API_KEY (universal fallback)
+    #   3. <NAME>_API_KEY (e.g. TOKENROUTER_API_KEY, OPENROUTER_API_KEY)
+    #   4. Provider-specific token env vars (DATABRICKS_TOKEN for databricks).
     api_key = (
         os.environ.get("OPENAI_API_KEY")
         or os.environ.get("NEXA_API_KEY")
         or os.environ.get(f"{name.upper()}_API_KEY")
         or ""
     )
+    # v3.0.0: provider-specific token env vars.
+    if not api_key and name == "databricks":
+        api_key = os.environ.get("DATABRICKS_TOKEN", "")
     # Local providers accept any non-empty key.
     if not api_key and config.name in ("ollama", "llamacpp", "lmstudio", "vllm"):
         api_key = "dummy"

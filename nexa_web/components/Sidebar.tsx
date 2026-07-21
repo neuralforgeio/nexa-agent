@@ -7,8 +7,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MessageSquarePlus, Trash2, Zap } from "lucide-react";
+import { MessageSquarePlus, Trash2, Zap, Settings as SettingsIcon } from "lucide-react";
 import type { Session } from "../lib/theme";
+import { SettingsPanel } from "./SettingsPanel";
 
 interface SidebarProps {
   activeSessionId: string | null;
@@ -20,6 +21,7 @@ interface SidebarProps {
 export function Sidebar({ activeSessionId, onSelect, onNew, refreshKey }: SidebarProps) {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -127,9 +129,23 @@ export function Sidebar({ activeSessionId, onSelect, onNew, refreshKey }: Sideba
 
       {/* Footer */}
       <div style={{ borderTop: "1px solid #2E2F34", padding: "12px 16px" }}>
-        <div style={{ fontSize: 11, color: "#6A6A6A" }}>© 2026 Dearly Febriano Irwansyah</div>
-        <div style={{ fontSize: 11, color: "#6A6A6A" }}>MIT License</div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+          <div>
+            <div style={{ fontSize: 11, color: "#6A6A6A" }}>© 2026 Dearly Febriano Irwansyah</div>
+            <div style={{ fontSize: 11, color: "#6A6A6A" }}>MIT License</div>
+          </div>
+          <button
+            onClick={() => setShowSettings(true)}
+            aria-label="Provider settings"
+            title="Manage LLM providers"
+            style={{ background: "transparent", border: "none", color: "#9A9A9A", cursor: "pointer", padding: 4 }}
+          >
+            <SettingsIcon size={16} />
+          </button>
+        </div>
       </div>
+
+      {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}
     </aside>
   );
 }

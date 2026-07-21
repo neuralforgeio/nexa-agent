@@ -154,6 +154,16 @@ async def run_terminal_command(
     if not command or not command.strip():
         raise ValueError("command is empty or whitespace-only")
 
+    # v3.0.0: Block commands that try to access NEXA_HOME (security boundary).
+    # This prevents the LLM from exfiltrating API keys / secrets / memory
+    # stored in ~/.nexa/ via shell commands like `cat ~/.nexa/.env`.
+    if is_protected_path_reference(command):
+        raise ValueError(
+            "command accesses protected NEXA_HOME path (~/.nexa/). "
+            "Terminal commands cannot read or write files inside NEXA_HOME "
+            "to prevent API key / secrets exfiltration."
+        )
+
     # Check against blocked patterns.
     lower = command.lower()
     for bad in BLOCKED_PATTERNS:
@@ -411,6 +421,100 @@ def _prune_completed_processes() -> int:
     for pid in to_remove:
         _background_processes.pop(pid, None)
     return len(to_remove)
+
+
+# ---------------------------------------------------------------------------
+# v3.0.0 — Terminal security: NEXA_HOME path protection
+# ---------------------------------------------------------------------------
+import re as _re
+
+#: Patterns that indicate a command tries to access NEXA_HOME.
+#: Each is matched case-insensitively against the command string.
+_PROTECTED_PATH_PATTERNS: list[str] = [
+    r"~/\.nexa",            # ~/.nexa/...
+    r"\$HOME/\.nexa",       # $HOME/.nexa/...
+    r"\$NEXA_HOME",         # $NEXA_HOME/...
+    r"/\.nexa/",            # absolute /.nexa/ (Unix home-relative)
+    r"\.nexa/\.env",        # .nexa/.env (relative)
+    r"\.nexa/memory",       # .nexa/memory (relative)
+    r"\.nexa/secrets",      # .nexa/secrets (relative)
+    r"\bnexa\.db\b",        # the SQLite db filename
+    r"\.nexa/knowledge",    # knowledge cache
+    r"\.nexa/sessions",     # session data
+    r"\.nexa/logs",         # log files
+    r"\.nexa/history",     # TUI history (may contain user messages)
+    r"\.nexa/gateway\.pid", # gateway PID file
+]
+
+#: Compiled patterns (case-insensitive).
+_PROTECTED_COMPILED = [_re.compile(p, _re.IGNORECASE) for p in _PROTECTED_PATH_PATTERNS]
+
+
+def is_protected_path_reference(command: str) -> bool:
+    """
+    Check whether ``command`` references a path inside ``NEXA_HOME``.
+
+    This is the v3.0.0 security boundary: it prevents the LLM (via
+    ``run_terminal_command``) from reading or writing files in
+    ``~/.nexa/`` — where API keys, memory, secrets, and the SQLite DB live.
+
+    Detected references include:
+        - ``~/.nexa/...``
+        - ``$HOME/.nexa/...``
+        - ``$NEXA_HOME/...``
+        - ``.nexa/.env``, ``.nexa/memory``, ``.nexa/secrets``
+        - The literal filename ``nexa.db``
+        - Absolute paths that resolve inside ``NEXA_HOME`` (via ``Path.resolve()``).
+
+    Args:
+        command: The shell command string to inspect.
+
+    Returns:
+        ``True`` if the command references a protected path, else ``False``.
+
+    Example:
+        >>> is_protected_path_reference("cat ~/.nexa/.env")
+        True
+        >>> is_protected_path_reference("echo hello")
+        False
+        >>> is_protected_path_reference("ls nexa-workspace/")
+        False
+    """
+    if not command:
+        return False
+    # Pattern-based check (fast path).
+    for pat in _PROTECTED_COMPILED:
+        if pat.search(command):
+            return True
+    # Absolute-path resolution check (slower but thorough).
+    # Extract anything that looks like an absolute path (Windows drive-letter
+    # path or Unix absolute path) and check if it's inside NEXA_HOME.
+    try:
+        # Import the live NEXA_HOME (honors monkeypatch in tests).
+        from nexa.config import NEXA_HOME as _NEXA_HOME
+        home_resolved = _NEXA_HOME.resolve()
+        # Match Windows drive-letter paths (C:\... or C:/...) or Unix absolute (/...).
+        # Allow spaces inside the path (paths like C:\Users\Dearly Febriano\...).
+        # Stop at shell metacharacters (|, &, ;, >, <, `) and quotes.
+        abs_path_pattern = _re.compile(
+            r"[A-Za-z]:[\\/][^|&;<>\`\"']+"
+            r"|/[^|&;<>\`\"']+"
+        )
+        for token in abs_path_pattern.findall(command):
+            token = token.strip().strip("'\"")
+            if not token:
+                continue
+            try:
+                resolved_token = Path(token).resolve()
+                # Check if the token is inside NEXA_HOME.
+                resolved_token.relative_to(home_resolved)
+                return True
+            except (ValueError, OSError):
+                continue
+    except Exception:
+        # If anything goes wrong, fall back to the pattern-only result.
+        pass
+    return False
 
 
 #: OpenAI function-calling schema for run_terminal_command.

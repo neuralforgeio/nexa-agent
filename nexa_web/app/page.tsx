@@ -19,13 +19,20 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Menu, X, Zap } from "lucide-react";
+import dynamic from "next/dynamic";
+import { Menu, X, Zap, Terminal as TerminalIcon } from "lucide-react";
 import { Sidebar } from "../components/Sidebar";
 import { MessageBubble } from "../components/MessageBubble";
 import { ThinkingIndicator } from "../components/ThinkingIndicator";
 import { Composer } from "../components/Composer";
 import { sendChatMessage, persistTurn } from "../lib/stream";
 import type { Message, ChatEvent, SessionMessage } from "../lib/theme";
+
+// v3.0.0: lazy-load TerminalPanel (it uses WebSocket, must be client-only).
+const TerminalPanel = dynamic(
+  () => import("../components/TerminalPanel").then((m) => m.TerminalPanel),
+  { ssr: false }
+);
 
 export default function Page() {
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -37,6 +44,7 @@ export default function Page() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [appVersion, setAppVersion] = useState<string>("2.1.0");
+  const [showTerminal, setShowTerminal] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Fetch the app version from /api/health (no more hardcoded "v1.8.0").
@@ -112,8 +120,19 @@ export default function Page() {
             m.map((msg) => (msg.id === asstId ? { ...msg, content: "", thinking: true } : msg))
           );
         } else if (event.type === "done" && event.answer) {
+          // v3.0.0: persist tool calls into the assistant message so they
+          // survive a history reload (no more setToolCalls([]) wipe-out).
           setMessages((m) =>
-            m.map((msg) => (msg.id === asstId ? { ...msg, content: event.answer!, thinking: false } : msg))
+            m.map((msg) =>
+              msg.id === asstId
+                ? {
+                    ...msg,
+                    content: event.answer!,
+                    thinking: false,
+                    toolCalls: collectedTools.length > 0 ? [...collectedTools] : msg.toolCalls,
+                  }
+                : msg
+            )
           );
         } else if (event.type === "error" && event.message) {
           setMessages((m) =>
@@ -125,6 +144,8 @@ export default function Page() {
       });
 
       setThinking(false);
+      // v3.0.0: don't wipe toolCalls — they're persisted in the message now.
+      // Only clear the live toolCalls state (the UI reads message.toolCalls).
       setToolCalls([]);
       if (boundSession) {
         const finalContent =
@@ -266,6 +287,34 @@ export default function Page() {
         {/* Composer */}
         <Composer onSend={onSend} disabled={thinking} thinking={thinking} showSuggestions={isEmpty} />
       </main>
+
+      {/* v3.0.0: floating terminal toggle button (desktop) */}
+      <button
+        onClick={() => setShowTerminal((s) => !s)}
+        aria-label="Toggle terminal"
+        title="Toggle terminal panel"
+        style={{
+          position: "fixed",
+          bottom: 80,
+          right: 16,
+          width: 40,
+          height: 40,
+          borderRadius: 8,
+          background: showTerminal ? "#4A9EFF" : "#2A2B30",
+          border: "1px solid #2E2F34",
+          color: "#ECECEC",
+          cursor: "pointer",
+          zIndex: 50,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <TerminalIcon size={18} />
+      </button>
+
+      {/* v3.0.0: terminal panel (collapsible) */}
+      {showTerminal && <TerminalPanel onClose={() => setShowTerminal(false)} />}
     </div>
   );
 }

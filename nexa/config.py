@@ -91,6 +91,37 @@ are confined here to prevent arbitrary access to the host filesystem.
 NEXA_DB_PATH: Path = NEXA_HOME / "nexa.db"
 """The path to the SQLite database used for conversation persistence."""
 
+NEXA_SECRETS_DIR: Path = NEXA_HOME / "secrets"
+"""
+Directory for storing sensitive credentials (API keys, tokens) separately
+from the main ``.env`` file. Files here are created with mode 0o600
+(best-effort on Unix). v3.0.0 introduced this as part of the terminal
+security hardening — ``run_terminal_command`` blocks access to ``~/.nexa/``
+entirely, so credentials live here safely.
+"""
+
+
+def _ensure_secrets_dir() -> None:
+    """
+    Create :data:`NEXA_SECRETS_DIR` and tighten its permissions.
+
+    On Unix, the directory is set to mode 0o700 (owner-only). On Windows,
+    permissions are inherited from the parent — this is best-effort.
+    """
+    NEXA_SECRETS_DIR.mkdir(parents=True, exist_ok=True)
+    if os.name == "posix":
+        try:
+            os.chmod(NEXA_SECRETS_DIR, 0o700)
+        except OSError:
+            pass
+
+
+# Ensure secrets dir exists on import (best-effort).
+try:
+    _ensure_secrets_dir()
+except OSError:
+    pass
+
 
 # ---------------------------------------------------------------------------
 # LLM provider configuration

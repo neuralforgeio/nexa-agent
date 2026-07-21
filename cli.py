@@ -186,15 +186,85 @@ async def handle_slash_command(cmd: str, agent: NexaAgent, db: ConversationDB) -
         else:
             console.print(f"[green]Current model:[/green] {agent.provider.model}\n")
     elif command == "/provider":
-        if arg:
+        # v3.0.0: extended /provider command with list/use/add/remove/test subcommands.
+        # Backward compat: `/provider <name>` still switches to a catalog provider.
+        from nexa.provider_registry import ProviderRegistry, StoredProviderConfig
+        reg = ProviderRegistry()
+        parts = (arg or "").split()
+        sub = parts[0].lower() if parts else ""
+        if not arg:
+            # Show current + list.
+            active = reg.get_active()
+            console.print(Panel(
+                f"Active: [green]{active.name if active else 'none'}[/green]\n"
+                f"base_url: [cyan]{agent.provider.base_url}[/cyan]\n"
+                f"model:    [green]{agent.provider.model}[/green]",
+                border_style="cyan", title="[cyan]Current Provider[/cyan]",
+            ))
+            console.print("[dim]Usage: /provider list | /provider use <name> | /provider add | /provider remove <name> | /provider test <name> | /provider <catalog-name>[/dim]\n")
+        elif sub == "list":
+            all_providers = reg.list_all()
+            from rich.table import Table
+            table = Table(title="LLM Providers", show_header=True, header_style="bold cyan")
+            table.add_column("Name", style="cyan")
+            table.add_column("Base URL", style="white")
+            table.add_column("Model", style="green")
+            table.add_column("Key", style="dim")
+            active = reg.get_active()
+            for p in all_providers:
+                marker = "→" if active and active.name == p.name else " "
+                table.add_row(f"{marker} {p.name}", p.base_url or "(env)", p.model or "(default)", p.api_key or "(env)")
+            console.print(Panel(table, border_style="cyan"))
+            console.print()
+        elif sub == "use" and len(parts) >= 2:
+            name = parts[1]
+            if reg.set_active(name):
+                cfg = reg.get_active()
+                if cfg:
+                    agent.provider.base_url = cfg.base_url
+                    agent.provider.model = cfg.model
+                    agent.provider.api_key = cfg.api_key
+                    agent.provider._client = None
+                    console.print(f"[green]✓ Switched to[/green] {name} ({cfg.base_url})\n")
+            else:
+                console.print(f"[red]Unknown provider:[/red] {name}. Try /provider list\n")
+        elif sub == "add":
+            # Defer to nexa_cli _cmd_provider for the interactive logic.
+            from nexa_cli.main import _cmd_provider
+            console.print("[cyan]Add a new provider. Press Ctrl+C to abort.[/cyan]")
+            try:
+                rc = _cmd_provider("add")
+            except (EOFError, KeyboardInterrupt):
+                console.print("\n[red]Aborted.[/red]\n")
+                rc = 1
+            if rc == 0:
+                console.print("[green]Provider added.[/green] Use /provider list to see it.\n")
+        elif sub == "remove" and len(parts) >= 2:
+            name = parts[1]
+            if reg.remove(name):
+                console.print(f"[green]✓ Removed[/green] {name}\n")
+            else:
+                console.print(f"[red]No such provider:[/red] {name}\n")
+        elif sub == "test" and len(parts) >= 2:
+            name = parts[1]
+            console.print(f"[cyan]Probing[/cyan] {name}...")
+            try:
+                healthy = await reg.test(name)
+            except Exception as exc:
+                console.print(f"[red]✗ Health check failed:[/red] {exc}\n")
+                healthy = False
+            if healthy:
+                console.print(f"[green]✓ {name} is healthy.[/green]\n")
+            else:
+                console.print(f"[red]✗ {name} is unreachable.[/red]\n")
+        else:
+            # Backward compat: /provider <name> for known catalog names.
             base_url, model, api_key = resolve_provider(arg)
             agent.provider.base_url = base_url
             agent.provider.model = model
             agent.provider.api_key = api_key
             agent.provider._client = None  # force re-init
             console.print(f"[green]Provider set to:[/green] {arg} ({base_url})\n")
-        else:
-            console.print(f"[green]Current provider:[/green] {agent.provider.base_url}\n")
     elif command == "/history":
         convs = await db.list_conversations()
         if not convs:

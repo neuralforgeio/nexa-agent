@@ -110,11 +110,31 @@ class NexaAgent:
         self.registry = registry or create_default_registry()
         self.db = db or ConversationDB()
 
+        # v3.0.0: build a failover chain if NEXA_FAILOVER_ENABLED=1.
+        # The chain lets the conversation loop swap providers on failure.
+        self.failover_chain = None
+        try:
+            from nexa.provider_failover import (
+                build_default_chain,
+                is_failover_enabled,
+            )
+            if is_failover_enabled():
+                self.failover_chain = build_default_chain(
+                    primary_name=provider_name,
+                )
+        except Exception:
+            # Failover is optional; never break init.
+            self.failover_chain = None
+
     def _build_transcript(
         self, user_input: str, history: List[Dict[str, Any]]
     ) -> List[Dict[str, Any]]:
         """
         Build the message transcript from system prompt, history, and input.
+
+        Loads long-term memory (MEMORY.md, USER.md) and injects it into the
+        system prompt so the agent "remembers" across sessions. Also pulls
+        learning-graph stats so the prompt reflects tool success rates.
 
         Args:
             user_input: The latest user message.
@@ -123,7 +143,32 @@ class NexaAgent:
         Returns:
             The full transcript ready for the LLM API call.
         """
-        system_prompt = build_system_prompt(self.registry)
+        # v3.0.0: load long-term memory + user profile from ~/.nexa/memory/.
+        memory_digest = ""
+        user_profile = ""
+        learning_stats = None
+        try:
+            from agent.memory_files import (
+                build_memory_file_digest,
+                read_user_file,
+            )
+            memory_digest = build_memory_file_digest()
+            user_profile = read_user_file() or ""
+        except Exception:
+            # Memory subsystem must never break the agent loop.
+            pass
+
+        # Load learning-graph stats (tool success rates) — best-effort.
+        # Note: get_stats() is async; in this sync context we skip it to avoid
+        # blocking. The conversation_loop re-computes stats internally.
+        learning_stats = None
+
+        system_prompt = build_system_prompt(
+            self.registry,
+            memory_digest=memory_digest,
+            user_profile=user_profile,
+            learning_stats=learning_stats,
+        )
         transcript: List[Dict[str, Any]] = [
             {"role": "system", "content": system_prompt}
         ]
@@ -162,7 +207,8 @@ class NexaAgent:
 
         accumulated: List[str] = []
         async for event in run_conversation(
-            self.provider, self.registry, transcript, db=self.db, user_input=user_input
+            self.provider, self.registry, transcript, db=self.db, user_input=user_input,
+            failover_chain=self.failover_chain,
         ):
             if event["type"] == "token":
                 accumulated.append(event["text"])

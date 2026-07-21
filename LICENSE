@@ -1,6 +1,15 @@
-MIT License
+Nexa Agent — Extended MIT License (Version 3.0.0)
+==================================================
 
 Copyright (c) 2026 Dearly Febriano Irwansyah
+Solo developer, Indonesia.
+
+This software was developed by Dearly Febriano Irwansyah as a solo project,
+with the assistance of AI-powered development tools (including but not limited
+to ZCode, OpenAI, Anthropic, and Google). All architectural decisions, source
+code, documentation, and design choices are the original work of the creator.
+
+----------------------------------------------------------------------
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -12,6 +21,82 @@ furnished to do so, subject to the following conditions:
 The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
 
+----------------------------------------------------------------------
+
+EXTENDED TERMS (v3.0.0)
+
+The following additional terms apply on top of the standard MIT License
+above. In the event of any conflict, the standard MIT License above takes
+precedence (the project remains 100% free and open source).
+
+1. ATTRIBUTION REQUIREMENT
+   - If you distribute, fork, or publicly deploy a modified version of this
+     software, you must preserve the attribution to "Dearly Febriano Irwansyah"
+     in:
+       (a) the LICENSE file,
+       (b) the README's "Credits" or "About" section,
+       (c) the system prompt (SYSTEMPROMPT.md), and
+       (d) any in-app "About" dialog or equivalent user-facing notice.
+   - You may add your own attribution alongside the original, but you may not
+     remove or obscure the original creator's attribution.
+
+2. TRADEMARK NOTICE
+   - "Nexa Agent" and the Nexa Agent logo are project names, not registered
+     trademarks. You may use the name "Nexa Agent" to refer to this software,
+     but you may not imply official endorsement by the creator without
+     written permission.
+   - If you fork this project and rebrand it, you must choose a different
+     product name (you may still credit "Based on Nexa Agent by Dearly
+     Febriano Irwansyah").
+
+3. NO ENDORSEMENT
+   - The creator does not endorse any fork, derivative work, or commercial
+     product built on top of this software. Forks and derivatives must not
+     claim official affiliation with Nexa Agent or its creator.
+
+4. PATENT DISCLAIMER
+   - This software is provided "as is" without any patent license or grant.
+     The creator makes no representation that the software is free from third-
+     party patent claims. Users are responsible for their own patent due
+     diligence.
+
+5. CONTRIBUTION LICENSE
+   - By submitting a pull request, issue, or any other contribution to the
+     official Nexa Agent repository, you grant the creator a perpetual,
+     worldwide, non-exclusive, royalty-free, irrevocable license to use,
+     modify, and distribute your contribution as part of the project, under
+     the same Extended MIT License.
+   - You retain copyright to your own contributions.
+
+6. AI-ASSISTED DEVELOPMENT ACKNOWLEDGMENT
+   - This software was developed with the assistance of AI-powered tools
+     (ZCode, OpenAI, Anthropic, Google, and others). The creator asserts that
+     all final code, design, and documentation are the result of human
+     creative judgment and review. AI tools were used as assistants, not as
+     authors.
+
+7. INDONESIAN COPYRIGHT LAW ACKNOWLEDGMENT
+   - This license is governed by the Berne Convention, to which the Republic
+     of Indonesia is a signatory. The creator asserts moral rights
+     (hak moral) under Indonesian copyright law (UU No. 28 Tahun 2014
+     tentang Hak Cipta), including the right to be attributed as the author
+     and the right to object to derogatory treatment of the work.
+   - These moral rights are in addition to (not a replacement for) the
+     economic rights granted under the MIT License above.
+
+8. SECURITY DISCLOSURE
+   - If you discover a security vulnerability in this software, please report
+     it privately to the creator rather than disclosing it publicly. A
+     reasonable effort will be made to acknowledge and address the report.
+
+9. NO WARRANTY OF FITNESS FOR HIGH-RISK APPLICATIONS
+   - The software includes tools for executing shell commands and arbitrary
+     Python code. While sandboxing and approval mechanisms are in place, the
+     software is NOT certified for use in high-risk environments (medical,
+     aviation, nuclear, financial trading, etc.) without independent audit.
+
+----------------------------------------------------------------------
+
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -19,3 +104,14 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+----------------------------------------------------------------------
+
+For questions about this license, contact:
+  Dearly Febriano Irwansyah
+  dearlyfebrianoi@gmail.com
+  Indonesia
+
+----------------------------------------------------------------------
+
+Full project: https://github.com/neuralforgeio/nexa-agent

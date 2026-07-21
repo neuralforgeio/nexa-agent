@@ -252,7 +252,7 @@ async def run_conversation(
             errors_seen.append(str(exc))
             yield {"type": "heal", "plan": plan.to_dict()}
 
-            # v2.0: provider failover (if enabled and chain provided).
+            # v2.0/v3.0: provider failover (if enabled and chain provided).
             if (
                 failover_chain is not None
                 and is_failover_enabled()
@@ -260,17 +260,25 @@ async def run_conversation(
             ):
                 next_provider = failover_chain.advance(reason=str(exc))
                 if next_provider is not None:
+                    # v3.0.0: ACTUALLY swap the provider's connection params
+                    # so the next iteration hits the new provider, not the
+                    # dead one. This was a dead-code scaffold in v2.0.
+                    provider.base_url = next_provider.base_url
+                    provider.api_key = next_provider.api_key
+                    provider.model = next_provider.model
+                    provider._client = None  # force AsyncOpenAI re-init
                     yield {
                         "type": "failover",
-                        "from": failover_chain.tracker.all_providers()[0].name
-                        if failover_chain.tracker.all_providers()
-                        else "primary",
+                        "from": (
+                            failover_chain.tracker.all_providers()[0].name
+                            if failover_chain.tracker.all_providers()
+                            else "primary"
+                        ),
                         "to": next_provider.name,
                         "reason": str(exc),
                     }
-                    # In a full integration we'd swap the provider's client here.
-                    # For now we continue with backoff on the same provider.
-                    await asyncio.sleep(classified.delay_ms / 1000)
+                    # Small backoff before retrying on the new provider.
+                    await asyncio.sleep(min(2.0, classified.delay_ms / 1000))
                     continue
 
             if classified.should_retry and not budget.exhausted:
@@ -334,10 +342,23 @@ async def run_conversation(
                     "items": [s.to_dict() for s in suggestions],
                 }
 
+            # v3.0.0: persist error memory to ~/.nexa/memory/errors.json
+            # so error records survive process restarts.
+            try:
+                error_memory.save()
+            except Exception:
+                # Persistence failure must not break the loop.
+                pass
+
             yield {"type": "done", "answer": content or "(no response)"}
             return
 
     # Iteration budget exhausted.
+    # v3.0.0: persist error memory before final yield.
+    try:
+        error_memory.save()
+    except Exception:
+        pass
     yield {
         "type": "done",
         "answer": f"[{NEXA_NAME}] reached the tool-call iteration cap "

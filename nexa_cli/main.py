@@ -81,6 +81,31 @@ def main(argv: Optional[List[str]] = None) -> int:
         help=f"Port for the gateway server (default: {DEFAULT_GATEWAY_PORT})",
     )
 
+    # provider (v3.0.0): interactive add/use/list/remove/test
+    provider_parser = subparsers.add_parser(
+        "provider", help="Manage LLM providers (add/use/list/remove/test)"
+    )
+    provider_parser.add_argument(
+        "action", choices=["add", "use", "list", "remove", "test"],
+        help="Provider action",
+    )
+    provider_parser.add_argument(
+        "name", nargs="?", default=None,
+        help="Provider name (for use/remove/test). For 'add', omit and enter interactively.",
+    )
+    provider_parser.add_argument(
+        "--base-url", default=None,
+        help="Base URL for 'add' (skip interactive prompt).",
+    )
+    provider_parser.add_argument(
+        "--api-key", default=None,
+        help="API key for 'add' (skip interactive prompt).",
+    )
+    provider_parser.add_argument(
+        "--model", default=None,
+        help="Default model ID for 'add' (skip interactive prompt).",
+    )
+
     # doctor
     subparsers.add_parser("doctor", help="Run self-health diagnostics")
 
@@ -92,6 +117,14 @@ def main(argv: Optional[List[str]] = None) -> int:
         return _cmd_model(args.name)
     elif args.command == "gateway":
         return _cmd_gateway(args.action, args.port)
+    elif args.command == "provider":
+        return _cmd_provider(
+            args.action,
+            name=args.name,
+            base_url=args.base_url,
+            api_key=args.api_key,
+            model=args.model,
+        )
     elif args.command == "doctor":
         return _cmd_doctor()
     else:
@@ -112,6 +145,11 @@ def _print_rich_help() -> None:
         ("gateway start", "Start the gateway server", "nexa gateway start --port 8000"),
         ("gateway stop", "Stop the gateway server (graceful SIGTERM)", "nexa gateway stop"),
         ("gateway status", "Check if the gateway server is running", "nexa gateway status"),
+        ("provider list", "List all LLM providers (v3.0.0)", "nexa provider list"),
+        ("provider add", "Interactively add a custom provider (v3.0.0)", "nexa provider add tokenrouter"),
+        ("provider use", "Switch the active provider (v3.0.0)", "nexa provider use tokenrouter"),
+        ("provider remove", "Remove a custom provider (v3.0.0)", "nexa provider remove tokenrouter"),
+        ("provider test", "Health-check a provider (v3.0.0)", "nexa provider test openai"),
         ("doctor", "Run self-health diagnostics", "nexa doctor"),
     ]
     for cmd, desc, example in rows:
@@ -244,6 +282,162 @@ def _cmd_gateway(action: str, port: int = DEFAULT_GATEWAY_PORT) -> int:
         except Exception:
             console.print("[red]Gateway: STOPPED[/red]")
             return 1
+    return 0
+
+
+def _cmd_provider(
+    action: str,
+    name: Optional[str] = None,
+    base_url: Optional[str] = None,
+    api_key: Optional[str] = None,
+    model: Optional[str] = None,
+) -> int:
+    """
+    Manage LLM providers (v3.0.0): add / use / list / remove / test.
+
+    Args:
+        action:  One of 'add', 'use', 'list', 'remove', 'test'.
+        name:    Provider name (for use/remove/test). For 'add', prompts if None.
+        base_url: Base URL override for 'add' (skip prompt).
+        api_key:  API key override for 'add' (skip prompt).
+        model:    Default model override for 'add' (skip prompt).
+
+    Returns:
+        0 on success, 1 on error.
+
+    Example:
+        >>> _cmd_provider("add", name="tokenrouter")  # doctest: +SKIP
+        ? API key (tr_...): ********
+        ? Model ID [auto:balance]:
+        ✓ Saved tokenrouter to ~/.nexa/secrets/providers.json
+    """
+    import asyncio
+    from nexa.provider_registry import (
+        ProviderRegistry,
+        StoredProviderConfig,
+    )
+    from providers.catalog import PROVIDER_CATALOG
+
+    reg = ProviderRegistry()
+
+    if action == "list":
+        all_providers = reg.list_all()
+        table = Table(
+            title="Nexa Agent — LLM Providers",
+            show_header=True,
+            header_style="bold cyan",
+        )
+        table.add_column("Name", style="cyan", no_wrap=True)
+        table.add_column("Base URL", style="white")
+        table.add_column("Model", style="green")
+        table.add_column("API Key", style="dim")
+        active = reg.get_active()
+        for p in all_providers:
+            marker = "→" if active and active.name == p.name else " "
+            key_display = p.api_key or "(env)"
+            table.add_row(
+                f"{marker} {p.name}",
+                p.base_url or "(set NEXA_BASE_URL)",
+                p.model or "(default)",
+                key_display,
+            )
+        console.print(Panel(table, border_style="cyan", title="[cyan]Providers[/cyan]"))
+        return 0
+
+    if action == "add":
+        # Determine the provider name.
+        if name is None:
+            console.print("[cyan]Available catalog providers:[/cyan]")
+            for n in PROVIDER_CATALOG:
+                console.print(f"  - {n}")
+            console.print("  - <custom name> (for any OpenAI-compatible endpoint)")
+            name = input("Provider name: ").strip()
+            if not name:
+                console.print("[red]Provider name is required.[/red]")
+                return 1
+        # Default base_url + model from catalog if known.
+        cat = PROVIDER_CATALOG.get(name)
+        default_base = base_url or (cat.base_url if cat else "")
+        default_model = model or (cat.default_model if cat else "gpt-4o")
+        # Prompt for missing values.
+        if base_url is None:
+            prompt_url = f"Base URL [{default_base}]: " if default_base else "Base URL: "
+            entered = input(prompt_url).strip()
+            if entered:
+                default_base = entered
+            elif not default_base:
+                console.print("[red]Base URL is required.[/red]")
+                return 1
+        if api_key is None:
+            try:
+                import getpass
+                api_key = getpass.getpass("API key (input hidden): ").strip()
+            except (EOFError, KeyboardInterrupt):
+                console.print("\n[red]Aborted.[/red]")
+                return 1
+            if not api_key and cat and cat.name not in ("ollama", "llamacpp", "lmstudio", "vllm"):
+                console.print("[yellow]Warning: empty API key for non-local provider.[/yellow]")
+                api_key = api_key or "dummy"
+        if model is None:
+            entered = input(f"Model ID [{default_model}]: ").strip()
+            if entered:
+                default_model = entered
+        # Save.
+        cfg = StoredProviderConfig(
+            name=name,
+            base_url=default_base,
+            api_key=api_key,
+            model=default_model,
+        )
+        reg.add(name, cfg)
+        console.print(f"[green]✓ Saved[/green] {name} to ~/.nexa/secrets/providers.json")
+        console.print(f"  base_url: [cyan]{default_base}[/cyan]")
+        console.print(f"  model:    [green]{default_model}[/green]")
+        console.print(f"  api_key:  [dim]{cfg.masked_api_key()}[/dim]")
+        console.print(f"\n[dim]Activate with:[/dim] nexa provider use {name}")
+        return 0
+
+    if action == "use":
+        if not name:
+            console.print("[red]Usage: nexa provider use <name>[/red]")
+            return 1
+        if reg.set_active(name):
+            console.print(f"[green]✓ Switched to[/green] {name}")
+            cfg = reg.get_active()
+            if cfg:
+                console.print(f"  base_url: [cyan]{cfg.base_url}[/cyan]")
+                console.print(f"  model:    [green]{cfg.model}[/green]")
+            return 0
+        console.print(f"[red]Unknown provider:[/red] {name}")
+        console.print("[dim]Available: nexa provider list[/dim]")
+        return 1
+
+    if action == "remove":
+        if not name:
+            console.print("[red]Usage: nexa provider remove <name>[/red]")
+            return 1
+        if reg.remove(name):
+            console.print(f"[green]✓ Removed[/green] {name}")
+            return 0
+        console.print(f"[red]No such provider:[/red] {name}")
+        return 1
+
+    if action == "test":
+        if not name:
+            console.print("[red]Usage: nexa provider test <name>[/red]")
+            return 1
+        console.print(f"[cyan]Probing[/cyan] {name}...")
+        try:
+            healthy = asyncio.run(reg.test(name))
+        except Exception as exc:
+            console.print(f"[red]✗ Health check failed:[/red] {exc}")
+            return 1
+        if healthy:
+            console.print(f"[green]✓ {name} is healthy (responded 200).[/green]")
+            return 0
+        console.print(f"[red]✗ {name} is unreachable or returned an error.[/red]")
+        return 1
+
     return 0
 
 

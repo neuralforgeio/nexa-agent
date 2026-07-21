@@ -527,6 +527,191 @@ async def reformulate_endpoint(req: Dict[str, Any]) -> Dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
+# v3.0.0 — Provider management endpoints
+# ---------------------------------------------------------------------------
+@app.get("/api/provider")
+async def provider_list() -> Dict[str, Any]:
+    """List all providers and return the active one."""
+    from nexa.provider_registry import ProviderRegistry
+    reg = ProviderRegistry()
+    all_providers = reg.list_all()
+    active = reg.get_active()
+    return {
+        "active": active.name if active else None,
+        "providers": [
+            {
+                "name": p.name,
+                "base_url": p.base_url,
+                "model": p.model,
+                "api_key": p.api_key,  # already masked by list_all()
+                "is_active": bool(active and active.name == p.name),
+            }
+            for p in all_providers
+        ],
+    }
+
+
+@app.post("/api/provider")
+async def provider_add(req: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Add or update a provider, then optionally activate it.
+
+    Body: ``{"name": "...", "base_url": "...", "api_key": "...", "model": "...", "activate": true}``
+    """
+    from nexa.provider_registry import ProviderRegistry, StoredProviderConfig
+    reg = ProviderRegistry()
+    name = (req.get("name") or "").strip()
+    if not name:
+        return JSONResponse(status_code=400, content={"error": "name is required"})
+    base_url = (req.get("base_url") or "").strip()
+    api_key = (req.get("api_key") or "").strip()
+    model = (req.get("model") or "").strip()
+    if not base_url:
+        return JSONResponse(status_code=400, content={"error": "base_url is required"})
+    cfg = StoredProviderConfig(
+        name=name, base_url=base_url, api_key=api_key, model=model,
+    )
+    reg.add(name, cfg)
+    activated = False
+    if req.get("activate"):
+        activated = reg.set_active(name)
+        # Hot-swap the live agent's provider.
+        if activated and _agent is not None:
+            _agent.provider.base_url = cfg.base_url
+            _agent.provider.api_key = cfg.api_key
+            _agent.provider.model = cfg.model
+            _agent.provider._client = None
+    return {
+        "ok": True,
+        "name": name,
+        "base_url": base_url,
+        "model": model,
+        "api_key_masked": cfg.masked_api_key(),
+        "activated": activated,
+    }
+
+
+@app.delete("/api/provider")
+async def provider_remove(req: Dict[str, Any]) -> Dict[str, Any]:
+    """Remove a provider by name. Body: ``{"name": "..."}``."""
+    from nexa.provider_registry import ProviderRegistry
+    reg = ProviderRegistry()
+    name = (req.get("name") or "").strip()
+    if not name:
+        return JSONResponse(status_code=400, content={"error": "name is required"})
+    if reg.remove(name):
+        return {"ok": True, "removed": name}
+    return JSONResponse(status_code=404, content={"error": f"no such provider: {name}"})
+
+
+@app.post("/api/provider/use")
+async def provider_use(req: Dict[str, Any]) -> Dict[str, Any]:
+    """Activate a provider by name. Body: ``{"name": "..."}``."""
+    from nexa.provider_registry import ProviderRegistry
+    reg = ProviderRegistry()
+    name = (req.get("name") or "").strip()
+    if not name:
+        return JSONResponse(status_code=400, content={"error": "name is required"})
+    if not reg.set_active(name):
+        return JSONResponse(status_code=404, content={"error": f"no such provider: {name}"})
+    cfg = reg.get_active()
+    # Hot-swap the live agent's provider.
+    if cfg is not None and _agent is not None:
+        _agent.provider.base_url = cfg.base_url
+        _agent.provider.api_key = cfg.api_key
+        _agent.provider.model = cfg.model
+        _agent.provider._client = None
+    return {"ok": True, "active": name, "base_url": cfg.base_url if cfg else None}
+
+
+@app.post("/api/provider/test")
+async def provider_test(req: Dict[str, Any]) -> Dict[str, Any]:
+    """Health-check a provider by name. Body: ``{"name": "..."}``."""
+    from nexa.provider_registry import ProviderRegistry
+    reg = ProviderRegistry()
+    name = (req.get("name") or "").strip()
+    if not name:
+        return JSONResponse(status_code=400, content={"error": "name is required"})
+    try:
+        healthy = await reg.test(name)
+    except Exception as exc:
+        return {"ok": False, "name": name, "error": str(exc)}
+    return {"ok": healthy, "name": name}
+
+
+# ---------------------------------------------------------------------------
+# v3.0.0 — WebSocket terminal endpoint
+# ---------------------------------------------------------------------------
+@app.websocket("/ws/terminal")
+async def ws_terminal(websocket) -> None:
+    """
+    WebSocket endpoint for the Web UI terminal panel.
+
+    Receives shell commands from the browser, executes them via
+    ``run_terminal_command`` (with all v3.0.0 security boundaries:
+    NEXA_WORKSPACE cwd + NEXA_HOME access blocked), and streams the
+    output back as JSON messages.
+
+    Message formats (server → client):
+        ``{"type": "output", "text": "..."}`` — stdout/stderr chunk.
+        ``{"type": "done", "exit_code": 0}`` — command finished.
+        ``{"type": "error", "message": "..."}`` — blocked or failed.
+
+    Message formats (client → server):
+        ``{"type": "command", "command": "..."}`` — run a shell command.
+        ``{"type": "ping"}`` — keepalive.
+    """
+    import json
+    from tools.terminal_tool import run_terminal_command
+    await websocket.accept()
+    try:
+        while True:
+            raw = await websocket.receive_text()
+            try:
+                msg = json.loads(raw)
+            except json.JSONDecodeError:
+                await websocket.send_text(json.dumps({
+                    "type": "error", "message": "invalid JSON"
+                }))
+                continue
+            mtype = msg.get("type")
+            if mtype == "ping":
+                await websocket.send_text(json.dumps({"type": "pong"}))
+                continue
+            if mtype != "command":
+                await websocket.send_text(json.dumps({
+                    "type": "error", "message": f"unknown type: {mtype}"
+                }))
+                continue
+            command = (msg.get("command") or "").strip()
+            if not command:
+                await websocket.send_text(json.dumps({
+                    "type": "error", "message": "empty command"
+                }))
+                continue
+            try:
+                result = await run_terminal_command(command, timeout=30.0)
+                await websocket.send_text(json.dumps({
+                    "type": "output", "text": result,
+                }))
+                await websocket.send_text(json.dumps({
+                    "type": "done", "exit_code": 0,
+                }))
+            except ValueError as exc:
+                # Blocked command (e.g. ~/.nexa access attempt).
+                await websocket.send_text(json.dumps({
+                    "type": "error", "message": str(exc),
+                }))
+            except Exception as exc:
+                await websocket.send_text(json.dumps({
+                    "type": "error", "message": f"execution failed: {exc}",
+                }))
+    except Exception:
+        # Connection closed by client — exit gracefully.
+        pass
+
+
+# ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":

@@ -1235,3 +1235,112 @@ Stage Summary:
 - **Status: v2.1.0 RELEASE-READY.** All 4 pillars complete. 144 new tests.
 - Tests: 396 passing | Tools: 10 (hardened) | Agent modules: 30 | TUI: full
 - Next: Push to GitHub, tag v2.1.0, create GitHub Release.
+
+---
+
+## Task ID: 22 (v3.0.0 — Ultimate Enterprise Evolution)
+Agent: Nexa Autonomous Principal Engineer (Desktop IDE — ZCode)
+
+### Summary
+**MAJOR release v3.0.0.** Ultimate Enterprise Evolution: provider expansion
+(TokenRouter + Databricks + custom endpoints), critical bug fixes (memory
+wiring, error persistence, failover chain, terminal security), comprehensive
+documentation (SYSTEMPROMPT.md + extended MIT LICENSE), and a Web UI
+terminal panel with WebSocket backend. 84 new tests (396 → 480 passing).
+
+### P0 — Critical Bug Fixes
+- **P0.1 Memory wiring**: `run_agent._build_transcript` now loads
+  MEMORY.md + USER.md and passes them to `build_system_prompt` via
+  `memory_digest` + `user_profile` parameters. The v2.0 intelligence
+  modules are now actually injected into the live system prompt.
+- **P0.2 ErrorMemory persistence**: `error_memory.save()` is now called
+  in the conversation loop before the final `done` event. Errors survive
+  process restarts.
+- **P0.3 Failover chain wiring**: `NexaAgent.__init__` now builds a
+  `failover_chain` when `NEXA_FAILOVER_ENABLED=1`. `run_streaming` passes
+  it to `run_conversation`. The loop's failover branch now ACTUALLY swaps
+  `provider.base_url`/`api_key`/`model`/`_client=None` (was dead-code
+  scaffold in v2.0).
+- **P0.4 Terminal security**: `is_protected_path_reference()` blocks
+  `~/.nexa/`, `$HOME/.nexa`, `$NEXA_HOME`, `nexa.db`, `.nexa/secrets`,
+  `.nexa/memory`, `.nexa/knowledge`, `.nexa/history`, `.nexa/logs`, and
+  absolute paths resolving inside NEXA_HOME. The LLM can no longer
+  exfiltrate API keys via `cat ~/.nexa/.env`.
+- **P0.5 NEXA_SECRETS_DIR**: new `~/.nexa/secrets/` directory (chmod 700
+  on Unix) for storing provider credentials separately from `.env`.
+
+### P1 — Provider Expansion
+- **P1.1 Catalog**: added `tokenrouter` (https://api.tokenrouter.io/v1,
+  default model `auto:balance`) and `databricks` (user-supplied base_url,
+  default `databricks-claude-sonnet-4-6`). 8 providers total.
+- **P1.2 ProviderRegistry** (`nexa/provider_registry.py`): runtime
+  management with secrets stored in `~/.nexa/secrets/providers.json`.
+  `list_all()` masks API keys as `tr_...wxyz`.
+- **P1.3 Interactive CLI**: `nexa provider add/use/list/remove/test`
+  subcommands. `add` prompts for name, base_url, api_key (hidden), model.
+- **P1.4 Slash commands**: `/provider list|use|test|add|remove` in CLI
+  + TUI dispatcher (`_handle_tui_slash_command`).
+- **P1.5 HTTP API + Frontend**: `GET/POST/DELETE /api/provider`,
+  `POST /api/provider/use`, `POST /api/provider/test`. `SettingsPanel.tsx`
+  modal with add/remove/test/activate UI. Hot-swaps the live agent's
+  provider without restart.
+
+### P2 — Documentation
+- **P2.1 SYSTEMPROMPT.md**: 10 sections (Identity, Capabilities, Behavioral
+  Rules, Memory Protocol, Security Constraints, Response Format, Examples,
+  Voice & Tone, Attribution, Version History). Creator: Dearly Febriano
+  Irwansyah, Indonesia. No Hermes attribution.
+- **P2.2 LICENSE MIT extended**: standard MIT + 9 extended clauses
+  (attribution requirement, trademark notice, no endorsement, patent
+  disclaimer, contribution license, AI-assisted acknowledgment, Indonesian
+  copyright law UU No. 28/2014, security disclosure, high-risk disclaimer).
+- **P2.3 Tool call card persistence**: assistant messages now persist
+  `toolCalls` on `done` event. `MessageBubble.tsx` renders collapsible
+  `ToolCallCard` components below each assistant message.
+- **P2.4 docs/providers.md**: full rewrite with TokenRouter + Databricks
+  + custom endpoint + failover + env vars table.
+
+### P3 — UI Polish
+- **P3.1 TerminalPanel.tsx**: lightweight in-browser terminal (no
+  xterm.js dependency — keeps bundle small). Connects to `/ws/terminal`
+  WebSocket. Commands run via `run_terminal_command` with all v3.0.0
+  security boundaries. Collapsible bottom panel.
+
+### P4 — Services & E2E
+- Backend `server.py` running on port 8000 (30 routes, health 200).
+- Frontend `nexa_web` dev server on port 3000 (HTTP 200).
+- Provider API tested: POST /api/provider add tokenrouter → masked key
+  `tr_...2345`, active switched.
+- Terminal security tested: `cat ~/.nexa/.env` → blocked with clear message.
+- SSE stream tested: session → thinking → error (expected, mock key) → end.
+
+### P5 — Roadmap
+- `.plans/ROADMAP_20_FEATURES.md`: 20 enterprise features across 4
+  categories (Intelligence, Tools, UI/UX, Infrastructure) with complexity
+  ratings + 5-phase execution plan (v3.1.0 → v3.5.0).
+- `.plans/TODO_MASTER.md`: v3.0.0 completion checklist + deferred items.
+
+### Stats
+- **Tests**: 396 → 480 (+84 new: 20 terminal security, 16 provider
+  registry, 7 catalog extended, 10 provider CLI, 28 systemprompt/license).
+- **New files**: SYSTEMPROMPT.md, nexa/provider_registry.py,
+  nexa_web/components/SettingsPanel.tsx, nexa_web/components/TerminalPanel.tsx,
+  .plans/ROADMAP_20_FEATURES.md, .plans/TODO_MASTER.md.
+- **Modified**: run_agent.py, agent/conversation_loop.py, tools/terminal_tool.py,
+  nexa/config.py, providers/catalog.py, nexa_cli/main.py, cli.py,
+  ui_tui/app.py, server.py, nexa_web/{app/page.tsx, components/{Sidebar.tsx,
+  MessageBubble.tsx}, lib/{stream.ts, theme.ts}}, pyproject.toml,
+  nexa_web/package.json, docs/providers.md, LICENSE, worklog.md,
+  .plans/STATE.json, CONTINUATION_PROMPT.md.
+- **Frontend**: TypeScript strict mode, 0 errors (`npx tsc --noEmit`).
+
+### Versioning
+- v2.1.0 → **v3.0.0 (MAJOR)** — provider expansion, security hardening,
+  comprehensive docs, terminal panel. The 20-feature enterprise blueprint
+  is written but execution deferred to v3.1.0+.
+
+Stage Summary:
+- **Status: v3.0.0 RELEASE-READY.** All P0-P5 phases complete. 480 tests
+  passing. Backend + frontend running. Terminal security verified.
+- Next: Push to GitHub, tag v3.0.0, create GitHub Release.
+
