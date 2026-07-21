@@ -1,76 +1,153 @@
 # Nexa Agent
 
-> **The advanced local AI agent by Dearly Febriano Irwansyah**
-> Version 1.4.0 · MIT License
+> **The Ultimate Local AI Agent Enterprise — by Dearly Febriano Irwansyah**
+> Version 3.0.0 · Extended MIT License · [SYSTEMPROMPT.md](./SYSTEMPROMPT.md)
 
 A terminal-first local AI agent with iterative tool-calling, multi-provider
-support (OpenAI, Ollama, llama.cpp, vLLM, LM Studio, OpenRouter), a
-self-improvement memory system, and an interactive TUI built with
-prompt_toolkit + rich.
+support (8 providers + custom endpoints), a self-improvement memory system,
+an interactive TUI built with prompt_toolkit + rich, and a full Web UI
+(Next.js + React) with embedded terminal panel.
 
 ## Features
 
+- **8 Providers + Custom Endpoints** — OpenAI, OpenRouter, Ollama, llama.cpp,
+  LM Studio, vLLM, TokenRouter (routing gateway), Databricks, or any
+  OpenAI-compatible endpoint
 - **Local AI Architecture** — All user data, memory, and state stored in `~/.nexa/`
-- **Interactive TUI** — Streaming responses, slash commands, tool visualization
-- **Multi-Provider** — OpenAI, Ollama, llama.cpp, LM Studio, vLLM, OpenRouter
-- **5 Tools** — read_file, write_file, run_terminal_command, generate_uuid, delegate (sub-agent)
-- **Self-Improvement** — Memory curator extracts insights from each conversation
+- **Interactive TUI** — Streaming responses, slash commands, tool visualization,
+  multi-pane layout (status bar + chat + tool log + input)
+- **Web UI** — Next.js + React with sidebar, streaming chat, collapsible tool
+  call cards, SettingsPanel (manage providers), TerminalPanel (in-browser shell)
+- **10 Tools** — read_file, write_file, run_terminal_command, generate_uuid,
+  delegate (sub-agent), list/kill_background_processes, web_search,
+  code_execution (HITL approval), file_patch (atomic with backup)
+- **30+ Intelligence Modules** — Self-improvement, self-healing, autonomous
+  web learning, knowledge cache, confidence scoring, intent classification,
+  pattern recognition, error memory, adaptive persona, reasoning chain,
+  fact validator, context enricher, memory consolidator, query reformulator
 - **File-Based Memory** — `~/.nexa/memory/MEMORY.md` and `USER.md` (human-readable, editable)
 - **SQLite + FTS5** — Full-text search across all past conversations
-- **Context Compression** — Automatically summarizes old messages to fit token limits
-- **Error Classification** — Smart retry with exponential backoff for transient errors
+- **Provider Failover** — Automatic switch to next healthy provider on failure
+- **Security Hardened** — Terminal blocks `~/.nexa/` access (API keys safe),
+  project-scoped sandbox, HITL approval for code execution
 - **Self-Health Diagnostics** — `/doctor` command checks DB, disk, memory, learning graph
 - **Learning Graph** — Tracks tool success rates for data-driven decisions
 
 ## Quick Start
 
-### Prerequisites
+### One-Line Install (recommended)
 
-- Python 3.11+ (recommended via [uv](https://docs.astral.sh/uv/))
-- [uv](https://docs.astral.sh/uv/) for Python package management
-- [bun](https://bun.sh/) for optional frontend operations
-
-### Installation
+**Linux / macOS:**
 
 ```bash
-# Clone the repository
+curl -fsSL https://raw.githubusercontent.com/neuralforgeio/nexa-agent/main/scripts/install.sh | bash
+```
+
+**Windows (PowerShell):**
+
+```powershell
+irm https://raw.githubusercontent.com/neuralforgeio/nexa-agent/main/scripts/install.ps1 | iex
+```
+
+The installer auto-detects/installs Python 3.11+, uv, clones the repo, creates
+a virtual environment, installs dependencies, and runs `nexa setup`. After it
+finishes, open a **new terminal** and run:
+
+```bash
+nexa provider list          # see all 8 providers
+nexa provider add tokenrouter   # interactive — prompts for API key + model
+nexa provider use tokenrouter   # activate
+nexa-chat                       # start chatting!
+```
+
+### Manual Install (alternative)
+
+```bash
+# Prerequisites: Python 3.11+ and git
 git clone https://github.com/neuralforgeio/nexa-agent.git
 cd nexa-agent
 
-# Install Python dependencies
-uv pip install -r requirements.txt
-# Or with pip:
-pip install -r requirements.txt
+# Create venv + install
+python -m venv .venv
+# Linux/macOS:  source .venv/bin/activate
+# Windows:      .venv\Scripts\activate
+pip install -e ".[dev]"
+
+# Initialize
+nexa setup
+nexa provider list
 ```
 
-### Configuration
+### Configure a Provider
+
+**TokenRouter** (recommended — OpenAI-compatible routing gateway):
 
 ```bash
-# Copy the environment template
-cp .env.example .env
-
-# Edit .env to set your provider and API key:
-# NEXA_PROVIDER=ollama          # or openai, openrouter, llamacpp, lmstudio, vllm
-# NEXA_MODEL=llama3.2           # or gpt-4o, claude-3.5-sonnet, etc.
-# OPENAI_API_KEY=sk-your-key    # required for OpenAI/OpenRouter
+nexa provider add tokenrouter
+# ? API key (input hidden): tr_your_key_here
+# ? Model ID [auto:balance]:
+nexa provider use tokenrouter
+nexa provider test tokenrouter
 ```
+
+**OpenAI** (direct):
+
+```bash
+export OPENAI_API_KEY="sk-..."        # Linux/macOS
+$env:OPENAI_API_KEY = "sk-..."        # Windows PowerShell
+nexa provider use openai
+```
+
+**Ollama** (local, free):
+
+```bash
+ollama pull llama3.2          # install Ollama first from ollama.com
+nexa provider add ollama
+nexa provider use ollama
+```
+
+**Custom endpoint** (any OpenAI-compatible):
+
+```bash
+nexa provider add my-llm \
+  --base-url "https://my-llm.example.com/v1" \
+  --api-key "sk-mykey" \
+  --model "my-model-v1"
+nexa provider use my-llm
+```
+
+See [docs/providers.md](./docs/providers.md) for the full provider guide.
 
 ### Running the Agent
 
 ```bash
-# Interactive TUI
-python cli.py
+# Interactive chat REPL
+nexa-chat
 # Or with explicit provider:
-python cli.py --provider ollama --model llama3.2
-python cli.py --provider openai --model gpt-4o
+nexa-chat --provider ollama --model llama3.2
 
 # Single-turn (non-interactive)
-python run_agent.py "Generate a UUID"
+nexa-agent "Generate a UUID"
 
-# Web UI server (for frontend integration)
-python server.py
-# Server runs on http://localhost:8000
+# Multi-pane TUI (status bar + chat + tool log + input)
+python -m ui_tui.app
+
+# CLI subcommands
+nexa setup            # initialize ~/.nexa/
+nexa doctor           # self-health diagnostics
+nexa gateway start    # start backend (port 8000)
+nexa gateway status   # check if running
+nexa provider list    # list all 8 providers
+nexa provider test openai  # health check
+
+# Web UI server (backend on port 8000, frontend on port 3000)
+nexa gateway start                       # backend
+cd nexa_web && npm install && npm run dev  # frontend (Next.js)
+# Open http://localhost:3000 in your browser
 ```
+
+See [docs/MANUAL_TESTING_GUIDE.md](./docs/MANUAL_TESTING_GUIDE.md) for the
+full manual testing walkthrough (CLI, TUI, Web UI, terminal security, E2E).
 
 ## Providers
 

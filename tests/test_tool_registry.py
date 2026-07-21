@@ -28,19 +28,19 @@ def registry() -> ToolRegistry:
 
 
 def test_registry_has_default_tools(registry: ToolRegistry) -> None:
-    """The default registry must contain all 10 tools."""
+    """The default registry must contain all 11 tools (v3.1.0: +revert_file)."""
     names = set(registry.list_names())
     assert names == {
         "read_file", "write_file", "run_terminal_command", "generate_uuid",
         "delegate", "list_background_processes", "kill_background_process",
-        "web_search", "code_execution", "file_patch",
+        "web_search", "code_execution", "file_patch", "revert_file",
     }
 
 
 def test_registry_has_openai_schemas(registry: ToolRegistry) -> None:
     """get_openai_schemas() must return valid OpenAI function-calling format."""
     schemas = registry.get_openai_schemas()
-    assert len(schemas) == 10
+    assert len(schemas) == 11  # v3.1.0: +revert_file
     for schema in schemas:
         assert schema["type"] == "function"
         fn = schema["function"]

@@ -24,7 +24,7 @@ import os
 import shutil
 import tempfile
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from nexa.config import NEXA_WORKSPACE
 from tools._paths import resolve_in_workspace
@@ -103,12 +103,11 @@ async def file_patch(path: str, patch: str, **_: Any) -> str:
         result_lines = _apply_hunk(result_lines, hunk, path)
         hunks_applied += 1
 
-    # Create backup.
-    backup_path = full.with_suffix(full.suffix + ".bak")
-    try:
-        shutil.copy2(full, backup_path)
-    except OSError as exc:
-        raise ValueError(f"could not create backup '{backup_path}': {exc}") from exc
+    # Create backup (v3.1.0: rotate history, keep last 5 versions).
+    backup_path = _rotate_backups(full)
+    if backup_path is None:
+        # File didn't exist before? Shouldn't happen here, but be safe.
+        backup_path = full.with_suffix(full.suffix + ".bak")
 
     # Atomic write: write to a temp file in the same directory, then os.replace.
     new_content = "".join(result_lines)
@@ -262,6 +261,133 @@ def _apply_hunk(
     )
 
 
+#: Maximum number of .bak versions to keep per file (v3.1.0 history rotation).
+MAX_BACKUP_VERSIONS: int = 5
+
+
+def _rotate_backups(target: Path) -> Optional[Path]:
+    """
+    Rotate the backup history for ``target`` and return the new backup path.
+
+    Keeps the last ``MAX_BACKUP_VERSIONS`` backups, named ``<file>.bak``,
+    ``<file>.bak.1``, ``<file>.bak.2``, etc. The oldest is deleted.
+
+    Args:
+        target: The file being patched.
+
+    Returns:
+        The path of the new (current) backup file, or ``None`` if the
+        original file doesn't exist (nothing to back up).
+
+    Example:
+        >>> _rotate_backups(Path("notes.txt"))  # doctest: +SKIP
+        PosixPath('notes.txt.bak')
+    """
+    if not target.exists():
+        return None
+    # Shift existing backups: .bak.4 → delete, .bak.3 → .bak.4, ..., .bak → .bak.1
+    # Use shutil.move for cross-platform rename (Path.replace can fail on Windows
+    # if the target exists with different permissions).
+    # Iterate from oldest (highest index) down to the base .bak.
+    for i in range(MAX_BACKUP_VERSIONS - 1, 0, -1):
+        # Source: .bak.<i> for i>=1, else .bak (when i==0 we stop).
+        if i >= 1:
+            older = target.with_suffix(target.suffix + f".bak.{i}")
+            # Destination: .bak.<i+1> (so .bak.1 → .bak.2, etc.)
+            newer = target.with_suffix(target.suffix + f".bak.{i+1}")
+        else:
+            continue
+        if older.exists():
+            if newer.exists():
+                try:
+                    newer.unlink()
+                except OSError:
+                    pass
+            try:
+                shutil.move(str(older), str(newer))
+            except OSError:
+                pass
+    # Now shift the base .bak → .bak.1 (if it exists).
+    base_bak = target.with_suffix(target.suffix + ".bak")
+    bak_1 = target.with_suffix(target.suffix + ".bak.1")
+    if base_bak.exists():
+        if bak_1.exists():
+            try:
+                bak_1.unlink()
+            except OSError:
+                pass
+        try:
+            shutil.move(str(base_bak), str(bak_1))
+        except OSError:
+            pass
+    # Create the new .bak from the current file.
+    backup_path = target.with_suffix(target.suffix + ".bak")
+    try:
+        if backup_path.exists():
+            try:
+                backup_path.unlink()
+            except OSError:
+                pass
+        shutil.copy2(target, backup_path)
+    except OSError:
+        return None
+    return backup_path
+
+
+async def revert_file(path: str, version: int = 1, **_: Any) -> str:
+    """
+    Revert a file to a previous backup version (v3.1.0).
+
+    Restores ``<file>.bak.<version>`` (or ``<file>.bak`` for version 1)
+    as the current file, and rotates the current file into the backup
+    history.
+
+    Args:
+        path:    Relative path to the file to revert.
+        version: Backup version to restore (1 = most recent .bak, 2 = .bak.1, etc.).
+
+    Returns:
+        A confirmation message.
+
+    Raises:
+        ValueError: If the path escapes the workspace, the file doesn't
+            exist, or the requested backup version doesn't exist.
+
+    Example:
+        >>> await revert_file("notes.txt", version=2)  # doctest: +SKIP
+        'Reverted notes.txt to backup version 2.'
+    """
+    if not path or not path.strip():
+        raise ValueError("path is required")
+    full = resolve_in_workspace(path)
+    if not full.exists():
+        raise ValueError(f"file not found: '{path}'")
+    if full.is_dir():
+        raise ValueError(f"'{path}' is a directory, not a file")
+
+    # Resolve the backup path.
+    if version == 1:
+        backup = full.with_suffix(full.suffix + ".bak")
+    else:
+        backup = full.with_suffix(full.suffix + f".bak.{version - 1}")
+    if not backup.exists():
+        raise ValueError(
+            f"backup version {version} not found for '{path}'. "
+            f"Available versions: 1..{MAX_BACKUP_VERSIONS}."
+        )
+
+    # Restore backup → current file.
+    # NOTE: do NOT rotate the current file into history here — that would
+    # shift the .bak we're about to read from, making version 1 always point
+    # to the content we're trying to replace. Just overwrite the target.
+    try:
+        shutil.copy2(backup, full)
+    except OSError as exc:
+        raise ValueError(f"could not revert '{path}': {exc}") from exc
+
+    return f"Reverted {path} to backup version {version}."
+
+
 #: OpenAI function-calling schema for file_patch.
 FILE_PATCH_SCHEMA: Dict[str, Any] = {
     "type": "object",
@@ -276,4 +402,27 @@ FILE_PATCH_SCHEMA: Dict[str, Any] = {
         },
     },
     "required": ["path", "patch"],
+}
+
+
+#: OpenAI function-calling schema for revert_file (v3.1.0).
+REVERT_FILE_SCHEMA: Dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        "path": {
+            "type": "string",
+            "description": "Relative path to the file to revert.",
+        },
+        "version": {
+            "type": "integer",
+            "description": (
+                "Backup version to restore (1 = most recent .bak, "
+                "2 = .bak.1, etc.). Default: 1."
+            ),
+            "default": 1,
+            "minimum": 1,
+            "maximum": 5,
+        },
+    },
+    "required": ["path"],
 }

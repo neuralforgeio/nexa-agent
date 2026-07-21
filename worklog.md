@@ -1344,3 +1344,94 @@ Stage Summary:
   passing. Backend + frontend running. Terminal security verified.
 - Next: Push to GitHub, tag v3.0.0, create GitHub Release.
 
+
+---
+
+## Task ID: 23 (v3.1.0 — Enterprise Features + Installer + Windows Fixes)
+Agent: Nexa Autonomous Principal Engineer (Desktop IDE — ZCode)
+
+### Summary
+**MINOR release v3.1.0.** Added 4 enterprise features from the 20-feature
+roadmap, cross-platform installer scripts (curl/irm one-liner with auto
+Python+uv setup), comprehensive manual testing guide, and fixed the last
+2 pre-existing Windows test failures. 70 new tests (482 → 552 passing,
+**0 failures**).
+
+### Windows Test Fixes
+- `test_stdout_truncation_indicator`: hardcoded `python3` → `sys.executable`
+  (cross-platform).
+- `test_env_variable_injection`: `echo $VAR` (cmd.exe doesn't expand) →
+  Python `os.environ.get()` (cross-platform).
+- Result: **0 failures** (was 2 pre-existing Windows platform failures).
+
+### Installer Scripts (cross-platform one-liner)
+- `scripts/install.sh` (Linux/macOS): `curl -fsSL ... | bash` — auto-detects/
+  installs Python 3.11+ via apt/brew/dnf/yum/pacman, installs uv, clones
+  repo, creates venv, installs deps, runs `nexa setup`.
+- `scripts/install.ps1` (Windows): `irm ... | iex` — auto-installs Python
+  via winget, git, uv, clones, venv, deps, setup.
+
+### Documentation
+- `docs/MANUAL_TESTING_GUIDE.md`: comprehensive guide for CLI, TUI, Web UI,
+  terminal security, E2E scenarios, troubleshooting.
+- README root updated: curl/irm one-liner in Quick Start, new features list.
+
+### v3.1.0 Features (4 of 20 from ROADMAP_20_FEATURES.md)
+
+**Feature 1: Ask Question Mode** (`agent/ask_question_mode.py`)
+- Quick Q&A mode that bypasses tool-calling for instant responses on simple
+  factual questions ("what's the capital of France?").
+- Heuristic: short (<= 12 words), no action verbs, no file/code references.
+- `should_use_quick_mode()`, `build_quick_system_prompt()` (strips tool catalog),
+  `is_quick_mode_enabled()` (NEXA_QUICK_MODE env).
+- Wired into `run_conversation(quick_mode=)` + `NexaAgent.run_streaming`.
+- 15 tests.
+
+**Feature 2: Trajectory Export** (`agent/trajectory_recorder.py`)
+- Records the full prompt → tool → response trajectory as JSONL for
+  fine-tuning datasets.
+- `TrajectoryRecorder` appends to `~/.nexa/logs/trajectory.jsonl` (one line
+  per turn, append-only, survives restarts).
+- `TurnTrajectory` dataclass with session_id, turn_id, user_message,
+  system_prompt (truncated to 2KB), tool_calls, assistant_response, errors,
+  confidence, timestamp.
+- Enabled via `NEXA_TRAJECTORY=1`.
+- Wired into `conversation_loop` (records on `done` event).
+- 15 tests.
+
+**Feature 3: File Patch Enhanced Rollback** (`tools/file_patch_tool.py`)
+- `_rotate_backups()`: keeps the last 5 `.bak` versions per file
+  (`file.bak`, `file.bak.1`, ..., `file.bak.4`).
+- New `revert_file(path, version=1)` tool: restores a file to a previous
+  backup version.
+- Registered as the 11th tool (`revert_file`) with `REVERT_FILE_SCHEMA`.
+- 10 tests.
+
+**Feature 4: Semantic Vector Memory** (`agent/semantic_memory.py`)
+- Lightweight semantic memory store using TF-IDF + cosine similarity
+  (pure Python, no external dependencies like ChromaDB/FAISS).
+- `SemanticMemory.add/get/remove/search/list_all/count/clear/save_all`.
+- Documents persisted to `~/.nexa/memory/semantic.jsonl`.
+- `search(query, top_k=5, min_similarity=0.05, kind_filter=None)` returns
+  ranked results by semantic similarity.
+- Stopword-aware tokenizer, smoothed IDF, cosine similarity.
+- 25 tests.
+
+### Stats
+- **Tests**: 482 → 552 (+70: 15 ask-mode, 15 trajectory, 10 revert, 25 semantic, 5 misc).
+- **Tools**: 10 → 11 (+revert_file).
+- **Agent modules**: 30 → 33 (+ask_question_mode, +trajectory_recorder, +semantic_memory).
+- **New files**: scripts/install.sh, scripts/install.ps1, docs/MANUAL_TESTING_GUIDE.md,
+  agent/ask_question_mode.py, agent/trajectory_recorder.py, agent/semantic_memory.py,
+  tests/test_ask_question_mode.py, tests/test_trajectory_recorder.py,
+  tests/test_revert_file.py, tests/test_semantic_memory.py.
+- **0 test failures** (was 2 pre-existing Windows failures).
+
+### Versioning
+- v3.0.0 → **v3.1.0 (MINOR)** — 4 new enterprise features + installer + docs.
+
+Stage Summary:
+- **Status: v3.1.0 RELEASE-READY.** All v3.1.0 features complete. 552 tests
+  passing, 0 failures. Cross-platform installer ready.
+- Next: Push to GitHub, tag v3.1.0, create GitHub Release.
+

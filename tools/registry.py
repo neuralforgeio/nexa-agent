@@ -320,7 +320,7 @@ def create_default_registry() -> ToolRegistry:
         parameters=CODE_EXECUTION_SCHEMA,
     )
     # Register file patch tool.
-    from .file_patch_tool import file_patch, FILE_PATCH_SCHEMA
+    from .file_patch_tool import file_patch, FILE_PATCH_SCHEMA, revert_file, REVERT_FILE_SCHEMA
     registry.register(
         name="file_patch",
         fn=file_patch,
@@ -329,5 +329,15 @@ def create_default_registry() -> ToolRegistry:
             "Enables surgical modifications without rewriting the entire file."
         ),
         parameters=FILE_PATCH_SCHEMA,
+    )
+    # v3.1.0: register revert_file tool (rollback to previous backup version).
+    registry.register(
+        name="revert_file",
+        fn=revert_file,
+        description=(
+            "Revert a file to a previous backup version (v3.1.0). "
+            "Use after file_patch to undo a patch. Versions 1-5 are kept."
+        ),
+        parameters=REVERT_FILE_SCHEMA,
     )
     return registry

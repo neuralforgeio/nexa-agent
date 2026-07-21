@@ -82,6 +82,7 @@ async def run_conversation(
     pattern_recognizer: Optional[PatternRecognizer] = None,
     suggester: Optional[ProactiveSuggester] = None,
     web_search_fn=None,
+    quick_mode: bool = False,
 ) -> AsyncGenerator[Dict[str, Any], None]:
     """
     Run an iterative tool-calling conversation loop with full v2.0 hardening.
@@ -183,7 +184,8 @@ async def run_conversation(
                     confidence=fact.confidence,
                 )
 
-    tools = registry.get_openai_schemas()
+    # v3.1.0: Ask Question Mode — when True, skip tools (instant response).
+    tools = None if quick_mode else registry.get_openai_schemas()
     tool_results: List[Dict[str, Any]] = []
     errors_seen: List[str] = []
 
@@ -348,6 +350,31 @@ async def run_conversation(
                 error_memory.save()
             except Exception:
                 # Persistence failure must not break the loop.
+                pass
+
+            # v3.1.0: record trajectory (prompt → tool → response) for fine-tuning.
+            try:
+                from agent.trajectory_recorder import (
+                    TrajectoryRecorder,
+                    TurnTrajectory,
+                    is_trajectory_enabled,
+                )
+                if is_trajectory_enabled():
+                    rec = TrajectoryRecorder()
+                    rec.record(TurnTrajectory(
+                        session_id=getattr(db, "_current_conv_id", "unknown") if db else "unknown",
+                        turn_id=budget.used,
+                        user_message=user_input,
+                        system_prompt=messages[0].get("content", "") if messages else "",
+                        tool_calls=[
+                            {"name": r["tool"], "ok": r["ok"], "output": str(r.get("output", ""))[:500]}
+                            for r in tool_results
+                        ],
+                        assistant_response=content or "",
+                        errors=errors_seen,
+                        confidence=report.score if 'report' in dir() else 0.5,
+                    ))
+            except Exception:
                 pass
 
             yield {"type": "done", "answer": content or "(no response)"}

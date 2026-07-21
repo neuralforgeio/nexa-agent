@@ -206,9 +206,13 @@ class NexaAgent:
         transcript = self._build_transcript(user_input, history)
 
         accumulated: List[str] = []
+        # v3.1.0: Ask Question Mode — auto-detect quick-answerable messages.
+        from agent.ask_question_mode import should_use_quick_mode, is_quick_mode_enabled
+        quick = is_quick_mode_enabled() or should_use_quick_mode(user_input)
         async for event in run_conversation(
             self.provider, self.registry, transcript, db=self.db, user_input=user_input,
             failover_chain=self.failover_chain,
+            quick_mode=quick,
         ):
             if event["type"] == "token":
                 accumulated.append(event["text"])

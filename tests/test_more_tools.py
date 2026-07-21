@@ -31,7 +31,7 @@ class TestToolRegistration:
     def test_ten_tools_registered(self, registry: ToolRegistry) -> None:
         """The registry must have 10 tools (7 + web_search + code_execution + file_patch)."""
         names = set(registry.list_names())
-        assert len(names) == 10
+        assert len(names) == 11  # v3.1.0: +revert_file
         assert "web_search" in names
         assert "code_execution" in names
         assert "file_patch" in names
@@ -39,7 +39,7 @@ class TestToolRegistration:
     def test_all_have_openai_schemas(self, registry: ToolRegistry) -> None:
         """All 10 tools must have valid OpenAI schemas."""
         schemas = registry.get_openai_schemas()
-        assert len(schemas) == 10
+        assert len(schemas) == 11  # v3.1.0: +revert_file
         schema_names = [s["function"]["name"] for s in schemas]
         assert "web_search" in schema_names
         assert "code_execution" in schema_names

@@ -73,8 +73,11 @@ class TestOutputTruncation:
     @pytest.mark.asyncio
     async def test_stdout_truncation_indicator(self) -> None:
         """When stdout exceeds MAX_STDOUT, a truncation indicator must appear."""
-        # Generate output longer than MAX_STDOUT (2000 chars).
-        result = await run_terminal_command(f'python3 -c "print(\'x\' * 5000)"')
+        # v3.0.1: use sys.executable (cross-platform, not hardcoded python3).
+        import sys as _sys
+        result = await run_terminal_command(
+            f'"{_sys.executable}" -c "print(\'x\' * 5000)"'
+        )
         assert "[truncated]" in result
 
     @pytest.mark.asyncio
@@ -149,8 +152,11 @@ class TestEnvironmentAndCwd:
     @pytest.mark.asyncio
     async def test_env_variable_injection(self) -> None:
         """Custom environment variables must be accessible in the command."""
+        # v3.0.1: cross-platform — use Python's os.environ instead of shell
+        # expansion (which differs between bash, cmd.exe, and Git Bash).
+        import sys as _sys
         result = await run_terminal_command(
-            'echo $NEXA_TEST_VAR',
+            f'"{_sys.executable}" -c "import os; print(os.environ.get(\'NEXA_TEST_VAR\', \'NOT_SET\'))"',
             env={"NEXA_TEST_VAR": "injected_value_42"},
         )
         assert "injected_value_42" in result
@@ -188,15 +194,16 @@ class TestBlockedPatterns:
 class TestRegistryIntegration:
     """Tests that the new tools are registered correctly."""
 
-    def test_ten_tools_registered(self, registry: ToolRegistry) -> None:
-        """The registry must now have 10 tools (7 + web_search + code_execution + file_patch)."""
+    def test_eleven_tools_registered(self, registry: ToolRegistry) -> None:
+        """The registry must now have 11 tools (v3.1.0: +revert_file)."""
         names = set(registry.list_names())
         assert "list_background_processes" in names
         assert "kill_background_process" in names
         assert "web_search" in names
         assert "code_execution" in names
         assert "file_patch" in names
-        assert len(names) == 10
+        assert "revert_file" in names
+        assert len(names) == 11
 
     def test_bg_tools_have_schemas(self, registry: ToolRegistry) -> None:
         """Background tools must have valid OpenAI schemas."""
