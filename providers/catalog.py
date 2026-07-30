@@ -73,7 +73,7 @@ PROVIDER_CATALOG: Dict[str, ProviderConfig] = {
     "llamacpp": ProviderConfig(
         name="llamacpp",
         base_url="http://localhost:8080/v1",
-        default_model="local-model",
+        default_model="Ornith-1.0-9b-Q4_K_M.gguf",
         api_key_hint="Any non-empty string",
         description="llama.cpp server (llama-server --port 8080)",
     ),

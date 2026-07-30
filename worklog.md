@@ -1435,3 +1435,43 @@ Stage Summary:
   passing, 0 failures. Cross-platform installer ready.
 - Next: Push to GitHub, tag v3.1.0, create GitHub Release.
 
+
+---
+
+## Task ID: 24 (v3.1.0+ — Ornith Integration + Manual Guide + v3.1.0 Release)
+Agent: Nexa Autonomous Principal Engineer (Desktop IDE)
+
+### Summary
+- Fixed 2 pre-existing Windows test failures (0 failures now, 552 passing)
+- Built cross-platform installer scripts (curl/irm one-liner)
+- Created comprehensive manual testing guide
+- Integrated Ornith (llama.cpp) as custom provider
+- Released v3.1.0 with 4 new features
+
+### Ornith Integration (llama.cpp)
+- Ornith lifespan: `.\Ornith-1.0-9b-Q4_K_M.gguf` loaded on http://127.0.0.1:8080
+- Tools (write_file, read_file, generate_uuid) work reliably via direct Python API
+- **Limitation discovered**: Ornith doesn't support function calling from LLM (no tool_calls in response). Tools work by direct Python API, not from LLM-driven tool calls.
+- **Latency**: 314.7s for complex task, 1058.8s for multi-tool agent loop (laptop tua + 9B model)
+- **Solution for tool usage**: Document workaround in docs/ORNITH_INTEGRATION.md
+
+### v3.1.0 Release Content
+- **Ask Question Mode**: Quick Q&A shortcut for factual questions
+- **Trajectory Export**: JSONL for fine-tuning dataset (via NEXA_TRAJECTORY=1)
+- **File Patch Rollback**: `.bak` history + `revert_file` tool (11th tool)
+- **Semantic Vector Memory**: TF-IDF-based recall in `~/.nexa/memory/semantic.jsonl`
+- **70 new tests** (482 → 552 passing)
+- **Cross-platform installer**: scripts/install.sh (Linux/macOS) + scripts/install.ps1 (Windows)
+
+### Known Limitations
+- Ornith function calling not supported (model constraint)
+- xterm.js TerminalPanel refinement deferred to v3.2.0
+- Chaos engineering tests deferred
+
+### Files Added/Modified
+- New: agent/ask_question_mode.py, agent/trajectory_recorder.py, agent/semantic_memory.py
+- New: scripts/install.sh, scripts/install.ps1
+- New: docs/MANUAL_TESTING_GUIDE.md, docs/ORNITH_INTEGRATION.md
+- New: tests/test_ask_question_mode.py, test_trajectory_recorder.py, test_revert_file.py, test_semantic_memory.py
+- Modified: tools/file_patch_tool.py (added revert_file), tools/registry.py, run_agent.py, conversation_loop.py, tests/test_terminal_tool.py, tests/test_tool_registry.py, tests/test_more_tools.py
+

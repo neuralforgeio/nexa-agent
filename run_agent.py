@@ -101,7 +101,22 @@ class NexaAgent:
             db:            Override the default storage instance.
         """
         # Resolve provider config.
-        resolved_url, resolved_model, resolved_key = resolve_provider(provider_name)
+        # v3.1.0: first try the ProviderRegistry (custom providers like 'ornith'),
+        # then fall back to the catalog (openai, ollama, etc.).
+        if provider_name:
+            from nexa.provider_registry import ProviderRegistry
+            reg = ProviderRegistry()
+            custom = reg.get(provider_name)
+            if custom is not None:
+                # Custom provider found — use its config directly.
+                resolved_url = custom.base_url
+                resolved_model = custom.model
+                resolved_key = custom.api_key or "dummy"
+            else:
+                # Fall back to catalog/env resolution.
+                resolved_url, resolved_model, resolved_key = resolve_provider(provider_name)
+        else:
+            resolved_url, resolved_model, resolved_key = resolve_provider(None)
         self.provider = LLMProvider(
             api_key=api_key or resolved_key,
             base_url=base_url or resolved_url,

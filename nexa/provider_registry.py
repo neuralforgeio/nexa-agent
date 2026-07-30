@@ -54,6 +54,12 @@ class StoredProviderConfig:
     api_key: str = ""
     model: str = ""
 
+    def __post_init__(self) -> None:
+        """Ensure api_key is non-empty for local providers (llamacpp, ollama, lmstudio, vllm)."""
+        local_providers = {"ollama", "llamacpp", "lmstudio", "vllm", "custom", "ornith"}
+        if not self.api_key and (self.name in local_providers or "localhost" in self.base_url or "127.0.0.1" in self.base_url):
+            self.api_key = "dummy"
+
     def to_dict(self) -> Dict[str, Any]:
         """Serialize to a plain dict (JSON-safe)."""
         return asdict(self)

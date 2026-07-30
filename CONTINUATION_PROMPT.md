@@ -16,12 +16,20 @@ Anda adalah "Nexa Autonomous Principal Engineer". Anda akan melanjutkan pengemba
 - **Path lokal**: `C:\Users\Dearly Febriano\nexa-agent` (BUKAN `Documents/Prism-Agent` — folder Documents diblokir CFA)
 - **Branch**: main
 - **Python**: 3.13.3 (pakai `.venv/Scripts/python.exe`)
-- **Versi pyproject.toml**: 3.0.0 (Ultimate Enterprise Evolution)
-- **Tests terakhir**: 480 passing, 2 failed (pre-existing Windows platform mismatch)
-- **Tools**: 10 (read_file, write_file, run_terminal_command, generate_uuid, delegate, list_background_processes, kill_background_process, web_search, code_execution, file_patch)
-- **Agent modules**: 30 (12 original + 18 intelligence v2.0)
-- **Providers**: 8 (openai, openrouter, ollama, llamacpp, lmstudio, vllm, tokenrouter, databricks) + custom endpoint feature
+- **Versi pyproject.toml**: 3.1.0 [Latest Released]
+- **Tests terakhir**: 552 passing, 0 failed
+- **Tools**: 11 (read_file, write_file, run_terminal_command, generate_uuid, delegate, list_background_processes, kill_background_process, web_search, code_execution, file_patch, revert_file)
+- **Agent modules**: 33 (30 intelligence + 3 new: ask_question_mode, trajectory_recorder, semantic_memory)
+- **Providers**: 8 (openai, openrouter, ollama, llamacpp, lmstudio, vllm, tokenrouter, databricks) + custom endpoints
 - **Python packages**: nexa/, agent/, tools/, providers/, nexa_cli/, ui_tui/, tui_gateway/
+
+## ORNITH (llama.cpp) — Quick Test on Port 8080
+If Ornith is running at http://127.0.0.1:8080 with Ornith-1.0-9b-Q4_K_M.gguf:
+```bash
+nexa provider add ornith --base-url http://127.0.0.1:8080/v1 --api-key dummy --model "Ornith-1.0-9b-Q4_K_M.gguf"
+nexa provider use ornith
+```
+Ornith doesn't support function calling from LLM — tools work via direct Python API. See `docs/ORNITH_INTEGRATION.md` for details.
 
 ## V2.0 INTELLIGENCE MODULES (sudah ada, jangan rewrite)
 - nexa/provider_failover.py — health check + failover chain
