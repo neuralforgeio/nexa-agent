@@ -185,37 +185,65 @@ async def chat_stream(req: ChatStreamRequest) -> StreamingResponse:
         ]
 
     async def event_generator():
-        """Generate SSE events from the agent's streaming output."""
+        """
+        Generate SSE events from the agent's streaming output, with keepalive.
+
+        v4.0.0: emits a ``: ping`` comment every 15 s of inactivity so that
+        (a) browsers don't close the connection during a long llamacpp
+        prompt-processing phase, and (b) llama-server doesn't interpret a
+        silent socket as a stalled client. This directly fixes the
+        "auto-close" the user saw (llama-server log: ``stop: cancel task``).
+        """
         encoder = json.dumps
 
         # Send session event first.
         yield f"data: {encoder({'type': 'session', 'sessionId': conv_id, 'isNew': is_new})}\n\n"
 
-        # Stream agent events.
-        async for event in _agent.run_streaming(message, conv_id, history):
-            # Map Python agent events to frontend-expected format.
-            ev_type = event.get("type")
+        # Wrap the agent generator so we can interleave keepalive pings.
+        agent_gen = _agent.run_streaming(message, conv_id, history)
+        pending: Optional[asyncio.Task] = None
+        try:
+            pending = asyncio.ensure_future(agent_gen.__anext__())
+            while True:
+                done, _ = await asyncio.wait({pending}, timeout=15.0)
+                if not done:
+                    # 15s with no agent event — send a keepalive comment so
+                    # the HTTP connection (and llama-server upstream) stays hot.
+                    yield ": ping\n\n"
+                    continue
+                try:
+                    event = pending.result()
+                except StopAsyncIteration:
+                    break
+                finally:
+                    pending = None
 
-            if ev_type == "thinking":
-                yield f"data: {encoder({'type': 'thinking'})}\n\n"
+                ev_type = event.get("type")
+                if ev_type == "thinking":
+                    yield f"data: {encoder({'type': 'thinking'})}\n\n"
+                elif ev_type == "token":
+                    yield f"data: {encoder({'type': 'token', 'text': event['text']})}\n\n"
+                elif ev_type == "tool_result":
+                    yield f"data: {encoder({'type': 'tool_result', 'toolResult': event['result']})}\n\n"
+                elif ev_type == "compressing":
+                    yield f"data: {encoder({'type': 'compressing', 'detail': event.get('detail', '')})}\n\n"
+                elif ev_type == "memory":
+                    yield f"data: {encoder({'type': 'memory', 'memories': event.get('memories', [])})}\n\n"
+                elif ev_type == "done":
+                    yield f"data: {encoder({'type': 'done', 'answer': event['answer']})}\n\n"
+                elif ev_type == "error":
+                    yield f"data: {encoder({'type': 'error', 'message': event['message']})}\n\n"
 
-            elif ev_type == "token":
-                yield f"data: {encoder({'type': 'token', 'text': event['text']})}\n\n"
-
-            elif ev_type == "tool_result":
-                yield f"data: {encoder({'type': 'tool_result', 'toolResult': event['result']})}\n\n"
-
-            elif ev_type == "compressing":
-                yield f"data: {encoder({'type': 'compressing', 'detail': event.get('detail', '')})}\n\n"
-
-            elif ev_type == "memory":
-                yield f"data: {encoder({'type': 'memory', 'memories': event.get('memories', [])})}\n\n"
-
-            elif ev_type == "done":
-                yield f"data: {encoder({'type': 'done', 'answer': event['answer']})}\n\n"
-
-            elif ev_type == "error":
-                yield f"data: {encoder({'type': 'error', 'message': event['message']})}\n\n"
+                pending = asyncio.ensure_future(agent_gen.__anext__())
+        finally:
+            if pending is not None and not pending.done():
+                pending.cancel()
+            aclose = getattr(agent_gen, "aclose", None)
+            if aclose is not None:
+                try:
+                    await aclose()
+                except Exception:
+                    pass
 
         # End event.
         yield f"data: {encoder({'type': 'end'})}\n\n"
@@ -640,75 +668,416 @@ async def provider_test(req: Dict[str, Any]) -> Dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
-# v3.0.0 — WebSocket terminal endpoint
+# v3.2.0 — WebSocket terminal endpoint (real PTY for xterm.js)
 # ---------------------------------------------------------------------------
+import sys as _sys
+
 @app.websocket("/ws/terminal")
 async def ws_terminal(websocket) -> None:
     """
-    WebSocket endpoint for the Web UI terminal panel.
+    WebSocket endpoint for the Web UI terminal panel (xterm.js).
 
-    Receives shell commands from the browser, executes them via
-    ``run_terminal_command`` (with all v3.0.0 security boundaries:
-    NEXA_WORKSPACE cwd + NEXA_HOME access blocked), and streams the
-    output back as JSON messages.
+    Provides a real PTY (pseudo-terminal) so the browser can run a real
+    shell with full color support, escape sequences, and stdin interaction.
+    Falls back to command-based execution if PTY deps are unavailable.
+
+    All commands still go through the v3.0.0 security boundary
+    (~/.nexa/ access blocked). The ``cwd`` is always ``NEXA_WORKSPACE``.
 
     Message formats (server → client):
-        ``{"type": "output", "text": "..."}`` — stdout/stderr chunk.
-        ``{"type": "done", "exit_code": 0}`` — command finished.
-        ``{"type": "error", "message": "..."}`` — blocked or failed.
-
+        ``{"type": "output", "data": "..."}`` — raw PTY output (ANSI included).
+        ``{"type": "error", "message": "..."}`` — blocked or merged error.
     Message formats (client → server):
-        ``{"type": "command", "command": "..."}`` — run a shell command.
+        ``{"type": "input", "data": "..."}`` — stdin bytes to shell.
+        ``{"type": "resize", "cols": N, "rows": M}`` — resize the PTY.
         ``{"type": "ping"}`` — keepalive.
+    """
+    import asyncio
+    import json
+
+    await websocket.accept()
+
+    from nexa.config import NEXA_WORKSPACE
+
+    # Try to spawn a real PTY. Fall back to command-based if unavailable.
+    pty = None
+    if _sys.platform == "win32":
+        try:
+            from winpty import PtyProcess  # type: ignore[import-not-found]
+            pty = PtyProcess.spawn(
+                ["cmd.exe", "/k"],
+                cwd=str(NEXA_WORKSPACE),
+                dimensions=(24, 80),
+            )
+        except (ImportError, Exception) as exc:
+            pty = None
+    else:
+        try:
+            import ptyprocess
+            pty = ptyprocess.PtyProcess.spawn(
+                ["/bin/bash"],
+                cwd=str(NEXA_WORKSPACE),
+                dimensions=(24, 80),
+            )
+        except (ImportError, Exception):
+            pty = None
+
+    if pty is None:
+        # No PTY available — fall back to command-based mode (v3.0.0 style).
+        await websocket.send_text(json.dumps({
+            "type": "output",
+            "data": "PTY not available on this system. Falling back to command mode.\r\n$ ",
+        }))
+        await _ws_terminal_command_mode(websocket)
+        return
+
+    # Real PTY: spawn reader/writer tasks.
+    async def pty_to_ws() -> None:
+        """Forward PTY output to WebSocket."""
+        try:
+            while pty.isalive():
+                data = pty.read()
+                if not data:
+                    break
+                await websocket.send_text(json.dumps({"type": "output", "data": data}))
+        except Exception:
+            pass
+        finally:
+            try:
+                await websocket.close()
+            except Exception:
+                pass
+
+    async def ws_to_pty() -> None:
+        """Forward WebSocket input to PTY."""
+        try:
+            while True:
+                raw = await websocket.receive_text()
+                try:
+                    msg = json.loads(raw)
+                except json.JSONDecodeError:
+                    continue
+                mtype = msg.get("type")
+                if mtype == "ping":
+                    continue
+                elif mtype == "input":
+                    data = msg.get("data", "")
+                    try:
+                        pty.write(data)
+                    except Exception:
+                        break
+                elif mtype == "resize":
+                    try:
+                        pty.setwinsize(msg.get("rows", 24), msg.get("cols", 80))
+                    except Exception:
+                        pass
+        except Exception:
+            pass
+
+    try:
+        await asyncio.gather(pty_to_ws(), ws_to_pty())
+    finally:
+        try:
+            if pty.isalive():
+                pty.terminate(force=True)
+        except Exception:
+            pass
+
+
+async def _ws_terminal_command_mode(websocket) -> None:
+    """
+    Fallback terminal mode (no PTY) — executes commands via run_terminal_command.
     """
     import json
     from tools.terminal_tool import run_terminal_command
-    await websocket.accept()
     try:
         while True:
             raw = await websocket.receive_text()
             try:
                 msg = json.loads(raw)
             except json.JSONDecodeError:
-                await websocket.send_text(json.dumps({
-                    "type": "error", "message": "invalid JSON"
-                }))
                 continue
-            mtype = msg.get("type")
-            if mtype == "ping":
-                await websocket.send_text(json.dumps({"type": "pong"}))
+            if msg.get("type") == "ping":
                 continue
-            if mtype != "command":
-                await websocket.send_text(json.dumps({
-                    "type": "error", "message": f"unknown type: {mtype}"
-                }))
+            if msg.get("type") != "input":
                 continue
-            command = (msg.get("command") or "").strip()
-            if not command:
-                await websocket.send_text(json.dumps({
-                    "type": "error", "message": "empty command"
-                }))
+            cmd = (msg.get("data") or "").strip()
+            if not cmd:
                 continue
+            if cmd == "exit":
+                await websocket.send_text(json.dumps({"type": "output", "data": "exit\r\n"}))
+                break
             try:
-                result = await run_terminal_command(command, timeout=30.0)
-                await websocket.send_text(json.dumps({
-                    "type": "output", "text": result,
-                }))
-                await websocket.send_text(json.dumps({
-                    "type": "done", "exit_code": 0,
-                }))
+                result = await run_terminal_command(cmd, timeout=30.0)
+                await websocket.send_text(json.dumps({"type": "output", "data": result + "\r\n$ "}))
             except ValueError as exc:
-                # Blocked command (e.g. ~/.nexa access attempt).
-                await websocket.send_text(json.dumps({
-                    "type": "error", "message": str(exc),
-                }))
+                await websocket.send_text(json.dumps({"type": "error", "message": str(exc)}))
             except Exception as exc:
-                await websocket.send_text(json.dumps({
-                    "type": "error", "message": f"execution failed: {exc}",
-                }))
+                await websocket.send_text(json.dumps({"type": "error", "message": str(exc)}))
     except Exception:
-        # Connection closed by client — exit gracefully.
         pass
+
+
+# ---------------------------------------------------------------------------
+# v4.0.0 — Sandbox endpoints (Web Preview + Terminal sidebar)
+# ---------------------------------------------------------------------------
+from pathlib import Path as _Path
+
+from fastapi.responses import HTMLResponse as _HTMLResponse
+
+from nexa.config import NEXA_WORKSPACE as _WORKSPACE
+
+# Extensions the sandbox can render natively in a browser <iframe>.
+_PREVIEWABLE = {
+    ".html", ".htm", ".css", ".js", ".mjs", ".jsx",
+    ".md", ".markdown", ".txt", ".json", ".svg",
+    ".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".ico",
+}
+
+_MIME = {
+    ".html": "text/html", ".htm": "text/html", ".css": "text/css",
+    ".js": "text/javascript", ".mjs": "text/javascript",
+    ".json": "application/json", ".svg": "image/svg+xml",
+    ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
+    ".gif": "image/gif", ".webp": "image/webp", ".txt": "text/plain",
+    ".md": "text/plain", ".markdown": "text/plain",
+}
+
+# Framework markers → how to build/preview them. Used by /api/sandbox/build
+# to auto-detect the project type and produce sensible npm/bun commands.
+_FRAMEWORK_MARKERS = {
+    "next.config.ts": "next", "next.config.js": "next", "next.config.mjs": "next",
+    "angular.json": "angular",
+    "vite.config.ts": "vite", "vite.config.js": "vite",
+    "astro.config.mjs": "astro",
+    "svelte.config.js": "svelte",
+    "nuxt.config.ts": "nuxt",
+}
+
+
+def _resolve_in_sandbox(rel_path: str) -> _Path:
+    """
+    Resolve ``rel_path`` inside :data:`NEXA_WORKSPACE`, rejecting traversal.
+
+    Raises:
+        ValueError: If the path escapes the workspace or is absolute.
+    """
+    if not rel_path:
+        raise ValueError("path is required")
+    # Disallow absolute paths outright.
+    p = _Path(rel_path)
+    if p.is_absolute() or rel_path.startswith(("\\", "/")) or ":" in rel_path.split("/")[0]:
+        raise ValueError("absolute paths are not allowed")
+    target = (_WORKSPACE / rel_path.lstrip("./\\")).resolve()
+    try:
+        target.relative_to(_WORKSPACE.resolve())
+    except ValueError:
+        raise ValueError("path escapes the workspace sandbox") from None
+    return target
+
+
+def _detect_framework(project_path: str) -> Dict[str, Any]:
+    """
+    Detect the project framework and package manager for a sandbox path.
+
+    Returns a dict with ``framework``, ``package_manager``, ``install_cmd``,
+    ``build_cmd``, ``preview_cmd``, and a human-friendly ``reason``.
+    """
+    try:
+        root = _resolve_in_sandbox(project_path)
+    except ValueError:
+        root = _WORKSPACE
+    pkg = root / "package.json"
+
+    framework = "static"
+    for marker, name in _FRAMEWORK_MARKERS.items():
+        if (root / marker).exists():
+            framework = name
+            break
+
+    package_manager = "npm"
+    install_cmd = "npm install"
+    if (root / "bun.lockb").exists() or (root / "bun.lock").exists():
+        package_manager = "bun"
+        install_cmd = "bun install"
+    elif (root / "pnpm-lock.yaml").exists():
+        package_manager = "pnpm"
+        install_cmd = "pnpm install"
+    elif (root / "yarn.lock").exists():
+        package_manager = "yarn"
+        install_cmd = "yarn"
+
+    is_web = framework != "static" or pkg.exists()
+
+    build_cmd = {
+        "next": f"{package_manager} run build",
+        "angular": f"{package_manager} run build",
+        "vite": f"{package_manager} run build",
+        "astro": f"{package_manager} run build",
+        "svelte": f"{package_manager} run build",
+        "nuxt": f"{package_manager} run build",
+        "static": "",
+    }.get(framework, f"{package_manager} run build")
+
+    preview_cmd = {
+        "next": f"{package_manager} run dev",
+        "angular": f"{package_manager} run start",
+        "vite": f"{package_manager} run dev",
+        "astro": f"{package_manager} run dev",
+        "svelte": f"{package_manager} dev",
+        "nuxt": f"{package_manager} run dev",
+        "static": "",
+    }.get(framework, f"{package_manager} run dev")
+
+    return {
+        "path": project_path,
+        "exists": root.exists(),
+        "framework": framework,
+        "package_manager": package_manager,
+        "is_web_project": is_web,
+        "install_cmd": install_cmd,
+        "build_cmd": build_cmd,
+        "preview_cmd": preview_cmd,
+    }
+
+
+class SandboxBuildRequest(BaseModel):
+    """Request body for POST /api/sandbox/build."""
+
+    path: str = ""
+    command: Optional[str] = None
+
+
+@app.get("/api/sandbox/tree")
+async def sandbox_tree(path: str = "", depth: int = 3) -> Dict[str, Any]:
+    """
+    List the file tree of a sandbox directory for the Web Preview picker.
+
+    Returns a nested tree up to ``depth`` levels, with file metadata.
+    """
+    try:
+        root = _resolve_in_sandbox(path) if path else _WORKSPACE
+    except ValueError as exc:
+        return JSONResponse({"error": str(exc)}, status_code=400)
+    if not root.exists():
+        return {"path": path, "tree": []}
+
+    def _node(p: _Path, d: int) -> Dict[str, Any]:
+        node: Dict[str, Any] = {
+            "name": p.name or str(p),
+            "path": str(p.relative_to(_WORKSPACE)),
+            "is_dir": p.is_dir(),
+            "previewable": p.suffix.lower() in _PREVIEWABLE,
+        }
+        if p.is_dir() and d > 0 and p.name not in ("node_modules", ".git", ".next", "__pycache__"):
+            try:
+                node["children"] = [
+                    _node(c, d - 1) for c in sorted(p.iterdir())[:50]
+                ]
+            except OSError:
+                node["children"] = []
+        return node
+
+    return {"path": path, "tree": _node(root, depth)}
+
+
+@app.get("/api/sandbox/preview")
+async def sandbox_preview(path: str = "") -> Any:
+    """
+    Serve a workspace file for preview in the <iframe> sandbox.
+
+    Static web assets (HTML/CSS/JS/images) are served inline so the
+    Web Preview can render them. Everything else returns 415.
+    """
+    try:
+        target = _resolve_in_sandbox(path)
+    except ValueError as exc:
+        return JSONResponse({"error": str(exc)}, status_code=400)
+    if not target.exists():
+        return JSONResponse({"error": f"not found: {path}"}, status_code=404)
+
+    # Directory → render an index page listing previewable children.
+    if target.is_dir():
+        try:
+            entries = []
+            for child in sorted(target.iterdir()):
+                if child.name.startswith(".") or child.name in ("node_modules", "__pycache__"):
+                    continue
+                rel = str(child.relative_to(_WORKSPACE)).replace("\\", "/")
+                if child.suffix.lower() in _PREVIEWABLE or child.is_dir():
+                    icon = "📁" if child.is_dir() else "📄"
+                    entries.append(
+                        f'<li><a href="/api/sandbox/preview?path={rel}">{icon} {child.name}</a></li>'
+                    )
+        except OSError:
+            entries = []
+        body = (
+            "<html><head><meta charset='utf-8'>"
+            "<style>body{font-family:system-ui;background:#141618;color:#ececec;padding:24px}"
+            "a{color:#4A9EFF;text-decoration:none}li{margin:6px 0}</style></head><body>"
+            f"<h2>📂 {target.name or 'workspace'}</h2><ul>{''.join(entries) or '<li>No previewable files.</li>'}</ul>"
+            "</body></html>"
+        )
+        return _HTMLResponse(body)
+
+    mime = _MIME.get(target.suffix.lower())
+    if mime is None:
+        return JSONResponse(
+            {"error": f"file type '{target.suffix}' cannot be previewed in a browser"},
+            status_code=415,
+        )
+
+    # Wrap bare JS in an <html> shell so it executes in the iframe.
+    if target.suffix.lower() in (".js", ".mjs"):
+        code = target.read_text(encoding="utf-8", errors="replace")
+        body = (
+            "<html><head><meta charset='utf-8'>"
+            "<style>body{background:#141618;color:#0f0}</style></head><body>"
+            "<pre id='log' style='font-family:monospace;font-size:13px'></pre>"
+            "<script>"
+            "const log=(...a)=>{document.getElementById('log').textContent+=a.join(' ')+'\\n'};"
+            "console.log=log;console.error=log;console.warn=log;"
+            "</script>"
+            f"<script type='module'>{code}</script></body></html>"
+        )
+        return _HTMLResponse(body)
+
+    from fastapi.responses import Response
+
+    data = target.read_bytes()
+    return Response(content=data, media_type=mime)
+
+
+@app.post("/api/sandbox/build")
+async def sandbox_build(req: SandboxBuildRequest) -> Dict[str, Any]:
+    """
+    Auto-detect a project's framework and return the commands to install,
+    build, and preview it. Optionally run a command right away.
+    """
+    info = _detect_framework(req.path)
+    result: Dict[str, Any] = {"ok": True, "detected": info}
+
+    if req.command:
+        from tools.terminal_tool import run_terminal_command
+
+        # Resolve the sandbox-relative path to an absolute workspace path
+        # so terminal_tool's cwd validation accepts it.
+        try:
+            cwd_abs = str(_resolve_in_sandbox(req.path)) if req.path else None
+        except ValueError:
+            cwd_abs = None
+
+        try:
+            out = await run_terminal_command(
+                req.command,
+                cwd=cwd_abs,
+                timeout=180.0,
+            )
+            result["ran"] = {"command": req.command, "output": out}
+        except Exception as exc:  # noqa: BLE001
+            result["ok"] = False
+            result["error"] = str(exc)
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -718,8 +1087,20 @@ if __name__ == "__main__":
     """
     Entry point for running the server directly.
 
-    Starts uvicorn on ``0.0.0.0:8000``.
+    Acquires the ``server`` singleton lock first so a second ``server.py``
+    process fails fast with remediation steps instead of silently
+    double-binding port 8000 (the "2 processes" bug).
     """
+    import sys
+
     import uvicorn
+
+    from nexa.process_manager import SingletonConflict, acquire_singleton
+
+    try:
+        _server_lock = acquire_singleton("server", label="server.py:8000")
+    except SingletonConflict as exc:
+        print(str(exc), file=sys.stderr)
+        sys.exit(1)
 
     uvicorn.run("server:app", host="0.0.0.0", port=8000, reload=False)

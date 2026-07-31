@@ -7,7 +7,7 @@ Copy-paste seluruh blok di bawah ini ke chat baru:
 
 Anda adalah "Nexa Autonomous Principal Engineer". Anda akan melanjutkan pengembangan Nexa Agent — Local AI Agent murni Python dengan ekosistem antarmuka modular. Anda memiliki akses terminal penuh melalui IDE desktop.
 
-## STATUS PROYEK SAAT INI
+## STATUS PROYEK SAAT INI (v4.0.0)
 
 - **Repo GitHub**: https://github.com/neuralforgeio/nexa-agent
 - **GitHub Username**: neuralforgeio
@@ -16,12 +16,22 @@ Anda adalah "Nexa Autonomous Principal Engineer". Anda akan melanjutkan pengemba
 - **Path lokal**: `C:\Users\Dearly Febriano\nexa-agent` (BUKAN `Documents/Prism-Agent` — folder Documents diblokir CFA)
 - **Branch**: main
 - **Python**: 3.13.3 (pakai `.venv/Scripts/python.exe`)
-- **Versi pyproject.toml**: 3.1.0 [Latest Released]
-- **Tests terakhir**: 552 passing, 0 failed
-- **Tools**: 11 (read_file, write_file, run_terminal_command, generate_uuid, delegate, list_background_processes, kill_background_process, web_search, code_execution, file_patch, revert_file)
-- **Agent modules**: 33 (30 intelligence + 3 new: ask_question_mode, trajectory_recorder, semantic_memory)
+- **Versi pyproject.toml**: 4.0.0 [Latest Released]
+- **Tests terakhir**: 603 passing, 0 failed
+- **Tools**: 33 (13 core + 20 planning di `tools/planning/`)
+- **Agent modules**: 33
 - **Providers**: 8 (openai, openrouter, ollama, llamacpp, lmstudio, vllm, tokenrouter, databricks) + custom endpoints
 - **Python packages**: nexa/, agent/, tools/, providers/, nexa_cli/, ui_tui/, tui_gateway/
+- **User-tools**: `~/.nexa/tools/*.py` auto-loaded (see `tools/registry.py::load_user_tools`)
+
+## v4.0.0 HEADLINES
+
+- **Sandbox Panel** (web UI): right sidebar with Preview-over-Terminal split, draggable divider, dev-server autodetect, static-file fallback via `/api/sandbox/preview`.
+- **Working Process dropdown**: nested thinking traces that auto-collapse on completion (one-line summary left behind).
+- **20 planning tools** (see `.plans/PLANNING_TOOLS_20.md`).
+- **`create_tool`** — the agent can extend itself; anything dropped into `~/.nexa/tools/` becomes callable on the next turn.
+- **Bug fixes**: llama.cpp auto-cancel via capability negotiation + SSE keepalive, double-process guard via `nexa/process_manager.py`, terminal_exec dataclass import.
+- **Singleton enforcement**: starting `server.py` twice on the same user raises a clear `SingletonConflict` instead of double-binding port 8000.
 
 ## ORNITH (llama.cpp) — Quick Test on Port 8080
 If Ornith is running at http://127.0.0.1:8080 with Ornith-1.0-9b-Q4_K_M.gguf:
@@ -29,7 +39,14 @@ If Ornith is running at http://127.0.0.1:8080 with Ornith-1.0-9b-Q4_K_M.gguf:
 nexa provider add ornith --base-url http://127.0.0.1:8080/v1 --api-key dummy --model "Ornith-1.0-9b-Q4_K_M.gguf"
 nexa provider use ornith
 ```
-Ornith doesn't support function calling from LLM — tools work via direct Python API. See `docs/ORNITH_INTEGRATION.md` for details.
+v4.0.0: the provider negotiates tool support. If the server responds with
+"tools not supported", Nexa retries the completion **without** the tools
+payload — no more auto-cancel by llama-server.
+
+## SERVERS (for manual testing)
+- Python agent: `.venv/Scripts/python.exe server.py` (port 8000)
+- Next.js frontend: `cd nexa_web && npm run dev` (port 3000)
+- llamacpp Ornith: `http://127.0.0.1:8080` (running on this machine)
 
 ## V2.0 INTELLIGENCE MODULES (sudah ada, jangan rewrite)
 - nexa/provider_failover.py — health check + failover chain

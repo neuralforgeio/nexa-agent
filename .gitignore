@@ -63,3 +63,7 @@ coverage/
 
 # Tool results (runtime)
 tool-results/
+logs/
+logs-backend.txt
+start_server.py
+tests/real_integration_e2e.py

@@ -1,22 +1,20 @@
 #
-# Nexa Agent — Installer for Windows (PowerShell)
-# ===============================================
+# Nexa Agent — Ultra-Cool Installer for Windows (PowerShell)
+# ===========================================================
 #
-# One-line install (run in PowerShell):
+# One-line install (run in PowerShell — NOT Command Prompt):
 #   irm https://raw.githubusercontent.com/neuralforgeio/nexa-agent/main/scripts/install.ps1 | iex
 #
 # Or save and run:
 #   iwr https://raw.githubusercontent.com/neuralforgeio/nexa-agent/main/scripts/install.ps1 -OutFile install.ps1
 #   .\install.ps1
 #
-# This script:
-#   1. Checks for Python 3.11+ (downloads from python.org if missing).
-#   2. Installs `uv` (Astral's fast Python package manager).
-#   3. Clones nexa-agent to a user-chosen directory (default: $HOME\nexa-agent).
-#   4. Creates a virtual environment via uv.
-#   5. Installs all Python dependencies.
-#   6. Runs `nexa setup` to initialize ~/.nexa/.
-#   7. Prints next steps.
+# Features:
+#   - Cool ASCII logo + animations
+#   - Progress bars with percentage
+#   - Unicode sparkle effects (✨ ✅ ⚙️ 🚀)
+#   - Color output via ANSI escape codes (PowerShell 7 recommended)
+#   - Non-blocking animations (won't slow down install)
 #
 # Copyright (c) 2026 Dearly Febriano Irwansyah
 # SPDX-License-Identifier: MIT
@@ -32,45 +30,90 @@ $RepoUrl = "https://github.com/neuralforgeio/nexa-agent.git"
 $InstallDir = if ($env:NEXA_INSTALL_DIR) { $env:NEXA_INSTALL_DIR } else { Join-Path $HOME "nexa-agent" }
 $Branch = "main"
 
-function Write-Info($msg)  { Write-Host "[nexa] $msg" -ForegroundColor Cyan }
-function Write-Ok($msg)    { Write-Host "[nexa] ✓ $msg" -ForegroundColor Green }
-function Write-Warn($msg)  { Write-Host "[nexa] ⚠ $msg" -ForegroundColor Yellow }
-function Write-Fail($msg)  { Write-Host "[nexa] ✗ $msg" -ForegroundColor Red; exit 1 }
+# --- Helper functions ---
+function Write-Info($msg)  { Write-Host "[*] $msg" -ForegroundColor Cyan }
+function Write-Ok($msg)    { Write-Host "[✔] $msg" -ForegroundColor Green }
+function Write-Warn($msg)  { Write-Host "[⚠] $msg" -ForegroundColor Yellow }
+function Write-Fail($msg)  { Write-Host "[✗] $msg" -ForegroundColor Red; exit 1 }
+function Write-Step($msg)  { Write-Host "`n  → $msg" -ForegroundColor Blue }
+function Write-Success($msg) { Write-Host "  ✓ $msg" -ForegroundColor Green }
 
+# Spinner animation (runs in background).
+$global:SpinnerRunning = $false
+function Start-Spinner {
+    if ($global:SpinnerRunning) { return }
+    $global:SpinnerRunning = $true
+    $global:SpinnerJob = Start-Job -ScriptBlock {
+        $frames = @('⠋','⠙','⠹','⠸','⠼','⠴','⠦','⠧','⠇','⠏')
+        $i = 0
+        while ($true) {
+            $f = $frames[$i % $frames.Length]
+            [System.Console]::Write("`r $f ")
+            Start-Sleep -Milliseconds 80
+            $i++
+        }
+    }
+}
+function Stop-Spinner {
+    $global:SpinnerRunning = $false
+    if ($global:SpinnerJob) {
+        Stop-Job $global:SpinnerJob -ErrorAction SilentlyContinue | Out-Null
+        Remove-Job $global:SpinnerJob -ErrorAction SilentlyContinue | Out-Null
+    }
+    [System.Console]::Write("`r     `r")
+}
+
+function Write-ProgressBar {
+    param([int]$current, [int]$total, [string]$label)
+    $width = 40
+    $pct = [int]($current * 100 / $total)
+    $filled = [int]($current * $width / $total)
+    $empty = $width - $filled
+    $bar = "=" * $filled + " " * $empty
+    Write-Host "`r ${label}: [$bar] ${pct}%" -NoNewline -ForegroundColor White
+}
+
+# --- ASCII logo ---
 Write-Host ""
-Write-Host "╔══════════════════════════════════════════╗" -ForegroundColor Cyan
-Write-Host "║   Nexa Agent — Installer (Windows)       ║" -ForegroundColor Cyan
-Write-Host "║   by Dearly Febriano Irwansyah           ║" -ForegroundColor Cyan
-Write-Host "╚══════════════════════════════════════════╝" -ForegroundColor Cyan
+Write-Host "     ███╗   ██╗███████╗██╗  ██╗ █████╗" -ForegroundColor Cyan
+Write-Host "     ████╗  ██║██╔════╝╚██╗██╔╝██╔══██╗" -ForegroundColor Cyan
+Write-Host "     ██╔██╗██╔╝█████╗   ╚███╔╝ ███████║" -ForegroundColor Cyan
+Write-Host "     ██║╚████══█ ██╔══╝   ██╔██╗ ██╔══██║" -ForegroundColor Cyan
+Write-Host "     ██║ ╚███║  ███████╗██╔╝ ██╗██║  ██║" -ForegroundColor Cyan
+Write-Host "     ╚═╝  ╚══╝  ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "  Nexa Agent v3.1.0  ·  Local AI Agent" -ForegroundColor White
+Write-Host "  by Dearly Febriano Irwansyah · Indonesia" -ForegroundColor DarkGray
 Write-Host ""
 
-# --- Check for git ---
-Write-Info "Step 0/6: Checking git..."
-$gitInstalled = $false
-try { $null = git --version; $gitInstalled = $true; Write-Ok "git found" } catch {}
-if (-not $gitInstalled) {
+# --- Step 0: Git check ---
+Write-Step "Checking git..."
+$gitOK = $false
+try { git --version | Out-Null; $gitOK = $true; Write-Ok "git found" } catch {}
+if (-not $gitOK) {
     Write-Warn "git not found. Installing via winget..."
     try { winget install --id Git.Git -e --accept-source-agreements --accept-package-agreements } catch {
         Write-Fail "Could not install git. Install from https://git-scm.com and re-run."
     }
     $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
-    $null = git --version
+    git --version | Out-Null
     Write-Ok "git installed"
 }
+Write-ProgressBar 1 7 "Git check"
 
-# --- Step 1: Check / install Python ---
-Write-Info "Step 1/6: Checking Python 3.11+..."
+# --- Step 1: Python check / install ---
+Write-Step "Checking Python 3.11+..."
 $pythonBin = $null
 foreach ($candidate in @("python", "python3", "py")) {
     try {
-        $pyVer = & $candidate -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')" 2>$null
-        if ($pyVer) {
-            $parts = $pyVer.Split('.')
+        $ver = & $candidate -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')" 2>&1
+        if ($ver -match '^\d+\.\d+$') {
+            $parts = $ver.Split('.')
             $major = [int]$parts[0]
             $minor = [int]$parts[1]
             if ($major -gt 3 -or ($major -eq 3 -and $minor -ge 11)) {
                 $pythonBin = $candidate
-                Write-Ok "Found $candidate v$pyVer"
+                Write-Ok "Found $candidate v$ver ✓"
                 break
             }
         }
@@ -82,99 +125,109 @@ if (-not $pythonBin) {
         winget install --id Python.Python.3.12 -e --accept-source-agreements --accept-package-agreements
         $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
         $pythonBin = "python"
-        Write-Ok "Python installed"
+        Write-Ok "Python installed ✓"
     } catch {
         Write-Fail "Could not install Python. Download from https://python.org and re-run."
     }
 }
+Write-ProgressBar 2 7 "Python check"
 
 # --- Step 2: Install uv ---
-Write-Info "Step 2/6: Checking uv (fast Python package manager)..."
-$uvInstalled = $false
-try { $null = uv --version; $uvInstalled = $true; Write-Ok "uv found" } catch {}
-if (-not $uvInstalled) {
-    Write-Info "Installing uv..."
+Write-Step "Installing uv (Astral's fast Python package manager)..."
+$uvOK = $false
+try { uv --version | Out-Null; $uvOK = $true; Write-Ok "uv already installed ✓" } catch {}
+if (-not $uvOK) {
+    Write-Info "Downloading uv installer..."
     try {
         irm https://astral.sh/uv/install.ps1 | iex
-        $uvPath = Join-Path $HOME ".local\bin"
-        $env:Path = "$uvPath;$env:Path"
-        $null = uv --version
-        Write-Ok "uv installed"
+        $env:Path = "$HOME\.local\bin;$env:Path"
+        uv --version | Out-Null
+        Write-Ok "uv installed ✓"
     } catch {
-        Write-Warn "uv install via script failed. Trying pip..."
-        & $pythonBin -m pip install uv
+        Write-Warn "uv install failed. Trying pip..."
+        & $pythonBin -m pip install uv 2>&1 | Out-Null
+        if ($LASTEXITCODE -ne 0) { Write-Fail "Could not install uv." }
+        Write-Ok "uv installed via pip ✓"
     }
 }
+Write-ProgressBar 3 7 "uv install"
 
-# --- Step 3: Clone or update the repo ---
-Write-Info "Step 3/6: Cloning nexa-agent to $InstallDir..."
+# --- Step 3: Clone / update repo ---
+Write-Step "Cloning nexa-agent to $InstallDir..."
 if (Test-Path (Join-Path $InstallDir ".git")) {
     Write-Info "Directory exists — pulling latest..."
-    Set-Location $InstallDir
-    git pull --ff-only origin $Branch
-    Write-Ok "Repository updated"
+    try { (Set-Location $InstallDir) && (git pull --ff-only origin $Branch) 2>&1 | Out-Null; Write-Ok "Repository updated ✓" } catch {
+        Write-Warn "git pull failed (continuing with existing code)"
+    }
 } else {
-    git clone --depth 1 -b $Branch $RepoUrl $InstallDir
+    git clone --depth 1 -b $Branch $RepoUrl $InstallDir 2>&1 | Out-Null
     Set-Location $InstallDir
-    Write-Ok "Repository cloned"
+    Write-Ok "Cloned to $InstallDir ✓"
 }
+Write-ProgressBar 4 7 "Repository clone"
 
-# --- Step 4: Create virtual environment ---
-Write-Info "Step 4/6: Creating virtual environment..."
+# --- Step 4: Virtual environment ---
+Write-Step "Creating virtual environment..."
 $venvPath = Join-Path $InstallDir ".venv"
 if (-not (Test-Path $venvPath)) {
-    uv venv --python $pythonBin
-    Write-Ok "Virtual environment created (.venv)"
+    uv venv --python $pythonBin 2>&1 | Out-Null
+    Write-Ok "Virtual environment created (.venv) ✓"
 } else {
-    Write-Ok "Virtual environment already exists (.venv)"
+    Write-Ok "Virtual environment exists (.venv) ✓"
 }
+Write-ProgressBar 5 7 "Virtual env"
 
 # --- Step 5: Install dependencies ---
-Write-Info "Step 5/6: Installing Python dependencies (this may take a minute)..."
-try {
-    uv pip install -e ".[dev]"
-} catch {
-    try { uv pip install -e . } catch { & $pythonBin -m pip install -e . }
-}
-Write-Ok "Dependencies installed"
-
-# --- Step 6: Run nexa setup ---
-Write-Info "Step 6/6: Initializing ~/.nexa/..."
+Write-Step "Installing dependencies..."
+Set-Location $InstallDir
 $venvPython = Join-Path $venvPath "Scripts\python.exe"
 try {
-    & (Join-Path $venvPath "Scripts\nexa.exe") setup
-    Write-Ok "Nexa Agent initialized"
+    uv pip install -e ".[dev]" 2>&1 | Out-Null
+    Write-Ok "Dependencies installed ✓"
+} catch {
+    & $venvPython -m pip install -e ".[dev]" 2>&1 | Out-Null
+    Write-Ok "Dependencies installed ✓"
+}
+Write-ProgressBar 6 7 "Dependencies"
+
+# --- Step 6: Initialize ---
+Write-Step "Initializing ~/.nexa/ home directory..."
+try {
+    & "$venvPath\Scripts\nexa.exe" setup 2>&1 | Out-Null
+    Write-Ok "Nexa Agent initialized ✓"
 } catch {
     try {
-        & $venvPython -m nexa_cli setup
-        Write-Ok "Nexa Agent initialized (via module)"
+        & $venvPython -m nexa_cli setup 2>&1 | Out-Null
+        Write-Ok "Nexa Agent initialized ✓"
     } catch {
-        Write-Warn "nexa setup not available yet (entry points may need reinstall)"
+        Write-Warn "nexa setup not available yet (run it manually: nexa setup)"
     }
 }
+Write-ProgressBar 7 7 "Initialization"
 
-# --- Done ---
+# --- Final success ---
 Write-Host ""
-Write-Host "╔══════════════════════════════════════════╗" -ForegroundColor Green
-Write-Host "║   ✓ Nexa Agent installed successfully!   ║" -ForegroundColor Green
-Write-Host "╚══════════════════════════════════════════╝" -ForegroundColor Green
+Write-Host "  ✨ ╔══════════════════════════════════════════════════╗ ✨" -ForegroundColor Green
+Write-Host "     ║        ✅ Nexa Agent installed successfully!           ║" -ForegroundColor Green
+Write-Host "     ╚══════════════════════════════════════════════════╝" -ForegroundColor Green
 Write-Host ""
-Write-Host "Quick start:" -ForegroundColor Cyan
+Write-Host "  Next steps:" -ForegroundColor White
 Write-Host ""
-Write-Host "  1. Open a NEW PowerShell window (to get the updated PATH)."
+Write-Host "    1. Open a NEW PowerShell window (to refresh PATH):" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "  2. Configure a provider (interactive — will prompt for API key):"
-Write-Host "     nexa provider add tokenrouter" -ForegroundColor Green
+Write-Host "    2. Configure a provider:" -ForegroundColor Cyan
+Write-Host "       $ nexa provider add tokenrouter" -ForegroundColor Green
 Write-Host ""
-Write-Host "  3. Start chatting (interactive REPL):"
-Write-Host "     nexa-chat" -ForegroundColor Green
+Write-Host "    3. Start chatting:" -ForegroundColor Cyan
+Write-Host "       $ nexa-chat" -ForegroundColor Green
 Write-Host ""
-Write-Host "  4. Or start the Web UI (backend + frontend):"
-Write-Host "     nexa gateway start      # backend on port 8000" -ForegroundColor Green
-Write-Host "     cd $InstallDir\nexa_web" -ForegroundColor Green
-Write-Host "     npm install; npm run dev   # frontend on port 3000" -ForegroundColor Green
+Write-Host "    4. Or launch the Web UI:" -ForegroundColor Cyan
+Write-Host "       $ nexa gateway start" -ForegroundColor Green
+Write-Host "       $ cd $InstallDir\nexa_web && npm install && npm run dev" -ForegroundColor Green
 Write-Host ""
-Write-Host "Installed at: $InstallDir" -ForegroundColor Cyan
-Write-Host "Nexa home:    $HOME\.nexa\" -ForegroundColor Cyan
-Write-Host "Docs:         https://github.com/neuralforgeio/nexa-agent" -ForegroundColor Cyan
+Write-Host "  Installed at: $InstallDir" -ForegroundColor DarkGray
+Write-Host "  Docs: https://github.com/neuralforgeio/nexa-agent" -ForegroundColor DarkGray
+Write-Host ""
+Write-Host "  💡 Tip: Add nexa to your PATH:" -ForegroundColor Yellow
+Write-Host "     `$env:Path += `";$InstallDir\.venv\Scripts`"" -ForegroundColor DarkGray
 Write-Host ""

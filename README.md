@@ -1,37 +1,63 @@
 # Nexa Agent
 
 > **The Ultimate Local AI Agent Enterprise — by Dearly Febriano Irwansyah**
-> Version 3.0.0 · Extended MIT License · [SYSTEMPROMPT.md](./SYSTEMPROMPT.md)
+> **Version 4.0.0** · Extended MIT License · [SYSTEMPROMPT.md](./SYSTEMPROMPT.md)
 
 A terminal-first local AI agent with iterative tool-calling, multi-provider
 support (8 providers + custom endpoints), a self-improvement memory system,
 an interactive TUI built with prompt_toolkit + rich, and a full Web UI
-(Next.js + React) with embedded terminal panel.
+(Next.js + React) with sidebar/toolstreams.
+
+**v4.0.0 highlights**
+
+- **Sandbox Panel** — right-hand sidebar with a vertically-split
+  **Web Preview** (top half) and **real PTY Terminal** (bottom half).
+  Autodetects Next/Vite/Astro dev servers; for plain HTML/CSS/JS, falls back
+  to serving the workspace via `/api/sandbox/preview`.
+- **Working Process dropdown** — every reasoning step + tool call is shown
+  in a collapsible trace that auto-collapses once the answer lands (with a
+  one-line summary).
+- **30+ built-in tools** — the new planning toolkit (task_plan, todo_write,
+  scratchpad, think, project_scaffold, git_checkpoint, list_ports,
+  process_snapshot, memory_search, session_search, web_fetch, create_tool,
+  plan_and_delegate, …) on top of the 13 core tools.
+- **`create_tool`** — the agent can literally extend *itself* by drafting a
+  new tool into `~/.nexa/tools/` (loaded automatically next turn).
+- **llama.cpp auto-cancel fixed** — SSE keepalive pings + capability
+  negotiation mean long prompt-processing no longer looks like a dropped
+  client (no more `srv stop: cancel task`).
+- **Double-process fix** — `nexa/process_manager.py` acquires a PID-
+  file singleton for `server.py`, so `python server.py` twice never
+  double-binds port 8000.
+- **33-agent intelligence mesh** — reasoning chains, memory curator, error
+  classifier, self-healer, prompt expander, intent classifier, persona
+  adapter, trajectory recorder, semantic memory… and the v4.0 planner.
 
 ## Features
 
 - **8 Providers + Custom Endpoints** — OpenAI, OpenRouter, Ollama, llama.cpp,
-  LM Studio, vLLM, TokenRouter (routing gateway), Databricks, or any
-  OpenAI-compatible endpoint
+  LM Studio, vLLM, TokenRouter, Databricks, or any OpenAI-compatible endpoint
 - **Local AI Architecture** — All user data, memory, and state stored in `~/.nexa/`
 - **Interactive TUI** — Streaming responses, slash commands, tool visualization,
   multi-pane layout (status bar + chat + tool log + input)
-- **Web UI** — Next.js + React with sidebar, streaming chat, collapsible tool
-  call cards, SettingsPanel (manage providers), TerminalPanel (in-browser shell)
-- **10 Tools** — read_file, write_file, run_terminal_command, generate_uuid,
-  delegate (sub-agent), list/kill_background_processes, web_search,
-  code_execution (HITL approval), file_patch (atomic with backup)
+- **Web UI** — Next.js + React with collapsible sidebar (`Ctrl+B`), sandbox
+  (`Ctrl+J`), streaming chat, tool cards, SettingsPanel, TerminalPanel
+- **33 Tools** — 13 core (read_file, write_file, run_terminal_command,
+  delegate, code_execution, web_search, file_patch, …) + 20 v4.0 planning tools
 - **30+ Intelligence Modules** — Self-improvement, self-healing, autonomous
   web learning, knowledge cache, confidence scoring, intent classification,
   pattern recognition, error memory, adaptive persona, reasoning chain,
   fact validator, context enricher, memory consolidator, query reformulator
-- **File-Based Memory** — `~/.nexa/memory/MEMORY.md` and `USER.md` (human-readable, editable)
+- **File-Based Memory** — `~/.nexa/memory/MEMORY.md` + `USER.md` (human-editable)
+  + `~/.nexa/PROCEDURES.md` playbook injected into the system prompt
 - **SQLite + FTS5** — Full-text search across all past conversations
-- **Provider Failover** — Automatic switch to next healthy provider on failure
+- **Provider Failover** — Automatic switch to the next healthy provider on failure
 - **Security Hardened** — Terminal blocks `~/.nexa/` access (API keys safe),
   project-scoped sandbox, HITL approval for code execution
 - **Self-Health Diagnostics** — `/doctor` command checks DB, disk, memory, learning graph
 - **Learning Graph** — Tracks tool success rates for data-driven decisions
+- **User-Writable Tool Directory** — `~/.nexa/tools/*.py` files are auto-loaded
+  into the registry (self-extension pattern inspired by skill systems)
 
 ## Quick Start
 
@@ -184,6 +210,8 @@ python cli.py --provider llamacpp
 
 ## Tools
 
+### Core (13 tools)
+
 | Tool | Description |
 |------|-------------|
 | `read_file` | Read a file from the workspace |
@@ -191,8 +219,112 @@ python cli.py --provider llamacpp
 | `run_terminal_command` | Execute a shell command (15s timeout, output cap) |
 | `generate_uuid` | Generate a UUID v4 |
 | `delegate` | Spawn a sub-agent for a focused subtask |
+| `list_background_processes` | List agent-spawned background processes |
+| `kill_background_process` | Terminate a background process |
+| `web_search` | DuckDuckGo search (no API key) |
+| `code_execution` | Run a Python snippet in a sandboxed subprocess |
+| `file_patch` | Apply a unified diff with atomic write + backup |
+| `revert_file` | Roll back to a previous version |
+| `deep_research` | Multi-source research with citations |
+| `terminal_exec` | Terminal command with session persistence |
 
-All file/terminal operations are sandboxed to `nexa-workspace/`.
+### v4.0 Planning Toolkit (20 tools)
+
+**Planning & reasoning**
+
+| Tool | Description |
+|------|-------------|
+| `task_plan` | Decompose a goal into a dependency-aware plan (template-matched) |
+| `todo_write` | Create/update a named TODO list in `.nexa/todos/` |
+| `todo_read` | Read a TODO list (or list them all) |
+| `scratchpad_write` | Append/replace the workspace scratchpad |
+| `think` | Loop-back reasoning tool — narrate an internal step |
+
+**Filesystem**
+
+| Tool | Description |
+|------|-------------|
+| `list_directory` | Tree-style listing with sizes + glob excludes |
+| `search_files` | Recursive regex search over workspace text files |
+| `file_info` | Size, mtime, line count, MIME, sha256 |
+| `project_scaffold` | Starter code for next / vite-react / express / fastapi / static / python-cli |
+
+**Git (workspace-local)**
+
+| Tool | Description |
+|------|-------------|
+| `git_status` | Branch + porcelain status + last commit |
+| `git_diff` | Unified diff (working tree or staged) |
+| `git_log` | Recent commits (`hash · subject · age`) |
+| `git_checkpoint` | Stage-and-commit a snapshot for rollback |
+
+**Process & system**
+
+| Tool | Description |
+|------|-------------|
+| `list_ports` | Which dev-server ports are listening (+ PID on Windows) |
+| `process_snapshot` | Regex-filtered snapshot of user processes |
+
+**Knowledge**
+
+| Tool | Description |
+|------|-------------|
+| `memory_search` | FTS5 search over long-term memories |
+| `session_search` | FTS5 search over past conversation messages |
+| `web_fetch` | Fetch a URL and extract readable text (32 KB cap) |
+
+**Self-extension**
+
+| Tool | Description |
+|------|-------------|
+| `create_tool` | Write a new tool into `~/.nexa/tools/` (auto-loaded next turn) |
+| `plan_and_delegate` | Plan a goal AND emit a ready delegate-prompt per step |
+
+All file/terminal operations are sandboxed to `nexa-workspace/` (or the
+`NEXA_WORKSPACE` env var you've set). Read-only tools may read project
+files but never mutate anything outside the workspace.
+
+## Sandbox Panel (v4.0 Web UI)
+
+The web UI at `http://localhost:3000` ships with a new right-hand sidebar
+called the **Sandbox**:
+
+```
+┌──────────── Chat ────────────┬── Sandbox (toggle with Ctrl+J) ──┐
+│                              │                                  │
+│  messages & streaming        │   ┌─ Web Preview ──────────────┐ │
+│  responses                   │   │  - recursive file tree     │ │
+│                              │   │  - iframe preview of your  │ │
+│  [Working Process ▾]         │   │    HTML/CSS/JS             │ │
+│   ├── step 1: thinking       │   │  - dev-server autodetect   │ │
+│   ├── step 2: tool call      │   └─────────────────────────────┘ │
+│   └── step 3: result         │   ════════  draggable divider ════ │
+│                              │   ┌─ Terminal (real PTY) ───────┐ │
+│  Ask Nexa anything…          │   │  $ npm install               │ │
+│                              │   │  $ npm run dev               │ │
+│                              │   └─────────────────────────────┘ │
+│                              │                                  │
+└──────────────────────────────┴──────────────────────────────────┘
+```
+
+- **Three pane modes** — `both` (preview over terminal 50/50), `preview-only`,
+  `terminal-only`. Drag the divider to resize; double-click to focus.
+- **Autodetect** — Nexa watches common dev ports (3000, 5173, 4321, 4200,
+  8080) and points the preview at the first one listening.
+- **Workspace fallback** — if no dev server is running, the preview can
+  render any file directly from `NEXA_WORKSPACE` (with syntax highlighting
+  for code, image rendering for assets, a simple shell for `.js` files).
+- **Real PTY terminal** — via xterm.js + WebSocket; shell starts inside
+  the workspace so `cd myproject` just works.
+
+## User-extensible tools (`~/.nexa/tools/`)
+
+Ask Nexa to make a tool and it will write a new Python module into
+`~/.nexa/tools/` using `create_tool` — then reload the *next* turn to
+use it immediately. Everything in that folder is user-editable (the
+runtime is read-only for you, but `~/.nexa/` is entirely yours).
+
+---
 
 ## TUI Commands
 

@@ -28,19 +28,24 @@ def registry() -> ToolRegistry:
 
 
 def test_registry_has_default_tools(registry: ToolRegistry) -> None:
-    """The default registry must contain all 11 tools (v3.1.0: +revert_file)."""
+    """The default registry must contain the 13 v3.2 core tools plus the
+    20 v4.0 planning tools (33 total)."""
     names = set(registry.list_names())
-    assert names == {
+    # Core tools (pre-v4.0). Planning tools are covered in test_planning_tools.py.
+    core = {
         "read_file", "write_file", "run_terminal_command", "generate_uuid",
         "delegate", "list_background_processes", "kill_background_process",
         "web_search", "code_execution", "file_patch", "revert_file",
+        "deep_research", "terminal_exec",
     }
+    assert core.issubset(names), f"missing: {core - names}"
+    assert len(names) == 33  # v4.0.0: +20 planning tools
 
 
 def test_registry_has_openai_schemas(registry: ToolRegistry) -> None:
     """get_openai_schemas() must return valid OpenAI function-calling format."""
     schemas = registry.get_openai_schemas()
-    assert len(schemas) == 11  # v3.1.0: +revert_file
+    assert len(schemas) == 33  # v4.0.0
     for schema in schemas:
         assert schema["type"] == "function"
         fn = schema["function"]

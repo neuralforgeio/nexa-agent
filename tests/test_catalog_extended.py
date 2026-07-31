@@ -67,6 +67,9 @@ class TestResolveProviderTokenRouter:
         monkeypatch.setenv("TOKENROUTER_API_KEY", "tr_test_key_12345")
         monkeypatch.delenv("OPENAI_API_KEY", raising=False)
         monkeypatch.delenv("NEXA_API_KEY", raising=False)
+        # Clear any system llama.cpp/Ornith config so the catalog default wins.
+        monkeypatch.delenv("NEXA_MODEL", raising=False)
+        monkeypatch.delenv("NEXA_BASE_URL", raising=False)
         base_url, model, api_key = resolve_provider("tokenrouter")
         assert base_url == "https://api.tokenrouter.io/v1"
         assert model == "auto:balance"
@@ -92,6 +95,9 @@ class TestResolveProviderDatabricks:
         monkeypatch.delenv("OPENAI_API_KEY", raising=False)
         monkeypatch.delenv("NEXA_API_KEY", raising=False)
         monkeypatch.delenv("DATABRICKS_API_KEY", raising=False)
+        # Clear the system NEXA_MODEL so the catalog default wins
+        # (NEXA_BASE_URL is intentionally kept set above).
+        monkeypatch.delenv("NEXA_MODEL", raising=False)
         base_url, model, api_key = resolve_provider("databricks")
         assert base_url == "https://my-workspace.cloud.databricks.com/serving-endpoints"
         assert model == "databricks-claude-sonnet-4-6"

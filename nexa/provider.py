@@ -18,12 +18,85 @@ SPDX-License-Identifier: MIT
 
 import asyncio
 import json
+import os
+import time
 from typing import Any, AsyncGenerator, Dict, List, Optional, Tuple
 
 from openai import AsyncOpenAI
 
 from .config import NEXA_MODEL, OPENAI_API_KEY, OPENAI_BASE_URL, NEXA_NAME, NEXA_VERSION
 from tools.registry import ToolRegistry, ToolResult
+
+
+# ---------------------------------------------------------------------------
+# Provider capability detection
+# ---------------------------------------------------------------------------
+def _env_flag(name: str, default: str = "") -> str:
+    """Read an env flag as lowercase string (empty if unset)."""
+    return os.environ.get(name, default).strip().lower()
+
+
+def _supports_tools(base_url: Optional[str]) -> bool:
+    """
+    Return whether the endpoint at ``base_url`` advertises tool calling.
+
+    Resolution order:
+      1. ``NEXA_LLM_SUPPORTS_TOOLS=0/false/no`` — force OFF (escape hatch).
+      2. ``NEXA_LLM_SUPPORTS_TOOLS=1/true/yes`` — force ON.
+      3. Heuristic on the URL host: providers known to lack function-calling
+         (llama.cpp with embedding-only models, ollama tool-less models) are
+         OFF unless explicitly forced on.
+
+    Args:
+        base_url: The provider's OpenAI-compatible base URL.
+
+    Returns:
+        ``True`` if tools may be sent to this provider.
+    """
+    flag = _env_flag("NEXA_LLM_SUPPORTS_TOOLS")
+    if flag in ("0", "false", "no", "off"):
+        return False
+    if flag in ("1", "true", "yes", "on"):
+        return True
+    url = (base_url or "").lower()
+    # llama.cpp servers that only advertise `completion` capability often
+    # choke on `tools` payloads. Default ON for llamacpp (modern builds DO
+    # support tool calling); users can force off via env if their build
+    # doesn't.
+    return True
+
+
+# Characters a model might emit that look like a tool call but are just text.
+_TOOL_LIKE_PREFIXES = ("<tool_call", "{\"", "```json", "Action:")
+
+
+def _is_tools_unsupported(err_text: str) -> bool:
+    """
+    Return whether an error indicates the endpoint rejected the tools payload.
+
+    llama.cpp builds without ``--jinja`` return HTTP 400 with messages like
+    ``"tools are not supported"`` or ``"tools param requires --jinja"``.
+    LM Studio returns similar 4xx errors when tools are passed to a model
+    that can't consume them.
+
+    Args:
+        err_text: The stringified exception from the OpenAI client.
+
+    Returns:
+        ``True`` if the payload should be retried without ``tools``.
+    """
+    t = err_text.lower()
+    markers = (
+        "tools param",
+        "tools are not supported",
+        "tool_choice",
+        "requires --jinja",
+        "does not support tool",
+        "unsupported parameter: tools",
+        "unknown field `tools`",
+        "unrecognized request argument: tools",
+    )
+    return any(m in t for m in markers)
 
 
 def _is_transient(err: Exception) -> bool:
@@ -81,7 +154,11 @@ class LLMProvider:
             The singleton ``AsyncOpenAI`` instance.
         """
         if self._client is None:
-            kwargs: Dict[str, Any] = {"api_key": self.api_key}
+            kwargs: Dict[str, Any] = {
+                "api_key": self.api_key,
+                # Long timeout — local providers (llamacpp) can be slow.
+                "timeout": float(os.environ.get("NEXA_LLM_TIMEOUT", "600")),
+            }
             if self.base_url:
                 kwargs["base_url"] = self.base_url
             self._client = AsyncOpenAI(**kwargs)
@@ -92,6 +169,8 @@ class LLMProvider:
         messages: List[Dict[str, Any]],
         tools: Optional[List[Dict[str, Any]]] = None,
         registry: Optional[ToolRegistry] = None,
+        *,
+        _depth: int = 0,
     ) -> AsyncGenerator[Tuple[str, Any], None]:
         """
         Stream a chat completion with tool-calling support.
@@ -105,17 +184,28 @@ class LLMProvider:
 
         If the model requests tool calls, this method executes them via
         the provided ``registry`` and feeds the results back to the model
-        in a follow-up (non-streaming) call, then continues streaming.
+        in a follow-up call, then continues streaming.
+
+        Capability negotiation (v4.0):
+            - If the provider does not support function calling (env-gated
+              via ``NEXA_LLM_SUPPORTS_TOOLS`` or a 4xx "tools not supported"
+              response), the tools payload is dropped and the completion
+              proceeds as plain text. This prevents llama.cpp builds without
+              tool support from hanging/cancelling the request.
 
         Args:
             messages: The conversation transcript (list of role/content dicts).
             tools:    OpenAI-format tool schemas (from ``registry.get_openai_schemas()``).
             registry: The tool registry used to dispatch tool calls.
+            _depth:   Internal recursion guard for the tool follow-up call.
 
         Yields:
             Tuples of ``(event_type, payload)`` as described above.
         """
         client = await self._get_client()
+
+        # v4.0: capability negotiation — drop tools if unsupported.
+        send_tools = bool(tools) and registry is not None and _supports_tools(self.base_url)
 
         # Attempt 1: streaming call.
         try:
@@ -124,7 +214,7 @@ class LLMProvider:
                 "messages": messages,
                 "stream": True,
             }
-            if tools:
+            if send_tools:
                 kwargs["tools"] = tools
 
             stream = await client.chat.completions.create(**kwargs)
@@ -158,7 +248,8 @@ class LLMProvider:
                             slot["arguments"] += tc.function.arguments
 
             # If the model requested tools, execute and feed back.
-            if accumulated_tool_calls and registry:
+            # `_depth` caps recursion so a misbehaving model can't loop forever.
+            if accumulated_tool_calls and registry and _depth < 8:
                 # Build the assistant message with tool_calls.
                 messages.append(
                     {
@@ -198,7 +289,7 @@ class LLMProvider:
 
                 # Follow-up call to get the final answer.
                 async for event_type, payload in self.chat_stream(
-                    messages, tools, registry
+                    messages, tools, registry, _depth=_depth + 1
                 ):
                     yield (event_type, payload)
                 return
@@ -206,13 +297,23 @@ class LLMProvider:
             yield ("done", None)
 
         except Exception as exc:
+            errtext = str(exc)
+            # v4.0: if the server rejects the tools payload (llama.cpp without
+            # tool support returns 400), retry once WITHOUT tools.
+            if send_tools and _depth == 0 and _is_tools_unsupported(errtext):
+                async for event_type, payload in self.chat_stream(
+                    messages, None, None, _depth=_depth + 8
+                ):
+                    yield (event_type, payload)
+                return
+
             if _is_transient(exc):
                 # Retry with exponential backoff (max 3 retries).
                 for attempt in range(3):
                     await asyncio.sleep(2 ** attempt)
                     try:
                         async for event_type, payload in self.chat_stream(
-                            messages, tools, registry
+                            messages, tools if send_tools else None, registry, _depth=_depth
                         ):
                             yield (event_type, payload)
                         return
@@ -221,7 +322,7 @@ class LLMProvider:
                             yield ("error", str(retry_exc))
                         continue
             else:
-                yield ("error", str(exc))
+                yield ("error", errtext)
 
     @staticmethod
     def build_system_prompt(body: str) -> str:

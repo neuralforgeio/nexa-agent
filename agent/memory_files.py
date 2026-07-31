@@ -39,6 +39,14 @@ MEMORY_FILE: Path = MEMORY_DIR / "MEMORY.md"
 #: The user profile file (preferences, facts about the user).
 USER_FILE: Path = MEMORY_DIR / "USER.md"
 
+#: Optional root-level USER.md at ``~/.nexa/USER.md`` overrides the
+#: per-memory copy if present (v4.0.0). Users can edit the root file for
+#: quick tweaks without digging into the memory subdirectory.
+USER_FILE_ROOT: Path = NEXA_HOME / "USER.md"
+
+#: Optional root-level procedures playbook at ``~/.nexa/PROCEDURES.md``.
+PROCEDURES_FILE: Path = NEXA_HOME / "PROCEDURES.md"
+
 
 def ensure_memory_dir() -> Path:
     """
@@ -68,12 +76,34 @@ def read_user_file() -> str:
     """
     Read the contents of ``USER.md``.
 
+    Resolution order (v4.0.0):
+      1. ``~/.nexa/USER.md`` (root-level, easier for users to edit), if
+         it exists and is non-empty.
+      2. ``~/.nexa/memory/USER.md``.
+
     Returns:
         The file content as a string, or an empty string if the file
         does not exist.
     """
+    if USER_FILE_ROOT.exists():
+        root = USER_FILE_ROOT.read_text(encoding="utf-8").strip()
+        if root:
+            return root
     if USER_FILE.exists():
         return USER_FILE.read_text(encoding="utf-8")
+    return ""
+
+
+def read_procedures_file() -> str:
+    """
+    Read the user's procedures playbook at ``~/.nexa/PROCEDURES.md``.
+
+    Returns:
+        The file contents (empty string if not present). Injected into
+        the system prompt so procedural memory guides tool selection.
+    """
+    if PROCEDURES_FILE.exists():
+        return PROCEDURES_FILE.read_text(encoding="utf-8")
     return ""
 
 
@@ -190,6 +220,10 @@ def build_memory_file_digest() -> str:
     user_content = read_user_file()
     if user_content.strip():
         parts.append(f"# User Profile\n{user_content.strip()}")
+
+    procedures = read_procedures_file()
+    if procedures.strip():
+        parts.append(f"# User Procedures\n{procedures.strip()}")
 
     return "\n\n".join(parts) if parts else ""
 

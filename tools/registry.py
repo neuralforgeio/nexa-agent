@@ -340,4 +340,109 @@ def create_default_registry() -> ToolRegistry:
         ),
         parameters=REVERT_FILE_SCHEMA,
     )
+    # Register deep_research tool (v3.2.0).
+    from agent.deep_research import deep_research_tool, DEEP_RESEARCH_SCHEMA
+    registry.register(
+        name="deep_research",
+        fn=deep_research_tool,
+        description=(
+            "Deep research on a topic: reformulate questions, search multiple "
+            "sources, extract facts, cross-validate, and synthesize a "
+            "comprehensive answer with citations. Use for complex questions "
+            "that need multiple sources."
+        ),
+        parameters=DEEP_RESEARCH_SCHEMA,
+    )
+    # v3.2.0: register terminal_exec tool (programmatic terminal control).
+    from tools.terminal_exec_tool import TerminalExecTool, TERMINAL_EXEC_SCHEMA
+    registry.register(
+        name="terminal_exec",
+        fn=TerminalExecTool().execute,
+        description=(
+            "Execute a terminal command with optional session persistence. "
+            "Use this to run shell commands (npm install, pytest, etc.) on "
+            "behalf of the user. All commands still respect the workspace "
+            "sandbox and ~/.nexa/ security boundary."
+        ),
+        parameters=TERMINAL_EXEC_SCHEMA,
+    )
+    # v4.0.0: register the 20 planning tools.
+    register_planning_tools(registry)
+    # v4.0.0: load user-written tools from ~/.nexa/tools/ so anything the
+    # agent drafted via create_tool earlier becomes callable immediately.
+    load_user_tools(registry)
+    return registry
+
+
+def register_planning_tools(registry: ToolRegistry) -> ToolRegistry:
+    """
+    Register all 20 v4.0 planning tools onto ``registry``.
+
+    Each registration is defensive — a tool that fails to register (e.g.
+    due to a name clash) is logged and skipped rather than crashing the
+    agent.
+
+    Args:
+        registry: The registry to augment.
+
+    Returns:
+        The same registry (for chaining).
+    """
+    from tools.planning import PLANNING_TOOLS
+
+    for name, fn, description, params in PLANNING_TOOLS:
+        if registry.has(name):  # pragma: no cover - collision guard
+            continue
+        registry.register(name=name, fn=fn, description=description, parameters=params)
+    return registry
+
+
+def load_user_tools(registry: ToolRegistry) -> ToolRegistry:
+    """
+    Scan ``~/.nexa/tools/`` and register every user-drafted tool.
+
+    Files in that directory are expected to expose:
+      - an async function named after the file (``my_tool.py`` → ``my_tool``)
+      - a module-level ``<NAME>_SCHEMA`` dict (OpenAI function-calling format)
+
+    Malformed files are skipped silently — this must never crash the agent.
+    Designed to pair with :func:`tools.planning.self_extend.create_tool`.
+    """
+    import importlib.util
+    import sys
+    from pathlib import Path
+
+    import nexa.config as _config
+    tools_dir = Path(_config.NEXA_HOME) / "tools"
+    if not tools_dir.is_dir():
+        return registry
+
+    for py_file in sorted(tools_dir.glob("*.py")):
+        mod_name = f"nexa_user_{py_file.stem}"
+        tool_name = py_file.stem
+        try:
+            spec = importlib.util.spec_from_file_location(mod_name, py_file)
+            if spec is None or spec.loader is None:
+                continue
+            mod = importlib.util.module_from_spec(spec)
+            sys.modules[mod_name] = mod
+            spec.loader.exec_module(mod)
+
+            fn = getattr(mod, tool_name, None)
+            schema = getattr(mod, f"{tool_name.upper()}_SCHEMA", None)
+            if fn is None or schema is None or not callable(fn):
+                continue
+            if registry.has(tool_name):
+                # Don't shadow a built-in tool — respect core tools.
+                continue
+            description = (fn.__doc__ or "").strip().splitlines()[0] if fn.__doc__ else f"User tool: {tool_name}"
+            registry.register(
+                name=tool_name,
+                fn=fn,
+                description=description[:300],
+                parameters=schema,
+            )
+        except Exception:
+            # Malformed user tools must never crash the agent.
+            continue
     return registry

@@ -1,27 +1,38 @@
 {
-  "last_updated": "2026-07-21T14:00:00Z",
-  "version": "v3.1.0",
-  "tests": 552,
-  "tools": 11,
+  "last_updated": "2026-07-31T04:00:00Z",
+  "version": "v4.0.0",
+  "tests": 603,
+  "tools": 33,
   "agent_modules": 33,
   "providers": 8,
-  "last_completed_task": "Task 23: v3.1.0 (Ask Mode + Trajectory Export + File Patch Rollback + Semantic Memory + Installer + Windows fixes)",
-  "current_roadmap_item": "v3.2.0 — see .plans/ROADMAP_20_FEATURES.md",
-  "v3_1_changes": {
-    "windows_tests_fixed": true,
-    "install_scripts": true,
-    "manual_testing_guide": true,
-    "readme_updated": true,
-    "ask_question_mode": true,
-    "trajectory_export": true,
-    "file_patch_rollback": true,
-    "revert_file_tool": true,
-    "semantic_vector_memory": true
+  "last_completed_task": "Task 24: v4.0.0 — Sandbox Panel + Self-Extending Tools + Working Process + bug fixes (llamacpp auto-cancel, double-process)",
+  "current_roadmap_item": "v4.1.0 — see .plans/ROADMAP_20_FEATURES.md",
+  "v4_0_changes": {
+    "sandbox_panel_right_sidebar": true,
+    "working_process_dropdown": true,
+    "task_plan_tool": true,
+    "todo_tools": true,
+    "think_loop": true,
+    "scratchpad": true,
+    "fs_intelligence_4_tools": true,
+    "git_tools_4": true,
+    "process_tools_2": true,
+    "knowledge_tools_3": true,
+    "self_extend_2_tools": true,
+    "user_tools_autoload": true,
+    "llamacpp_autocancel_fixed": true,
+    "double_process_fixed": true,
+    "sse_keepalive": true,
+    "session_ui_controls": true,
+    "global_nexa_cli_on_windows": true,
+    "file_organization_plan": true
   },
-  "known_issues": [],
+  "known_issues": [
+    "Next.js 16 + Turbopack `npm run build` still hits a Windows worker bug; use `npm run dev` or downgrade Next if you need a production build on Windows."
+  ],
   "running_services": {
-    "backend": "http://127.0.0.1:8000 (server.py, 30 routes)",
+    "backend": "http://127.0.0.1:8000 (server.py, 37 routes — add /api/sandbox/*)",
     "frontend": "http://127.0.0.1:3000 (Next.js dev)"
   },
-  "checkpoint": "v3.1.0 ready to push. 552 tests passing, 0 failed. All v3.1.0 features complete."
+  "checkpoint": "v4.0.0 ready. 603 tests passing, 0 failed. Tool count: 33 (13 core + 20 v4.0 planning)."
 }

@@ -1475,3 +1475,82 @@ Agent: Nexa Autonomous Principal Engineer (Desktop IDE)
 - New: tests/test_ask_question_mode.py, test_trajectory_recorder.py, test_revert_file.py, test_semantic_memory.py
 - Modified: tools/file_patch_tool.py (added revert_file), tools/registry.py, run_agent.py, conversation_loop.py, tests/test_terminal_tool.py, tests/test_tool_registry.py, tests/test_more_tools.py
 
+
+---
+
+## Task ID: 25 (v4.0.0 — Sandbox + Self-Extending Tools + Working Process)
+Agent: ZCode assist (continuing sess_fa7f7e45)
+
+### Summary
+Big-bang feature release. Three user-visible panels (sidebar, chat,
+sandbox) + twenty new tools + foundational bug fixes.
+
+### New (user-facing)
+- **Sandbox Panel** (right sidebar, `Ctrl+J`): split-pane Preview over Terminal,
+  draggable divider, dev-server autodetect, static-file pass-through.
+- **Working Process dropdown** (above answer): nested thinking steps,
+  per-tool timing, auto-collapse 800ms after done with a summary line.
+- **Sidebar toggle** (`Ctrl+B`) + session-per-day grouping + delete buttons.
+- **In-flight duplicate guard**: no more "2 processes for 1 message".
+
+### New (tools)
+Twenty planning tools in `tools/planning/`:
+- Planning: task_plan, todo_write, todo_read, scratchpad_write, think
+- Filesystem: list_directory, search_files, file_info, project_scaffold
+- Git: git_status, git_diff, git_log, git_checkpoint
+- Process: list_ports, process_snapshot
+- Knowledge: memory_search, session_search, web_fetch
+- Self-extension: create_tool, plan_and_delegate
+
+User-extensible: any ``~/.nexa/tools/*.py`` file exporting ``async def
+<filename>(...)`` + ``<FILENAME>_SCHEMA`` is auto-registered.
+
+### Bug fixes
+1. **llama.cpp "auto-close"** — model builds without ``--jinja`` rejected
+   the tools payload, causing llama-server to cancel the task. Provider
+   now detects the 4xx error and retries once without tools, plus SSE
+   keepalive pings prevent the browser from closing during long thinking.
+2. **Double-process startup** — duplicate ``python server.py`` invocations
+   now fail fast with instructions instead of silently double-binding.
+   See `nexa/process_manager.py`.
+3. **'(no response)' bug** — was a cascade from (1) plus a chat UI that
+   didn't surface provider-level error events. Fixed by emitting distinct
+   SSE error events and rendering them as the assistant's final content.
+4. **Import-time crash on terminal_exec_tool** — missing `field` import.
+5. **v3.1 tests hard-coded tool counts (11)** → updated to 33 for v4.0.
+
+### Internal hardening
+- `nexa/process_manager.py` — PID-based singleton across processes
+  (Windows ctypes OpenProcess + POSIX kill(pid,0)), stale-lock recovery.
+- `agent/memory_files.py` — reads ``~/.nexa/USER.md`` (root) and
+  ``~/.nexa/PROCEDURES.md`` if present, so users can quick-edit from
+  the home directory.
+- `tools/registry.py::load_user_tools` — scans ``~/.nexa/tools/``
+  on every registry build for user-authored tools.
+
+### Testing
+- 36 new tests for the planning toolkit + user-tool loader.
+- All 603 tests passing (was 552 baseline).
+
+### Docs / volume
+- README.md rewritten for v4.0.0 (sandbox + all 33 tools + user-tools).
+- New: .plans/PLANNING_TOOLS_20.md (design), .plans/FILE_ORGANIZATION.md
+  (target tree + safe migration order).
+- SYSTEMPROMPT.md — to update next release.
+
+### Files Added
+- nexa/process_manager.py
+- tools/planning/{__init__,todos,scratchpad,fs_intelligence,git_tools,process_tools,knowledge_tools,self_extend}.py
+- tests/test_planning_tools.py
+- .plans/PLANNING_TOOLS_20.md, .plans/FILE_ORGANIZATION.md
+
+### Files Modified
+- nexa/provider.py (capability negotiation, keepalive-friendly)
+- server.py (singleton guard + sandbox endpoints + SSE keepalive)
+- tools/registry.py (register_planning_tools + load_user_tools)
+- agent/memory_files.py (root USER.md/PROCEDURES.md hooks)
+- nexa_web/app/page.tsx (v4.0 — sandbox + working process + shortcuts)
+- nexa_web/components/SandboxPanel.tsx (workspace-path override + dev-server autodetect)
+- nexa_web/components/TerminalPanel.tsx (StrictMode-safe init)
+- nexa_web/components/Sidebar.tsx (already collapsible; Ctrl+B toggle added)
+- tests/test_planning_tools.py, tests/test_memory_system.py (isolation fixed)

@@ -1,7 +1,35 @@
-# Nexa Agent — TODO Master (v3.0.0 + Roadmap)
+# Nexa Agent — TODO Master (v4.0.0 + Web UI Redesign)
 
-> **Current version**: v3.0.0 (Ultimate Enterprise Evolution)
-> **Status**: All P0-P3 phases complete. v3.0.0 release-ready.
+> **Current version**: v4.0.0 (Enterprise Workspace overhaul)
+> **Status**: v4.0.0 in progress. v3.0.0 released.
+
+## 🚀 v4.0.0 — Enterprise Workspace (In Progress)
+
+### Fixed in v4.0.0
+- [x] **C1.1** LLM timeout → 600s default via `NEXA_LLM_TIMEOUT` env (`nexa/provider.py`)
+  - Root cause: llamacpp canceled task id after 22s — client was using default OpenAI SDK timeout
+  - Fix: `AsyncOpenAI(timeout=float(os.environ.get("NEXA_LLM_TIMEOUT", "600")))`
+- [x] **C1.2** Duplicate-request guard: `inFlightRef` in `nexa_web/app/page.tsx`
+  - Previously possible to trigger 2 parallel processing loops; now blocked
+- [x] **C2.1** Sandbox right panel (50/50 Preview+Terminal) — `components/SandboxPanel.tsx`
+  - Auto-detects `localhost:3000/5173/4321/4200/8080` dev servers → iframe preview
+  - Draggable divider; split position persisted to `localStorage` (`nexa-sandbox-split`)
+  - Modes: split / preview-only / terminal-only
+- [x] **C2.2** Collapsible sidebar via `Ctrl+B`, sandbox via `Ctrl+J`
+  - State persisted across restarts; mobile-friendly drawer removed in favor of toggles
+- [x] **C2.3** `WorkingProcess` dropdown component (`components/WorkingProcess.tsx`)
+  - Streams thinking steps, tool calls, memory events live
+  - Auto-collapses 800ms after completion; shows one-line summary
+- [x] **C2.4** TerminalPanel embed mode: `embedded` prop removes fixed positioning
+- [x] **C2.5** TypeScript pinned to 5.9.3 (was 7.0.2 native — build worker crash)
+- [ ] **C2.6** Session management — delete confirmation + rename (sidebar currently deletes immediately)
+
+### In Progress
+- [ ] **C3** Local `.nexa` install script (read-only builtins + writable `~/.nexa/tools/custom/`)
+- [ ] **C4** E-commerce demo build monitored in sandbox
+- [ ] **C5** MIT headers propagated to all source files
+
+---
 
 ## ✅ v3.0.0 Completed (Pragmatic Scope)
 
