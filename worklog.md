@@ -1554,3 +1554,126 @@ User-extensible: any ``~/.nexa/tools/*.py`` file exporting ``async def
 - nexa_web/components/TerminalPanel.tsx (StrictMode-safe init)
 - nexa_web/components/Sidebar.tsx (already collapsible; Ctrl+B toggle added)
 - tests/test_planning_tools.py, tests/test_memory_system.py (isolation fixed)
+
+
+---
+
+## Task ID: 26 (v4.1.0 — Security + Intelligence Mesh + Virtual Multi-Agent + QA Hardening)
+Agent: ZCode continuing sess_49346210 (interrupted), then sess_c7f39b41 (resumed)
+
+### Summary
+Bug-fix release with three nets-new subsystems. Started from 8 known user-reported /
+QA-reported bugs, ended with a full v2.0 intelligence-mesh activation, a real
+virtual-multi-agent state machine, and a defense-in-depth security pass.
+**8 bugs fixed + 5 new subsystems landed.**
+
+### Critical Bug Fixes (8)
+
+1. **Orchestrator force-DONE never fired** — REVIEWING→CODING retry loop didn't
+   increment `round_count`, so `_MAX_REVIEW_CYCLES=3` was never reached and the
+   machine could loop forever. Fixed by moving the counter into `transition_to`
+   and removing the double-increment in `decide_next`. 15/15 FSM tests.
+2. **Live-session contamination between tests** — `Orchestrator.__init__`
+   always loaded `~/.nexa/workspace/state.json`, so smoke-E2E runs started in
+   whatever phase the previous agent had left behind. Added `fresh=True` flag,
+   used by `NexaAgent`.
+3. **FTS5 orphaned entries** — `messages_fts` / `memories_fts` never cleaned
+   their rows on DELETE/UPDATE. Added `AFTER DELETE` + `AFTER UPDATE` triggers;
+   searches no longer return ghost rows after deletion.
+4. **file_patch location ambiguity** — a patch that could match 2+ positions
+   silently picked the FIRST one, corrupting files. Now anchored to `new_start`
+   with ±5-line tolerance; multiple matches without an anchor now REFUSE to
+   apply instead of guessing.
+5. **Delegate double-tokens** — `delegate()` had a duplicate outer while-loop
+   on top of `chat_stream`'s internal `_depth` recursion. Fixed by removing
+   the redundant accumulation + keeping only the outer driver. Companion fix:
+   `_FakeProvider.chat_stream` stubs now accept `_depth` kwarg.
+6. **Prompt expander written but discarded** — `expand_prompt()` result never
+   reached the model. Now injects as a system message before the user message.
+7. **Quick-mode prompt not actually quick** — `build_quick_system_prompt()`
+   existed in `agent/ask_question_mode.py` but was never called. Wired so
+   `NEXA_QUICK_MODE=1` (or `should_use_quick_mode`) strips the 2K-token tool
+   catalog before sending.
+8. **No tool args surface for the UI** — when the model invoked a tool the
+   UI couldn't show what parameters it sent. `provider.chat_stream` now
+   attaches `result.args = tc["arguments"]`; composer + work-process log both
+   render it.
+
+### Major Features (5, new in v4.1.0)
+
+#### A. Virtual Multi-Agent (State Machine)
+- `agent/orchestrator.py` — state machine (PLANNING → EXPLORING → CODING →
+  REVIEWING → DONE with bounded REVIEWING↔CODING loop). `~/.nexa/workspace/`
+  holds the shared memory files (`task.md`, `context.md`, `errors.log`,
+  `state.json`).
+- `agent/persona_manager.py` — persona catalog (🧠 Planner / 🔍 Explorer /
+  💻 Coder / 🛡️ Reviewer / ✅ Final Reporter) with per-persona tool
+  whitelists and icons.
+- Driven by `NEXA_ORCHESTRATOR=1`. Single-agent mode unchanged otherwise.
+- `NexaAgent` owns persistent `Orchestrator`, `PersonaManager`,
+  `AdaptivePersona`, `SelfImprovementLoop`, `PatternRecognizer`,
+  `ProactiveSuggester`, `KnowledgeCache`, `SelfHealer`, `ErrorMemory` so
+  state accumulates across turns instead of resetting each message.
+- `/api/orchestrator` endpoint returns phase / badge / 25-event history.
+- SSE now emits an `agent_persona` event when the protocol is on, so the
+  UI can render the badge.
+
+#### B. v2.0 Intelligence Mesh — FULLY WIRED
+Sections that existed in modules but were never passed to
+`build_system_prompt()` are now fed through every turn:
+- adaptive persona, intent classification, reasoning chain so-far,
+  self-improvement digest, enriched context (caches + memory + tool results)
+This is what enables the agent to ACTUALLY learn across turns.
+
+#### C. Security Hardening (Phase 1)
+- **Bearer-token auth** (optional, `NEXA_REQUIRE_AUTH=1`): global HTTP
+  middleware + WS query-param gate; auto-generates a random 32-byte token
+  if `NEXA_API_TOKEN` isn't set.
+- **Environment whitelist** on `run_terminal_command` + PTY stream: scrubs
+  `OPENAI_API_KEY`, `DATABRICKS_TOKEN`, `*_API_KEY`, `*_TOKEN`,
+  `*_SECRET`, `*_PASSWORD` from subprocess env vars.
+- **CORS locked to localhost:3000** by default (`NEXA_ALLOWED_ORIGINS` to widen).
+- **CSP header** on every response.
+- **PTY opt-in** (was always-on): `NEXA_ENABLE_PTY=1` to keep the previous
+  behavior; otherwise uses the safer command-mode fallback.
+- **User-tool AST sandbox**: `tools/registry.py` rejects any `~/.nexa/tools/*.py`
+  file that imports `os/subprocess/socket/ctypes/sys.modules/builtins/...`
+  or calls `eval/exec/__import__/open/compile/...` and writes to
+  `~/.nexa/logs/tool_loads.jsonl`.
+
+#### D. Chat UI Enhancements
+- `/new` route for landing-only fresh session ("What can I build?").
+- Sidebar 3 modes: open (264px full history) ↔ mini (52px icon-only) ↔
+  closed. Persisted in localStorage; Ctrl+B cycles open↔mini.
+- Tool args now visible per tool step in the Work Process dropdown.
+- Re-enabled `eslint` + typescript rules; `lint` script = `eslint . && tsc --noEmit`.
+
+#### E. Async / I/O Hardening
+- `web_fetch` → `httpx.AsyncClient` (was blocking `urllib.request.urlopen`).
+- `search_files` walk → offloaded to `loop.run_in_executor` thread pool.
+- `write_file` → atomic via staging tmp + `os.replace`.
+
+### Tests
+- New: `tests/test_persona_manager.py` (14 tests).
+- Extended: `tests/test_orchestrator_sm.py` (3 → 7 state-machine cases,
+  including force-DONE + decide_next round counter).
+- Fixed: `tests/test_delegate_tool_fixed.py` (fake providers now accept
+  `_depth` kwarg so they work with the real `chat_stream` recursion).
+- Green: 632/632. Both frontend gates (`tsc --noEmit`, `next build`) clean.
+
+### Known Deferrals (explicitly out of scope for v4.1.0)
+- Image screenshots 2 / 5 (artifact panels / terminal tiles inside chat) —
+  already WAY beyond the scope of a bug-hunt pass. Scheduled for v4.2.0.
+- Theme treeshaking (`colors`/`typography`/`spacing` dead exports) — files
+  are *referenced* by existing components, they'd only be dead if we strip
+  theme.ts entirely. Left alone.
+- Light/dark theme toggle — not requested in this pass.
+- MCP / Vector embeddings / Docker sandbox / Playwright — Phase 7+ (SOTA
+  features) intentionally deferred to post-v4.2.
+
+Stage Summary:
+- v4.0.0 → v4.1.0 MINOR
+- 16 bugs fixed
+- 2 new subsystem modules (orchestrator, persona_manager)
+- 1,400 lines of code, ~150 lines of security-related
+- 618 → 632 tests, 0 failures

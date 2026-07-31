@@ -237,28 +237,58 @@ def _apply_hunk(
         idx = max(0, min(len(lines), hunk.get("new_start", len(lines) + 1) - 1))
         return lines[:idx] + new_lines + lines[idx:]
 
-    # Search for the removed lines in the file.
+    # v4.1.0: collect ALL positions where ``removes`` matches, then pick the
+    # one closest to the hunk's declared ``new_start`` (line-number anchor).
+    # If only one match exists anywhere, we take it — no ambiguity. If
+    # several exist, the hunk's line number is the only way to disambiguate.
     remove_text = [r.rstrip("\n\r") for r in removes]
+    anchor = int(hunk.get("new_start") or 0)
+
+    matches: list[int] = []
     for i in range(len(lines)):
-        match = True
+        ok = True
         for j, r in enumerate(remove_text):
             if i + j >= len(lines):
-                match = False
+                ok = False
                 break
             if lines[i + j].rstrip("\n\r") != r:
-                match = False
+                ok = False
                 break
-        if match:
-            # Replace the removed lines with the added lines.
-            add_lines = [a if a.endswith("\n") else a + "\n" for a in adds]
-            return lines[:i] + add_lines + lines[i + len(removes):]
+        if ok:
+            matches.append(i)
 
-    # No match found — raise instead of silently appending (v2.1.0 fix).
-    raise ValueError(
-        f"hunk does not match file content (file: '{path}'). "
-        f"Expected to find line(s): {remove_text[:3]}. "
-        f"Refusing to apply — this would have silently corrupted the file."
-    )
+    if not matches:
+        raise ValueError(
+            f"hunk does not match file content (file: '{path}'). "
+            f"Expected to find line(s): {remove_text[:3]}. "
+            f"Refusing to apply — this would have silently corrupted the file."
+        )
+
+    if anchor:
+        # new_start is 1-indexed (diff convention); convert to 0-indexed.
+        target_idx = anchor - 1
+        # Prefer the closest match to the declared line. If one is within a
+        # ±5-line window, take it. Otherwise the hunk address is wrong.
+        best = min(matches, key=lambda i: abs(i - target_idx))
+        if abs(best - target_idx) > 5:
+            raise ValueError(
+                f"hunk claims to be at line {anchor} but the matching block "
+                f"is at line {best + 1} (file: '{path}'). "
+                f"Refusing to apply — regenerate the patch with correct line numbers."
+            )
+        chosen = best
+    else:
+        # No line anchor — only accept an unambiguous single match.
+        if len(matches) > 1:
+            raise ValueError(
+                f"hunk matches {len(matches)} positions in '{path}' and "
+                f"has no line-number anchor. Refusing to apply — "
+                f"provide a unified-diff header (@@ -N,M +N,M @@)."
+            )
+        chosen = matches[0]
+
+    add_lines = [a if a.endswith("\n") else a + "\n" for a in adds]
+    return lines[:chosen] + add_lines + lines[chosen + len(removes):]
 
 
 #: Maximum number of .bak versions to keep per file (v3.1.0 history rotation).

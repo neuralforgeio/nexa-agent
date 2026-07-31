@@ -21,7 +21,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Menu, X, Zap, PanelRight, PanelLeft } from "lucide-react";
-import { Sidebar } from "../components/Sidebar";
+import { Sidebar, CollapsedSidebar } from "../components/Sidebar";
 import { MessageBubble } from "../components/MessageBubble";
 import { Composer } from "../components/Composer";
 import { WorkingProcess, type ThinkingStep } from "../components/WorkingProcess";
@@ -39,7 +39,11 @@ export default function Page() {
   const [steps, setSteps] = useState<ThinkingStep[]>([]);
   const [summary, setSummary] = useState<string>("");
   const [refreshKey, setRefreshKey] = useState(0);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  // Three sidebar modes (v4.1.0): ``open`` (264px, full history),
+  // ``mini`` (52px, icon-only), ``closed`` (hidden). Ctrl+B cycles
+  // open ↔ mini.
+  type SidebarMode = "open" | "mini" | "closed";
+  const [sidebarMode, setSidebarMode] = useState<SidebarMode>("open");
   // Sandbox starts CLOSED. It opens only when the user presses Ctrl+J
   // (or clicks the toggle). This prevents the sandbox from loading
   // the Nexa UI itself on first paint.
@@ -53,14 +57,18 @@ export default function Page() {
   useEffect(() => {
     const side = localStorage.getItem(LS_SIDEBAR);
     const sand = localStorage.getItem(LS_SANDBOX);
-    setSidebarOpen(side === null ? true : side !== "0");
-    setSandboxOpen(sand === "1"); // sandbox default closed
+    // Stored value: "1"|"0"|"mini". Backwards-compat: "0" means closed.
+    if (side === "mini") setSidebarMode("mini");
+    else setSidebarMode(side === null ? "open" : side === "0" ? "closed" : "open");
+    setSandboxOpen(sand === "1");
   }, []);
 
+  // Ctrl+B cycles: open → mini → open (closed is only an explicit state).
   const toggleSidebar = useCallback(() => {
-    setSidebarOpen((o) => {
-      localStorage.setItem(LS_SIDEBAR, o ? "0" : "1");
-      return !o;
+    setSidebarMode((m) => {
+      const next: SidebarMode = m === "open" ? "mini" : "open";
+      localStorage.setItem(LS_SIDEBAR, next);
+      return next;
     });
   }, []);
   const toggleSandbox = useCallback(() => {
@@ -123,7 +131,7 @@ export default function Page() {
 
       const newSteps: ThinkingStep[] = [];
       let accText = "";
-      const collectedTools: Array<{ name: string; result: string; ok: boolean; duration: number }> = [];
+      const collectedTools: Array<{ name: string; result: string; ok: boolean; duration: number; args?: string }> = [];
       const asstId = `a-${Date.now()}`;
 
       setMessages((m) => [
@@ -155,8 +163,20 @@ export default function Page() {
             );
           } else if (event.type === "tool_result" && event.toolResult) {
             const tr = event.toolResult;
-            collectedTools.push({ name: tr.tool, result: tr.output, ok: tr.ok, duration: tr.duration_ms });
-            pushStep({ kind: "tool", label: tr.tool, detail: tr.output.slice(0, 400), duration_ms: tr.duration_ms, ok: tr.ok });
+            collectedTools.push({
+              name: tr.tool,
+              result: tr.output,
+              ok: tr.ok,
+              duration: tr.duration_ms,
+              args: tr.args,
+            });
+            pushStep({
+              kind: "tool",
+              label: tr.tool,
+              detail: (tr.args ? `args: ${tr.args.slice(0, 300)}\n\n` : "") + tr.output.slice(0, 400),
+              duration_ms: tr.duration_ms,
+              ok: tr.ok,
+            });
             accText = "";
             setMessages((m) =>
               m.map((msg) => (msg.id === asstId ? { ...msg, content: "", thinking: true } : msg))
@@ -250,9 +270,12 @@ export default function Page() {
 
   return (
     <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "#0D0E10" }}>
-      {/* Sidebar */}
-      {sidebarOpen && (
+      {/* Sidebar (full / mini icon-only / closed) */}
+      {sidebarMode === "open" && (
         <Sidebar activeSessionId={sessionId} onSelect={onSelect} onNew={onNew} refreshKey={refreshKey} />
+      )}
+      {sidebarMode === "mini" && (
+        <CollapsedSidebar onNew={onNew} onExpand={() => setSidebarMode("open")} />
       )}
 
       {/* Main area */}
@@ -273,7 +296,7 @@ export default function Page() {
             title="Toggle sidebar (Ctrl+B)"
             style={{ background: "none", border: "none", color: "#9A9A9A", cursor: "pointer", padding: 4, borderRadius: 6 }}
           >
-            {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
+            {sidebarMode === "open" ? <X size={18} /> : <Menu size={18} />}
           </button>
           <span style={{ fontSize: 14, fontWeight: 700, color: "#ECECEC" }}>Nexa Agent</span>
           <span style={{ fontSize: 11, color: "#6A6A6A" }}>v{appVersion}</span>
@@ -288,7 +311,7 @@ export default function Page() {
             <button
               onClick={toggleSidebar}
               title="Toggle sidebar (Ctrl+B)"
-              style={{ background: "none", border: "none", color: sidebarOpen ? "#4A9EFF" : "#9A9A9A", cursor: "pointer", padding: 4, borderRadius: 6 }}
+              style={{ background: "none", border: "none", color: sidebarMode === "open" ? "#4A9EFF" : "#9A9A9A", cursor: "pointer", padding: 4, borderRadius: 6 }}
             >
               <PanelLeft size={17} />
             </button>

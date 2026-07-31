@@ -1,21 +1,27 @@
 /**
- * Nexa Agent — Message Bubble Component (v3.0.0)
+ * Nexa Agent — Message Bubble Component (v4.1.0 — Z.ai layout)
+ * =================================================================
  *
- * Renders user and assistant messages with avatars.
- * User messages are right-aligned bubbles, assistant messages are
- * full-width with the Nexa logo avatar.
+ * Renders user and assistant messages in the z.ai/OpenClaw hybrid style:
  *
- * v3.0.0: assistant messages now render persisted tool-call cards below
- * the message text (collapsible).
+ * - **No bubbles**. Both user and assistant messages span the full width
+ *   of the message column, separated by a small avatar on the left.
+ * - **User messages** show a subtle accent bar and the user's initials
+ *   avatar on the right, mirroring ChatGPT's composer alignment.
+ * - **Assistant messages** render real Markdown (headings, bold, code,
+ *   lists, tables) via ``Markdown``.
+ * - Tool calls appear inline in a collapsible card under the answer.
  *
  * Copyright (c) 2026 Dearly Febriano Irwansyah
+ * SPDX-License-Identifier: MIT
  */
 
 "use client";
 
 import { useState } from "react";
-import { User, ChevronRight, Wrench } from "lucide-react";
+import { ChevronDown, ChevronRight, User, Wrench } from "lucide-react";
 import type { Message } from "../lib/theme";
+import { Markdown } from "./Markdown";
 
 interface MessageBubbleProps {
   message: Message;
@@ -26,59 +32,133 @@ interface ToolCall {
   result: string;
   ok: boolean;
   duration: number;
+  /** Optional: original arguments sent to the tool (JSON viewer). */
+  args?: string;
 }
 
 export function MessageBubble({ message }: MessageBubbleProps) {
   const toolCalls: ToolCall[] = message.toolCalls ?? [];
 
+  // ── USER ────────────────────────────────────────────────────────────────
   if (message.role === "user") {
     return (
-      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 16 }}>
-        <div style={{ display: "flex", gap: 10, maxWidth: "75%" }}>
-          <div style={{
-            order: 2, width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
-            background: "#222327", display: "flex", alignItems: "center", justifyContent: "center",
-          }}>
-            <User size={14} color="#9A9A9A" />
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "flex-end",
+          margin: "0 0 18px",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            gap: 12,
+            maxWidth: "80%",
+            alignItems: "flex-start",
+          }}
+        >
+          <div
+            style={{
+              minWidth: 0,
+              fontSize: 15,
+              lineHeight: 1.7,
+              color: "#ECECEC",
+              whiteSpace: "pre-wrap",
+              wordBreak: "break-word",
+              // A subtle accent bar, mirroring modern chat UIs.
+              borderRight: "3px solid rgba(74, 158, 255, 0.35)",
+              paddingRight: 12,
+              textAlign: "left",
+            }}
+          >
+            <Markdown>{message.content}</Markdown>
           </div>
-          <div style={{
-            order: 1, borderRadius: "18px 18px 4px 18px", padding: "10px 16px",
-            background: "#222327", fontSize: 15, lineHeight: 1.7, color: "#ECECEC",
-            whiteSpace: "pre-wrap", wordBreak: "break-word",
-          }}>
-            {message.content}
+          <div
+            style={{
+              width: 30,
+              height: 30,
+              borderRadius: 8,
+              flexShrink: 0,
+              background: "#16181c",
+              border: "1px solid #24262b",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <User size={15} color="#9A9A9A" />
           </div>
         </div>
       </div>
     );
   }
 
-  // Assistant
+  // ── ASSISTANT ─────────────────────────────────────────────────────────────
   return (
-    <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
-      <div style={{
-        width: 28, height: 28, borderRadius: 6, flexShrink: 0,
-        background: "rgba(74, 158, 255, 0.12)", border: "1px solid rgba(74, 158, 255, 0.3)",
-        overflow: "hidden",
-      }}>
-        <img src="/nexa-agent.png" alt="Nexa" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+    <div
+      style={{
+        display: "flex",
+        gap: 12,
+        margin: "0 0 18px",
+      }}
+    >
+      {/* Avatar */}
+      <div
+        style={{
+          width: 30,
+          height: 30,
+          borderRadius: 8,
+          flexShrink: 0,
+          overflow: "hidden",
+          border: "1px solid rgba(74, 158, 255, 0.35)",
+          background: "rgba(74, 158, 255, 0.10)",
+        }}
+      >
+        <img
+          src="/nexa-agent.png"
+          alt="Nexa"
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
       </div>
+
+      {/* Body */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: "#4A9EFF", marginBottom: 4 }}>Nexa</div>
-        <div style={{ fontSize: 15, lineHeight: 1.7, color: "#ECECEC", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
-          {message.content}
+        <div
+          style={{
+            fontSize: 12,
+            fontWeight: 600,
+            color: "#4A9EFF",
+            marginBottom: 6,
+            textTransform: "uppercase",
+            letterSpacing: 0.4,
+            opacity: 0.9,
+          }}
+        >
+          Nexa
+        </div>
+
+        <div style={{ fontSize: 15, lineHeight: 1.7, color: "#ECECEC" }}>
+          <Markdown>{message.content}</Markdown>
           {message.thinking && (
-            <span style={{
-              display: "inline-block", width: 8, height: 16, marginLeft: 2,
-              background: "#4A9EFF", animation: "nexa-blink 1s steps(2) infinite",
-            }} />
+            <span
+              style={{
+                display: "inline-block",
+                width: 8,
+                height: 16,
+                marginLeft: 2,
+                background: "#4A9EFF",
+                animation: "nexa-blink 1s steps(2) infinite",
+                verticalAlign: "text-bottom",
+              }}
+            />
           )}
         </div>
-        {/* v3.0.0: persisted tool-call cards */}
+
+        {/* Tool calls — inline under the answer */}
         {toolCalls.length > 0 && (
-          <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 6 }}>
-            {toolCalls.map((tc, idx) => (
-              <ToolCallCard key={`${tc.name}-${idx}`} call={tc} />
+          <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 6 }}>
+            {toolCalls.map((tc, i) => (
+              <ToolCallCard key={`${tc.name}-${i}`} call={tc} />
             ))}
           </div>
         )}
@@ -87,43 +167,110 @@ export function MessageBubble({ message }: MessageBubbleProps) {
   );
 }
 
+function ToolCard({ call }: { call: ToolCall }) {
+  return <ToolCallCard call={call} />;
+}
+
 function ToolCallCard({ call }: { call: ToolCall }) {
   const [expanded, setExpanded] = useState(false);
-  const borderColor = call.ok ? "rgba(74, 222, 128, 0.3)" : "rgba(248, 113, 113, 0.3)";
-  const statusColor = call.ok ? "#4ADE80" : "#F87171";
+  const ok = call.ok;
+  const borderColor = ok ? "rgba(74, 222, 128, 0.25)" : "rgba(248, 113, 113, 0.25)";
+  const statusColor = ok ? "#4ADE80" : "#F87171";
+  const bg = ok ? "rgba(74, 222, 128, 0.05)" : "rgba(248, 113, 113, 0.05)";
 
   return (
-    <div style={{
-      border: `1px solid ${borderColor}`,
-      borderRadius: 6,
-      background: "rgba(0,0,0,0.2)",
-      overflow: "hidden",
-    }}>
+    <div
+      style={{
+        border: `1px solid ${borderColor}`,
+        borderRadius: 8,
+        background: bg,
+        overflow: "hidden",
+      }}
+    >
       <button
         onClick={() => setExpanded((e) => !e)}
         style={{
-          width: "100%", display: "flex", alignItems: "center", gap: 8,
-          padding: "6px 10px", background: "transparent", border: "none",
-          cursor: "pointer", color: "#ECECEC", fontSize: 12,
+          width: "100%",
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          padding: "8px 12px",
+          background: "transparent",
+          border: "none",
+          cursor: "pointer",
+          color: "#ECECEC",
+          fontSize: 12.5,
+          fontWeight: 500,
         }}
       >
-        <ChevronRight
-          size={12}
-          style={{ transform: expanded ? "rotate(90deg)" : "none", transition: "transform 0.15s" }}
-        />
-        <Wrench size={12} color={statusColor} />
+        {expanded ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
+        <Wrench size={13} color={statusColor} />
         <span style={{ fontWeight: 600 }}>{call.name}</span>
-        <span style={{ color: statusColor }}>{call.ok ? "✓" : "✗"}</span>
-        <span style={{ color: "#6A6A6A", marginLeft: "auto" }}>{Math.round(call.duration)}ms</span>
+        <span
+          style={{
+            fontSize: 10,
+            fontWeight: 700,
+            color: statusColor,
+            background: ok ? "rgba(74,222,128,0.12)" : "rgba(248,113,113,0.12)",
+            border: `1px solid ${borderColor}`,
+            borderRadius: 4,
+            padding: "2px 6px",
+            textTransform: "uppercase",
+            letterSpacing: 0.5,
+          }}
+        >
+          {ok ? "Success" : "Failed"}
+        </span>
+        <span style={{ marginLeft: "auto", color: "#6A6A6A" }}>{Math.round(call.duration)}ms</span>
       </button>
+
       {expanded && (
-        <pre style={{
-          margin: 0, padding: "8px 10px", maxHeight: 200, overflowY: "auto",
-          fontSize: 12, color: "#9A9A9A", background: "rgba(0,0,0,0.3)",
-          whiteSpace: "pre-wrap", wordBreak: "break-word",
-        }}>
-          {call.result.slice(0, 500)}{call.result.length > 500 ? "…" : ""}
-        </pre>
+        <div style={{ padding: "0 12px 10px" }}>
+          {call.args && (
+            <div style={{ marginBottom: 8 }}>
+              <div style={{ fontSize: 10, color: "#6A6A6A", marginBottom: 2, textTransform: "uppercase" }}>
+                Arguments
+              </div>
+              <pre
+                style={{
+                  margin: 0,
+                  padding: "8px 10px",
+                  background: "#0B0C0E",
+                  borderRadius: 6,
+                  fontSize: 11.5,
+                  color: "#CEE1FF",
+                  overflowX: "auto",
+                  whiteSpace: "pre-wrap",
+                  wordBreak: "break-word",
+                  maxHeight: 160,
+                }}
+              >
+                {call.args}
+              </pre>
+            </div>
+          )}
+          <div>
+            <div style={{ fontSize: 10, color: "#6A6A6A", marginBottom: 2, textTransform: "uppercase" }}>
+              Result
+            </div>
+            <pre
+              style={{
+                margin: 0,
+                padding: "6px 10px",
+                background: "rgba(0,0,0,0.3)",
+                borderRadius: 6,
+                fontSize: 11.5,
+                color: "#9A9A9A",
+                maxHeight: 240,
+                overflowY: "auto",
+                whiteSpace: "pre-wrap",
+                wordBreak: "break-word",
+              }}
+            >
+              {call.result}
+            </pre>
+          </div>
+        </div>
       )}
     </div>
   );

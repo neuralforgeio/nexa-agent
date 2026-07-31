@@ -173,17 +173,31 @@ async def web_fetch(url: str, max_chars: int = 8192) -> str:
     if not url.startswith(("http://", "https://")):
         return "**Error.** url must start with http:// or https://"
 
-    try:
-        import urllib.request
-    except ImportError:
-        return "**Error.** urllib not available."
+    # v4.1.0: replaced blocking urllib.request with httpx.AsyncClient so a
+    # slow server doesn't freeze the asyncio event loop (and therefore every
+    # other SSE stream running on it).
+    import asyncio
 
-    req = urllib.request.Request(url, headers={"User-Agent": _UA})
     try:
-        with urllib.request.urlopen(req, timeout=_TIMEOUT_S) as resp:
-            raw = resp.read(_MAX_FETCH).decode("utf-8", errors="replace")
-            ctype = resp.headers.get("Content-Type", "")
-            final_url = resp.geturl()
+        import httpx
+    except ImportError:
+        try:
+            httpx = await asyncio.to_thread(
+                lambda: __import__("httpx")
+            )  # pragma: no cover
+        except ImportError:
+            return "**Error.** httpx not available."
+
+    try:
+        async with httpx.AsyncClient(
+            timeout=_TIMEOUT_S,
+            follow_redirects=True,
+            headers={"User-Agent": _UA},
+        ) as _client:
+            resp = await _client.get(url)
+            raw = resp.text[: _MAX_FETCH]
+            ctype = resp.headers.get("content-type", "")
+            final_url = str(resp.url)
     except Exception as exc:
         return f"**Fetch failed:** {exc}"
 

@@ -39,7 +39,7 @@ class _FakeProvider:
         self.calls = 0
 
     async def chat_stream(
-        self, messages, tools=None, registry=None
+        self, messages, tools=None, registry=None, _depth: int = 0
     ) -> AsyncGenerator[tuple, None]:
         """Yield the scripted events."""
         self.calls += 1
@@ -182,7 +182,7 @@ class TestDelegateBehavior:
         call_count = [0]
         original_stream = agent.provider.chat_stream
 
-        async def counting_stream(messages, tools=None, registry=None):
+        async def counting_stream(messages, tools=None, registry=None, _depth: int = 0):
             call_count[0] += 1
             if call_count[0] == 1:
                 # First call: emit a tool call.
@@ -209,7 +209,7 @@ class TestDelegateBehavior:
         # Each call returns a tool call → never produces final answer.
         agent = _make_agent([("tool_call", _FakeResult("t", True, "x")), ("done", None)])
         # Make provider always return a tool call (never done with text).
-        async def looping_stream(messages, tools=None, registry=None):
+        async def looping_stream(messages, tools=None, registry=None, _depth: int = 0):
             messages.append({
                 "role": "assistant", "content": "",
                 "tool_calls": [{"id": "tc1", "type": "function",
@@ -238,7 +238,7 @@ class TestDelegateBehavior:
                   ("token", "Done"), ("done", None)]
         agent = _make_agent(events)
         # Override to append tool messages (the fake provider does this for tool_call[0])
-        async def stream_with_tools(messages, tools=None, registry=None):
+        async def stream_with_tools(messages, tools=None, registry=None, _depth: int = 0):
             messages.append({
                 "role": "assistant", "content": "",
                 "tool_calls": [{"id": "tc1", "type": "function",

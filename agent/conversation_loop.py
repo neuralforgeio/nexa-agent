@@ -154,8 +154,20 @@ async def run_conversation(
         history = [m for m in messages if m.get("role") in ("user", "assistant")]
         expanded = expand_prompt(user_input, history)
         yield {"type": "expand", "expanded": expanded.expanded[:200] + "…"}
-        # Inject the expanded prompt as the user message (preserve original intent).
-        # We do this by appending an "expander" note, not replacing the user message.
+        # v4.1.0: actually USE the expansion. Previously `expanded` was
+        # computed and thrown away. Inject it as a system note right before
+        # the latest user message so the final answer benefits from the
+        # structured phrasing without rewriting what the user typed.
+        messages.insert(
+            len(messages) - 1,
+            {
+                "role": "system",
+                "content": (
+                    "[Expanded intent — terse input expanded]\n"
+                    + expanded.expanded.strip()
+                ),
+            },
+        )
 
     # v2.0: intent detection.
     if user_input:
@@ -214,6 +226,10 @@ async def run_conversation(
                 if event_type == "token":
                     accumulated_content.append(payload)
                     yield {"type": "token", "text": payload}
+                elif event_type == "reasoning":
+                    # Surface the model's chain-of-thought for the UI's
+                    # Thought Process panel.
+                    yield {"type": "thinking", "text": payload}
                 elif event_type == "tool_call":
                     result_dict = payload.to_dict()
                     tool_results.append(result_dict)
@@ -323,6 +339,46 @@ async def run_conversation(
                 )
                 if new_memories:
                     yield {"type": "memory", "memories": new_memories}
+
+            # v4.1.0: teach the proactive suggester + pattern recognizer
+            # from this turn's tool activity (instead of leaving them
+            # dormant like they were in v2.0).
+            try:
+                _action = (
+                    "ran_tests"
+                    if any(
+                        tr.get("tool") == "run_terminal_command"
+                        and tok in (tr.get("output", "") or "").lower()
+                        for tr in tool_results
+                        for tok in ("pytest", "npm test", "test session", "collected")
+                    )
+                    else (
+                        "used_tools"
+                        if tool_results
+                        else "answered_directly"
+                    )
+                )
+                suggester.observe(
+                    action=_action,
+                    tools_used=[r.get("tool", "") for r in tool_results],
+                    had_error=bool(errors_seen) or any(
+                        not r.get("ok", True) for r in tool_results
+                    ),
+                )
+            except Exception:
+                pass
+
+            # v4.1.0: periodic pattern-recognition summary. Every 3 turns
+            # with tools/fire we surface what the recognizer learned about
+            # the user's working style as a ``patterns`` SSE event.
+            try:
+                if budget.used % 3 == 0 and tool_results:
+                    rep = pattern_recognizer.report()
+                    block = rep.render() if hasattr(rep, "render") else str(rep)
+                    if block and block.strip():
+                        yield {"type": "patterns", "detail": block}
+            except Exception:
+                pass
 
             # v2.0: self-improvement reflection.
             reflection = improvement_loop.reflect_on_turn(

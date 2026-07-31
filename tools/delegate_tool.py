@@ -106,35 +106,33 @@ async def delegate(
     tool_results: List[str] = []
     iterations = 0
 
+    # v4.1.0: delegate drives the iteration loop itself. Each pass calls
+    # chat_stream, which internally recurses via ``_depth`` on tool calls
+    # (that's correct behaviour — the recursion is what EXECUTES the tool
+    # and fetches the follow-up answer). What we must NOT do is wrap that
+    # in an identical outer loop that re-emits the same tokens (v2.x bug).
+    # So: one ``chat_stream`` call per iteration, and we stop as soon as no
+    # tool calls are pending.
     while iterations < max_iterations:
         iterations += 1
-        iteration_tokens: List[str] = []
         try:
             async for event_type, payload in provider.chat_stream(
-                transcript, tools=tools, registry=registry
+                transcript, tools=tools, registry=registry, _depth=0
             ):
                 if event_type == "token":
-                    iteration_tokens.append(payload)
+                    accumulated_content.append(payload)
                 elif event_type == "tool_call":
                     result_dict = payload.to_dict()
                     tool_results.append(
                         f"[{result_dict['tool']}] {'OK' if result_dict['ok'] else 'FAIL'}: "
                         f"{str(result_dict.get('output', ''))[:200]}"
                     )
-                    # The provider.chat_stream normally appends the assistant + tool
-                    # messages to the transcript itself. But to be safe, if it didn't,
-                    # we record them here so _has_pending_tool_calls sees the right state.
-                    # (Defensive: only append if not already present.)
                 elif event_type == "error":
                     return f"[delegate error] {payload}"
                 elif event_type == "done":
                     break
-        except Exception as e:
-            return f"[delegate error] {e}"
-
-        # Accumulate tokens from this iteration.
-        if iteration_tokens:
-            accumulated_content.extend(iteration_tokens)
+        except Exception as exc:
+            return f"[delegate error] {exc}"
 
         # If the sub-agent produced a final answer (no pending tool calls), stop.
         if not _has_pending_tool_calls(transcript):

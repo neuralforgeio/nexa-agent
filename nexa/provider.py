@@ -227,6 +227,12 @@ class LLMProvider:
                     continue
                 delta = chunk.choices[0].delta
 
+                # Yield reasoning deltas first (models running with
+                # --reasoning-preserve emit <think>…</think> here).
+                reasoning_delta = getattr(delta, "reasoning_content", None)
+                if reasoning_delta:
+                    yield ("reasoning", reasoning_delta)
+
                 # Yield content deltas.
                 if delta.content:
                     accumulated_content += delta.content
@@ -277,6 +283,9 @@ class LLMProvider:
                     except json.JSONDecodeError:
                         args = {}
                     result: ToolResult = await registry.execute(name, **args)
+                    # Attach the original arguments so the UI can display
+                    # exactly what the model requested.
+                    result.args = tc["arguments"]
                     yield ("tool_call", result)
                     # Append the tool result to the transcript.
                     messages.append(

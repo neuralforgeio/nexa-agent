@@ -150,7 +150,7 @@ export function TerminalPanel({ onClose, isVisible = true, onToggle, embedded = 
       termRef.current = null;
       fitRef.current = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Note: this effect intentionally runs only once per mount.
   }, []);
 
   // Connect to the backend PTY WebSocket. Defined AFTER the mount effect so
