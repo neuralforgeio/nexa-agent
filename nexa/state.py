@@ -87,10 +87,27 @@ CREATE VIRTUAL TABLE IF NOT EXISTS memories_fts USING fts5(
 );
 
 -- Triggers: keep FTS indexes in sync.
+-- v4.1.0: add AFTER DELETE + AFTER UPDATE triggers so that deleted rows
+-- don't linger as orphaned FTS entries (previously only INSERT existed,
+-- so a deleted message would still appear in FTS search results).
 CREATE TRIGGER IF NOT EXISTS messages_ai AFTER INSERT ON messages BEGIN
     INSERT INTO messages_fts(rowid, content) VALUES (new.rowid, new.content);
 END;
+CREATE TRIGGER IF NOT EXISTS messages_ad AFTER DELETE ON messages BEGIN
+    INSERT INTO messages_fts(messages_fts, rowid, content) VALUES('delete', old.rowid, old.content);
+END;
+CREATE TRIGGER IF NOT EXISTS messages_au AFTER UPDATE ON messages BEGIN
+    INSERT INTO messages_fts(messages_fts, rowid, content) VALUES('delete', old.rowid, old.content);
+    INSERT INTO messages_fts(rowid, content) VALUES (new.rowid, new.content);
+END;
 CREATE TRIGGER IF NOT EXISTS memories_ai AFTER INSERT ON memories BEGIN
+    INSERT INTO memories_fts(rowid, content) VALUES (new.rowid, new.content);
+END;
+CREATE TRIGGER IF NOT EXISTS memories_ad AFTER DELETE ON memories BEGIN
+    INSERT INTO memories_fts(memories_fts, rowid, content) VALUES('delete', old.rowid, old.content);
+END;
+CREATE TRIGGER IF NOT EXISTS memories_au AFTER UPDATE ON memories BEGIN
+    INSERT INTO memories_fts(memories_fts, rowid, content) VALUES('delete', old.rowid, old.content);
     INSERT INTO memories_fts(rowid, content) VALUES (new.rowid, new.content);
 END;
 """
@@ -218,6 +235,26 @@ class ConversationDB:
             await db.execute("DELETE FROM conversations WHERE id = ?", (conversation_id,))
             await db.commit()
         return True
+
+    async def rename_conversation(self, conversation_id: str, title: str) -> bool:
+        """
+        Update a conversation's title.
+
+        Args:
+            conversation_id: The conversation ID.
+            title:           The new title (already trimmed).
+
+        Returns:
+            ``True`` if the row was updated, else ``False``.
+        """
+        now = _now_iso()
+        async with aiosqlite.connect(str(NEXA_DB_PATH)) as db:
+            cursor = await db.execute(
+                "UPDATE conversations SET title = ?, updated_at = ? WHERE id = ?",
+                (title, now, conversation_id),
+            )
+            await db.commit()
+            return cursor.rowcount > 0
 
     async def search_messages(self, query: str, limit: int = 20) -> List[Dict[str, Any]]:
         """

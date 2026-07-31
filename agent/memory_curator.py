@@ -38,11 +38,19 @@ from nexa.state import ConversationDB
 MEMORY_KINDS = ("insight", "preference", "fact", "skill")
 
 #: Patterns that signal a memory-worthy statement.
-_MEMORY_PATTERNS: List[tuple[re.Pattern, str]] = [
+MEMORY_PATTERNS: List[tuple[re.Pattern, str]] = [
+    # Strong identity / fact patterns — name, job, project, stack.
+    (
+        re.compile(
+            r"\b(?:my name is|i am called|call me)\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+)*)",
+            re.I,
+        ),
+        "fact",
+    ),
     (re.compile(r"\b(?:remember|note that|keep in mind|don't forget)\b.*", re.I), "preference"),
     (re.compile(r"\bI (?:prefer|like|want|need|always|never)\b.*", re.I), "preference"),
     (re.compile(r"\bmy (?:name|job|role|project|stack|language) is\b.*", re.I), "fact"),
-    (re.compile(r"\bI (?:am|work|m developing|building|using)\b.*", re.I), "fact"),
+    (re.compile(r"\bI (?:work as|am a|am an|build|code in)\b.*", re.I), "fact"),
     (re.compile(r"\b(?:the key|important|crucial|make sure to)\b.*", re.I), "insight"),
     (re.compile(r"\b(?:to fix|to solve|approach|strategy|method)\b.*", re.I), "skill"),
 ]
@@ -139,10 +147,11 @@ class MemoryCurator:
         candidates: List[Dict[str, Any]] = []
 
         # Scan user input for explicit memory signals.
-        for pattern, kind in _MEMORY_PATTERNS:
-            matches = pattern.findall(user_input)
-            for match in matches:
+        for pattern, kind in MEMORY_PATTERNS:
+            for match in pattern.findall(user_input):
                 text = match.strip()
+                if not text:
+                    continue
                 if len(text) < 10 or len(text) > 300:
                     continue
                 candidates.append(
@@ -150,6 +159,23 @@ class MemoryCurator:
                         "kind": kind,
                         "content": text,
                         "confidence": 0.8 if kind == "preference" else 0.6,
+                    }
+                )
+
+        # Capture the user's name explicitly as a high-confidence fact
+        # (this drives "apakah anda mengenal saya?" recall later).
+        for m in re.finditer(
+            r"\b(?:my name is|i am|i'm|panggil saya|saya bernama)\s+([A-Z][A-Za-z.\- ]{2,})",
+            user_input,
+            re.IGNORECASE,
+        ):
+            name = m.group(1).strip()
+            if 3 <= len(name) <= 60:
+                candidates.append(
+                    {
+                        "kind": "fact",
+                        "content": f"User's name is {name}",
+                        "confidence": 0.95,
                     }
                 )
 

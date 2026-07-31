@@ -17,8 +17,91 @@ Copyright (c) 2026 Dearly Febriano Irwansyah
 SPDX-License-Identifier: MIT
 """
 
+import ast
 import time
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Tuple
+
+
+# ---------------------------------------------------------------------------
+# v4.1.0 Security — user-tool AST safety gate
+# ---------------------------------------------------------------------------
+#: Dangerous modules a user-supplied tool may not import.
+_FORBIDDEN_IMPORTS = frozenset({
+    "os", "sys", "subprocess", "socket", "ctypes", "multiprocessing",
+    "shutil", "importlib", "builtins", "ftplib", "telnetlib",
+})
+#: Dangerous names a tool body may not reference.
+_FORBIDDEN_NAMES = frozenset({
+    "eval", "exec", "__import__", "compile", "globals", "locals",
+    "open", "input", "breakpoint", "exit", "quit",
+})
+
+
+def ast_check_tool_source(source: str) -> Tuple[bool, str]:
+    """
+    Static analysis on a user tool's Python source.
+
+    Walks the AST and rejects the file if it uses a forbidden import
+    (``os``, ``subprocess``, ...) or dangerous builtin (``eval``, ``exec``,
+    ``__import__``, attribute access like ``sys.modules`` / ``builtins.*``).
+
+    Args:
+        source: The full Python source code of the tool file.
+
+    Returns:
+        ``(is_safe, reason)`` — ``(False, why)`` when rejected.
+    """
+    try:
+        tree = ast.parse(source)
+    except SyntaxError as exc:
+        return False, f"syntax error: {exc}"
+
+    for node in ast.walk(tree):
+        # Reject forbidden imports (``import os`` / ``from os import x``).
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                top = alias.name.split(".")[0]
+                if top in _FORBIDDEN_IMPORTS:
+                    return False, f"forbidden import: {alias.name}"
+        elif isinstance(node, ast.ImportFrom):
+            top = (node.module or "").split(".")[0]
+            if top in _FORBIDDEN_IMPORTS:
+                return False, f"forbidden import: {node.module}"
+        # Reject dangerous bare names: eval(...), exec(...), __import__(...).
+        elif isinstance(node, ast.Name):
+            if node.id in _FORBIDDEN_NAMES:
+                return False, f"forbidden name: {node.id}"
+        # Reject ``sys.modules`` / ``builtins.__import__`` attribute chains.
+        elif isinstance(node, ast.Attribute):
+            if node.attr in ("modules", "__import__", "system", "popen") and isinstance(
+                node.value, ast.Name
+            ):
+                if node.value.id in ("sys", "builtins", "importlib", "os"):
+                    return False, f"forbidden attribute: {node.value.id}.{node.attr}"
+
+    return True, "ok"
+
+
+def _log_tool_load(tool_name: str, path: Any, ok: bool, reason: str = "") -> None:
+    """Append a JSON line to ~/.nexa/logs/tool_loads.jsonl (best-effort)."""
+    import json as _json
+    import nexa.config as _config
+    try:
+        from datetime import datetime, timezone
+        logs = _config.NEXA_HOME / "logs"
+        logs.mkdir(parents=True, exist_ok=True)
+        entry = {
+            "ts": datetime.now(timezone.utc).isoformat(),
+            "tool": tool_name,
+            "path": str(path),
+            "ok": ok,
+        }
+        if reason:
+            entry["reason"] = reason
+        with (logs / "tool_loads.jsonl").open("a", encoding="utf-8") as fh:
+            fh.write(_json.dumps(entry) + "\n")
+    except Exception:
+        pass  # Logging must never break tool loading.
 
 
 class ToolResult:
@@ -38,6 +121,9 @@ class ToolResult:
         self.ok = ok
         self.output = output
         self.duration_ms = duration_ms
+        # v4.1.0: original JSON arguments string (so the UI can show which
+        # parameters the model invoked the tool with).
+        self.args: str = ""
 
     def to_dict(self) -> Dict[str, Any]:
         """Serialize this result to a plain dict for JSON transport."""
@@ -46,6 +132,7 @@ class ToolResult:
             "ok": self.ok,
             "output": self.output,
             "duration_ms": self.duration_ms,
+            "args": self.args,
         }
 
 
@@ -172,6 +259,24 @@ class ToolRegistry:
         entry = self._tools.get(name)
         if entry is None:
             return ToolResult(name, False, f"Unknown tool: {name}")
+
+        # v4.1.0: Pydantic arg validation (soft). If the tool has a schema
+        # and the args fail it, fail fast with a clear error instead of
+        # letting the tool crash on a missing/wrong-shaped key. Tools
+        # without a schema are untouched (never break custom user tools).
+        try:
+            from tools._schemas import validate_tool_args
+            model = validate_tool_args(name, kwargs)
+            # ``exclude_unset=True`` keeps only what the caller actually
+            # passed, so tools keep using their own defaults for the rest.
+            kwargs = model.model_dump(exclude_unset=True)
+        except KeyError:
+            # No schema registered for this tool — pass through as-is.
+            pass
+        except Exception as exc:
+            # Pydantic ValidationError (or anything similar) — report cleanly.
+            return ToolResult(name, False, f"Invalid args for '{name}': {exc}")
+
         start = time.time()
         try:
             output = await entry["fn"](**kwargs)
@@ -421,6 +526,18 @@ def load_user_tools(registry: ToolRegistry) -> ToolRegistry:
         mod_name = f"nexa_user_{py_file.stem}"
         tool_name = py_file.stem
         try:
+            # v4.1.0: static AST gate — reject dangerous imports/builtins
+            # before any code runs.
+            try:
+                _src = py_file.read_text(encoding="utf-8", errors="replace")
+            except OSError:
+                continue
+            safe, reason = ast_check_tool_source(_src)
+            if not safe:
+                _log_tool_load(tool_name, py_file, ok=False, reason=reason)
+                print(f"[nexa] user tool {tool_name!r} REJECTED: {reason}")
+                continue
+
             spec = importlib.util.spec_from_file_location(mod_name, py_file)
             if spec is None or spec.loader is None:
                 continue
@@ -442,7 +559,9 @@ def load_user_tools(registry: ToolRegistry) -> ToolRegistry:
                 description=description[:300],
                 parameters=schema,
             )
-        except Exception:
+            _log_tool_load(tool_name, py_file, ok=True)
+        except Exception as exc:
+            _log_tool_load(tool_name, py_file, ok=False, reason=str(exc))
             # Malformed user tools must never crash the agent.
             continue
     return registry

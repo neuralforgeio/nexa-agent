@@ -177,9 +177,30 @@ async def run_terminal_command(
         raise ValueError(f"timeout {timeout}s exceeds maximum {MAX_TIMEOUT}s")
 
     # Build environment.
-    full_env = dict(os.environ)
+    # v4.1.0 security: whitelist only non-secret keys so commands cannot
+    # leak OPENAI_API_KEY / DATABRICKS_TOKEN / *_API_KEY / *_TOKEN into a
+    # subprocess that might pipe them to a remote server.
+    _ALLOWED_ENV = {
+        "PATH", "HOME", "LANG", "LC_ALL", "LC_CTYPE", "TERM", "SHELL",
+        "USER", "LOGNAME", "TMPDIR", "TMP", "TEMP", "PROMPT", "PS1", "PS2",
+        # Platform essentials (Windows needs these to find cmd.exe etc.)
+        "SYSTEMROOT", "WINDIR", "COMSPEC", "PATHEXT", "OS",
+        "NUMBER_OF_PROCESSORS", "PROCESSOR_ARCHITECTURE", "PROGRAMFILES",
+        "PROGRAMFILES(X86)", "PROGRAMDATA", "APPDATA", "LOCALAPPDATA",
+        # Toolchain paths
+        "PYTHONPATH", "VIRTUAL_ENV",
+    }
+    full_env: Dict[str, str] = {
+        k: v
+        for k, v in os.environ.items()
+        if k.upper() in _ALLOWED_ENV
+        and not k.upper().endswith(("_API_KEY", "_TOKEN", "_SECRET", "_PASSWORD"))
+    }
     if env:
-        full_env.update(env)
+        for k, v in env.items():
+            if k.upper().endswith(("_API_KEY", "_TOKEN", "_SECRET", "_PASSWORD")):
+                continue  # never let a tool-specified secret through either
+            full_env[k] = v
 
     # Resolve working directory (project-scoped boundary).
     work_dir = _validate_cwd(cwd)

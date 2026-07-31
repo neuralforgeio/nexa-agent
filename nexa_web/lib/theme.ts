@@ -59,7 +59,14 @@ export interface ChatEvent {
   text?: string;
   sessionId?: string;
   isNew?: boolean;
-  toolResult?: { tool: string; ok: boolean; output: string; duration_ms: number };
+  toolResult?: {
+    tool: string;
+    ok: boolean;
+    output: string;
+    duration_ms: number;
+    /** Original JSON arguments the model invoked the tool with (v4.1.0). */
+    args?: string;
+  };
   detail?: string;
   memories?: Array<{ kind: string; content: string }>;
   answer?: string;
@@ -72,7 +79,14 @@ export interface Message {
   content: string;
   toolName?: string;
   thinking?: boolean;
-  toolCalls?: Array<{ name: string; result: string; ok: boolean; duration: number }>;
+  toolCalls?: Array<{
+    name: string;
+    result: string;
+    ok: boolean;
+    duration: number;
+    /** Original JSON arguments the model invoked the tool with. */
+    args?: string;
+  }>;
   createdAt: string;
 }
 

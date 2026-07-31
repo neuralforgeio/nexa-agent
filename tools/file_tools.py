@@ -17,6 +17,7 @@ Copyright (c) 2026 Dearly Febriano Irwansyah
 SPDX-License-Identifier: MIT
 """
 
+import os
 from pathlib import Path
 from typing import Any
 
@@ -117,14 +118,26 @@ async def write_file(path: str, content: str, **_: Any) -> str:
     if full.exists() and full.is_dir():
         raise ValueError(f"cannot write file: '{path}' is an existing directory")
 
+    # v4.1.0: atomic write — stage to a temp file, then os.replace() over
+    # the destination. Prevents a torn file if the process is interrupted
+    # mid-write (Ctrl+C, kill, power loss).
+    tmp = full.with_name(full.name + ".nexa.tmp")
     try:
         full.parent.mkdir(parents=True, exist_ok=True)
-        full.write_text(content, "utf-8")
+        tmp.write_text(content, "utf-8")
+        os.replace(str(tmp), str(full))
     except PermissionError as exc:
         raise ValueError(f"permission denied writing '{path}': {exc}") from exc
     except IsADirectoryError as exc:
         raise ValueError(f"'{path}' is a directory, not a file: {exc}") from exc
     except OSError as exc:
         raise ValueError(f"could not write '{path}': {exc}") from exc
+    finally:
+        # Best-effort cleanup if the replace never ran (e.g. permission
+        # error raised while staging the temp file).
+        try:
+            tmp.unlink(missing_ok=True)
+        except Exception:
+            pass
 
     return f"wrote {len(encoded)} bytes to {path}"

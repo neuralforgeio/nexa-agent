@@ -194,8 +194,27 @@ async def search_files(
     files_searched = 0
     total_size = 0
 
-    for dirpath, dirnames, filenames in os.walk(root):
-        dirnames[:] = [d for d in dirnames if d not in _SKIP_DIRS]
+    # v4.1.0: offload the blocking ``os.walk`` tree traversal to a worker
+    # thread so slow/disk-heavy searches don't freeze the asyncio loop.
+    import asyncio as _asyncio
+
+    def _walk_list(root: Path) -> List[tuple]:
+        results = []
+        for dirpath, dirnames, filenames in os.walk(root):
+            dirnames[:] = [d for d in dirnames if d not in _SKIP_DIRS]
+            results.append((dirpath, list(dirnames), list(filenames)))
+        return results
+
+    try:
+        # Run inside the calling event loop if there is one; fall back to a
+        # new loop when called from a thread without one.
+        loop = _asyncio.get_running_loop()
+        tree = await loop.run_in_executor(None, _walk_list, root)
+    except RuntimeError:
+        tree = _walk_list(root)
+
+    for dirpath, _dirnames, filenames in tree:
+        # _walk_list already filtered dirnames (skips .git/node_modules etc).
         for fname in filenames:
             if len(matches) >= max_results:
                 break

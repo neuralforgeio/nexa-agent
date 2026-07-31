@@ -32,11 +32,13 @@ SPDX-License-Identifier: MIT
 
 import asyncio
 import json
+import os
+import secrets
 import uuid
 from contextlib import asynccontextmanager
 from typing import Any, Dict, List, Optional
 
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Header, HTTPException, Request, WebSocket, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, JSONResponse
 from pydantic import BaseModel
@@ -47,6 +49,73 @@ from nexa.config import NEXA_NAME, NEXA_VERSION
 from nexa.provider_failover import is_failover_enabled
 from run_agent import NexaAgent
 from nexa.state import ConversationDB
+
+
+# ---------------------------------------------------------------------------
+# v4.1.0 Security — API token auth + CORS restriction
+# ---------------------------------------------------------------------------
+def _generate_api_token() -> str:
+    """Return (and print) the API token, generating a random one if unset."""
+    token = os.environ.get("NEXA_API_TOKEN", "").strip()
+    if not token:
+        token = secrets.token_urlsafe(32)
+        # Print once at startup so the operator can store it in the frontend.
+        print(f"\n[{NEXA_NAME}] NEXA_API_TOKEN not set — generated one:")
+        print(f"[{NEXA_NAME}]   {token}\n", flush=True)
+    return token
+
+
+#: Resolved once at import time so all requests share the same token.
+_API_TOKEN = _generate_api_token()
+
+#: Auth gate toggle. Defaults OFF for backwards-compatible local usage;
+#: set NEXA_REQUIRE_AUTH=1 in production/exposed deployments to enforce
+#: Bearer-token auth on every /api/* route and the /ws/terminal socket.
+_REQUIRE_AUTH = os.environ.get("NEXA_REQUIRE_AUTH", "0").lower() in (
+    "1", "true", "yes",
+)
+
+
+def _allowed_origins() -> List[str]:
+    """Return the CORS allow-list, overridable via NEXA_ALLOWED_ORIGINS."""
+    raw = os.environ.get("NEXA_ALLOWED_ORIGINS", "").strip()
+    if raw:
+        return [o.strip() for o in raw.split(",") if o.strip()]
+    return ["http://localhost:3000", "http://127.0.0.1:3000"]
+
+
+def _unauthorized(detail: str = "unauthorized") -> HTTPException:
+    return HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail={"error": detail},
+    )
+
+
+async def verify_token(authorization: Optional[str] = Header(None)) -> None:
+    """
+    FastAPI dependency: require ``Authorization: Bearer <token>``.
+
+    No-op when :data:`_REQUIRE_AUTH` is ``False`` (default), so local
+    single-user setups keep working without a token. Set
+    ``NEXA_REQUIRE_AUTH=1`` to enforce.
+
+    Raises:
+        HTTPException: 401 JSON ``{"error": "unauthorized"}`` on mismatch.
+    """
+    if not _REQUIRE_AUTH:
+        return
+    if not authorization or not authorization.startswith("Bearer "):
+        raise _unauthorized()
+    if authorization[7:].strip() != _API_TOKEN:
+        raise _unauthorized()
+
+
+def verify_token_ws(token: Optional[str]) -> None:
+    """Validate the WebSocket ``?token=`` query param (raise on mismatch)."""
+    if not _REQUIRE_AUTH:
+        return
+    if (token or "").strip() != _API_TOKEN:
+        raise _unauthorized()
 
 # ---------------------------------------------------------------------------
 # Singleton instances
@@ -107,14 +176,44 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Allow the Next.js frontend (port 3000) to call this API.
+# Allow only the Next.js frontend (port 3000) by default (v4.1.0).
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_allowed_origins(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def auth_gate(request: Request, call_next):
+    """
+    Bearer-token gate for every ``/api/*`` route.
+
+    Active only when :data:`_REQUIRE_AUTH` is true (``NEXA_REQUIRE_AUTH=1``).
+    The health endpoint stays open so load balancers / uptime checks still
+    work; everything else returns ``401 {"error": "unauthorized"}``.
+    """
+    if _REQUIRE_AUTH and request.url.path.startswith("/api/"):
+        if request.url.path != "/api/health":
+            auth = request.headers.get("authorization") or ""
+            if not auth.startswith("Bearer ") or auth[7:].strip() != _API_TOKEN:
+                return JSONResponse(
+                    {"error": "unauthorized"}, status_code=status.HTTP_401_UNAUTHORIZED
+                )
+    return await call_next(request)
+
+
+@app.middleware("http")
+async def security_headers(request: Request, call_next):
+    """Attach CSP to every response (v4.1.0 iframe-sandbox hardening)."""
+    response = await call_next(request)
+    response.headers.setdefault(
+        "Content-Security-Policy",
+        "default-src 'self'; script-src 'self' 'unsafe-inline'; connect-src 'self' ws: wss:",
+    )
+    return response
 
 
 # ---------------------------------------------------------------------------
@@ -199,6 +298,20 @@ async def chat_stream(req: ChatStreamRequest) -> StreamingResponse:
         # Send session event first.
         yield f"data: {encoder({'type': 'session', 'sessionId': conv_id, 'isNew': is_new})}\n\n"
 
+        # v4.1.0: announce which virtual-agent persona is driving this turn
+        # (Planner/Explorer/Coder/Reviewer) so the UI can render the badge
+        # above the reasoning bubble. Only emitted when the orchestrator
+        # protocol is activated via NEXA_ORCHESTRATOR=1.
+        import os as _os_orch
+        if _agent.persona_manager is not None and _os_orch.environ.get(
+            "NEXA_ORCHESTRATOR", "0"
+        ).lower() in ("1", "true", "yes"):
+            try:
+                badge = _agent.persona_manager.badge()
+                yield f"data: {encoder({'type': 'agent_persona', 'persona': badge})}\n\n"
+            except Exception:
+                pass
+
         # Wrap the agent generator so we can interleave keepalive pings.
         agent_gen = _agent.run_streaming(message, conv_id, history)
         pending: Optional[asyncio.Task] = None
@@ -229,6 +342,8 @@ async def chat_stream(req: ChatStreamRequest) -> StreamingResponse:
                     yield f"data: {encoder({'type': 'compressing', 'detail': event.get('detail', '')})}\n\n"
                 elif ev_type == "memory":
                     yield f"data: {encoder({'type': 'memory', 'memories': event.get('memories', [])})}\n\n"
+                elif ev_type == "patterns":
+                    yield f"data: {encoder({'type': 'patterns', 'detail': event.get('detail', '')})}\n\n"
                 elif ev_type == "done":
                     yield f"data: {encoder({'type': 'done', 'answer': event['answer']})}\n\n"
                 elif ev_type == "error":
@@ -348,6 +463,24 @@ async def delete_session(session_id: str) -> Dict[str, bool]:
     """Delete a conversation and all its messages."""
     await _db.delete_conversation(session_id)
     return {"ok": True}
+
+
+class RenameSessionRequest(BaseModel):
+    """Request body for PATCH /api/sessions/{id}."""
+
+    title: str
+
+
+@app.patch("/api/sessions/{session_id}")
+async def rename_session(session_id: str, req: RenameSessionRequest) -> Dict[str, Any]:
+    """Rename a conversation's title."""
+    title = req.title.strip()
+    if not title:
+        return JSONResponse({"error": "title is required"}, status_code=400)
+    ok = await _db.rename_conversation(session_id, title)
+    if not ok:
+        return JSONResponse({"error": "session not found"}, status_code=404)
+    return {"ok": True, "id": session_id, "title": title}
 
 
 # ---------------------------------------------------------------------------
@@ -471,6 +604,27 @@ async def persona() -> Dict[str, Any]:
     from agent.adaptive_persona import AdaptivePersona
     p = AdaptivePersona().persona()
     return p.to_dict()
+
+
+@app.get("/api/orchestrator")
+async def orchestrator_state() -> Dict[str, Any]:
+    """
+    Return the virtual multi-agent orchestrator state (v4.1.0).
+
+    Includes the active phase, persona badge, review-loop counter, and the
+    timestamped transition history — so the Web UI's "Work Process" dropdown
+    can render ``[10:00:01] PLANNING → CODING ...`` lines.
+    """
+    if _agent.orchestrator is None or _agent.persona_manager is None:
+        return {"enabled": False}
+    st = _agent.orchestrator.state
+    return {
+        "enabled": True,
+        "phase": st.phase.value,
+        "round_count": st.round_count,
+        "persona": _agent.persona_manager.badge(),
+        "history": st.history[-25:],
+    }
 
 
 @app.get("/api/knowledge")
@@ -695,38 +849,80 @@ async def ws_terminal(websocket) -> None:
     import asyncio
     import json
 
-    await websocket.accept()
-
     from nexa.config import NEXA_WORKSPACE
 
-    # Try to spawn a real PTY. Fall back to command-based if unavailable.
+    # v4.1.0: validate token BEFORE accepting the socket (raise on failure).
+    try:
+        verify_token_ws(websocket.query_params.get("token"))
+    except HTTPException:
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
+
+    await websocket.accept()
+
+    # v4.1.0: PTY mode is opt-in via NEXA_ENABLE_PTY=1 (default off —
+    # command-mode fallback has the v3.0.0 blocklist already). When PTY is
+    # enabled we scrub the environment and pin cwd so the shell cannot leak
+    # ``*_API_KEY`` / ``*_TOKEN`` secrets or escape the workspace.
+    pty_enabled = os.environ.get("NEXA_ENABLE_PTY", "0").lower() in ("1", "true", "yes")
     pty = None
-    if _sys.platform == "win32":
-        try:
-            from winpty import PtyProcess  # type: ignore[import-not-found]
-            pty = PtyProcess.spawn(
-                ["cmd.exe", "/k"],
-                cwd=str(NEXA_WORKSPACE),
-                dimensions=(24, 80),
-            )
-        except (ImportError, Exception) as exc:
-            pty = None
-    else:
-        try:
-            import ptyprocess
-            pty = ptyprocess.PtyProcess.spawn(
-                ["/bin/bash"],
-                cwd=str(NEXA_WORKSPACE),
-                dimensions=(24, 80),
-            )
-        except (ImportError, Exception):
-            pty = None
+    if pty_enabled:
+        print(
+            f"[{NEXA_NAME}] WARNING: PTY terminal mode ENABLED (NEXA_ENABLE_PTY=1) "
+            "— command blocklist bypassed; env secrets scrubbed.",
+            flush=True,
+        )
+
+        def _scrub_env() -> Dict[str, str]:
+            """Return a whitelisted env for the spawned shell.
+
+            Removes every ``*_API_KEY`` / ``*_TOKEN`` / ``*_SECRET`` variable
+            and pins HOME to the workspace so the shell starts sandboxed.
+            """
+            import os as _os
+            allowed = {
+                "PATH", "LANG", "LC_ALL", "TERM", "SHELL", "USER",
+                "TMPDIR", "TMP", "TEMP", "SYSTEMROOT", "WINDIR",
+                "COMSPEC", "PATHEXT", "OS", "NUMBER_OF_PROCESSORS",
+            }
+            env = {
+                k: v for k, v in _os.environ.items()
+                if k.upper() in allowed
+                and not k.upper().endswith(("_API_KEY", "_TOKEN", "_SECRET"))
+            }
+            env["HOME"] = str(NEXA_WORKSPACE)
+            env["NEXA_SANDBOXED"] = "1"
+            return env
+
+        if _sys.platform == "win32":
+            try:
+                from winpty import PtyProcess  # type: ignore[import-not-found]
+                pty = PtyProcess.spawn(
+                    ["cmd.exe", "/k"],
+                    cwd=str(NEXA_WORKSPACE),
+                    dimensions=(24, 80),
+                    env=_scrub_env(),
+                )
+            except Exception:
+                pty = None
+        else:
+            try:
+                import ptyprocess
+                pty = ptyprocess.PtyProcess.spawn(
+                    ["/bin/bash"],
+                    cwd=str(NEXA_WORKSPACE),
+                    dimensions=(24, 80),
+                    env=_scrub_env(),
+                )
+            except Exception:
+                pty = None
 
     if pty is None:
-        # No PTY available — fall back to command-based mode (v3.0.0 style).
+        # No PTY (or disabled via NEXA_ENABLE_PTY=0) — command-based fallback.
+        reason = "disabled (NEXA_ENABLE_PTY=0)" if not pty_enabled else "not available on this system"
         await websocket.send_text(json.dumps({
             "type": "output",
-            "data": "PTY not available on this system. Falling back to command mode.\r\n$ ",
+            "data": f"PTY {reason}. Using guarded command mode.\r\n$ ",
         }))
         await _ws_terminal_command_mode(websocket)
         return

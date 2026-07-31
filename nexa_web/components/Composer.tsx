@@ -19,11 +19,11 @@ interface ComposerProps {
   showSuggestions: boolean;
 }
 
-const SUGGESTIONS = [
-  "What time is it in Tokyo?",
-  "Calculate (128 × 9) + 14.5",
-  "Search the web for latest AI news",
-  "Remember that I prefer concise answers",
+const SUGGESTIONS: Array<{ label: string; prompt: string }> = [
+  { label: "💻 Write Code",       prompt: "Write a Python function that computes the nth Fibonacci number using constant space." },
+  { label: "🖥 Run Terminal",     prompt: "Show me the contents of the current workspace using the terminal." },
+  { label: "🔍 Search Web",       prompt: "Search the web for the latest AI news and summarize the top 3 stories." },
+  { label: "📄 Analyze File",     prompt: "Read README.md in this repository and summarize what this project does." },
 ];
 
 export function Composer({ onSend, disabled, thinking, showSuggestions }: ComposerProps) {
@@ -47,24 +47,25 @@ export function Composer({ onSend, disabled, thinking, showSuggestions }: Compos
   return (
     <div style={{ background: "linear-gradient(to top, #141618, transparent)", padding: "0 16px 16px" }}>
       <div style={{ maxWidth: 768, margin: "0 auto" }}>
-        {/* Suggestions */}
+        {/* Suggestions — Z.ai-style quick action chips */}
         {showSuggestions && (
           <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 8, marginBottom: 12 }}>
-            {SUGGESTIONS.map((s) => (
+            {SUGGESTIONS.map(({ label, prompt }) => (
               <button
-                key={s}
-                onClick={() => !disabled && onSend(s)}
+                key={label}
+                onClick={() => !disabled && onSend(prompt)}
                 disabled={disabled}
                 style={{
-                  padding: "6px 14px", borderRadius: 20, fontSize: 13,
-                  border: "1px solid #2E2F34", background: "#222327",
-                  color: "#9A9A9A", cursor: disabled ? "not-allowed" : "pointer",
+                  padding: "9px 16px", borderRadius: 12, fontSize: 13, fontWeight: 500,
+                  border: "1px solid #2E2F34", background: "#191B1E",
+                  color: "#CFCFCF", cursor: disabled ? "not-allowed" : "pointer",
                   opacity: disabled ? 0.4 : 1, transition: "all 0.15s",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
                 }}
-                onMouseEnter={(e) => { if (!disabled) { e.currentTarget.style.borderColor = "rgba(74, 158, 255, 0.3)"; e.currentTarget.style.color = "#4A9EFF"; } }}
-                onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#2E2F34"; e.currentTarget.style.color = "#9A9A9A"; }}
+                onMouseEnter={(e) => { if (!disabled) { e.currentTarget.style.borderColor = "rgba(74, 158, 255, 0.4)"; e.currentTarget.style.color = "#4A9EFF"; e.currentTarget.style.background = "#1A1B1E"; } }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#2E2F34"; e.currentTarget.style.color = "#CFCFCF"; e.currentTarget.style.background = "#191B1E"; }}
               >
-                {s}
+                {label}
               </button>
             ))}
           </div>

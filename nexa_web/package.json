@@ -1,29 +1,36 @@
 {
   "name": "nexa-agent-ui",
-  "version": "4.0.0",
+  "version": "4.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000",
     "build": "next build",
     "start": "next start -p 3000",
-    "lint": "eslint ."
+    "lint": "eslint . && tsc --noEmit"
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.3.2",
     "@xterm/addon-fit": "^0.11.0",
     "@xterm/addon-web-links": "^0.12.0",
     "@xterm/xterm": "^6.0.0",
+    "highlight.js": "^11.11.1",
     "lucide-react": "^1.24.0",
     "next": "^16.2.10",
     "postcss": "^8.5.19",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
+    "react-markdown": "^10.1.0",
+    "rehype-highlight": "^7.0.2",
+    "remark-gfm": "^4.0.1",
     "tailwindcss": "^4.3.2"
   },
   "devDependencies": {
     "@types/node": "26.1.1",
     "@types/react": "19.2.17",
     "@types/react-dom": "19.2.0",
+    "@typescript-eslint/eslint-plugin": "^8.65.0",
+    "@typescript-eslint/parser": "^8.65.0",
+    "eslint": "^10.8.0",
     "typescript": "^5.9.3"
   },
   "allowScripts": {}
