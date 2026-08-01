@@ -1,0 +1,83 @@
+# Nexa Agent — central configuration (single source of truth)
+# Edit this file when version metadata, branding, or status changes.
+# Everything else should either read it from here or from the source of truth.
+
+project:
+  name: "Nexa Agent"
+  tagline: "The Ultimate Local AI Agent Enterprise"
+  description: >
+    A local-first AI agent with iterative tool-calling, multi-provider support,
+    a self-improvement memory system, an interactive TUI, and a full Web UI
+    (Next.js + React) with a sandbox panel, terminal, and work-process trace.
+  creator: "Dearly Febriano Irwansyah"
+  creator_url: "https://github.com/neuralforgeio"
+  license: "MIT"
+  license_file: "LICENSE"
+  repository: "neuralforgeio/nexa-agent"
+
+version:
+  current: "4.1.6"
+  codename: "Security-Hardened + Virtual Multi-Agent"
+  released: "2026-07-31"
+  semver_scheme: "MAJOR.MINOR.PATCH"
+  notes: |
+    PATCH (v4.1.X) = N bug fixes.
+    MINOR (v4.X.0) = new feature(s), backwards compatible.
+    MAJOR (v5.0.0) = architecture or breaking change.
+
+features:
+  providers: 8
+  tools_total: 33
+  planning_tools: 20
+  agent_modules: 36
+  personas: 5
+  intelligence_mesh_v2_wired: true
+  virtual_multi_agent: true
+  security_hardening_v4_1: true
+
+active_envvars:
+  # auth / access
+  - NEXA_API_TOKEN
+  - NEXA_REQUIRE_AUTH
+  - NEXA_ALLOWED_ORIGINS
+  # terminal sandbox
+  - NEXA_ENABLE_PTY
+  # feature gates
+  - NEXA_ORCHESTRATOR
+  - NEXA_QUICK_MODE
+  # capacity tuning
+  - NEXA_LLM_TIMEOUT
+  - NEXA_MAX_CONTEXT_MESSAGES
+
+security_notes: |
+  - API token auth is opt-in; enable with NEXA_REQUIRE_AUTH=1 in production.
+  - PTY terminal is opt-in; enable with NEXA_ENABLE_PTY=1.
+  - User tools under ~/.nexa/tools/ are scanned via AST and blocked on
+    os/subprocess/socket/builtins/eval/exec/__import__.
+  - HOME/NEXA_HOME/NEXA_WORKSPACE are overridden to the workspace inside
+    run_terminal_command subprocesses so chr(126)+...-style path tricks land
+    inside the sandbox, not the real ~/.
+  - Chat tools call endpoints have a Content-Security-Policy header.
+
+# Files which are considered historical record (we don't revise the version
+# numbers inside them — they describe past releases).
+frozen_history:
+  - worklog.md
+  - .plans/release_body.json
+  - .plans/STATE.json
+  - .plans/ROADMAP_20_FEATURES.md
+  - .plans/v3_launch_plan.md
+  - .plans/TASK_v4_PUNCHLIST.md
+  - tests/REAL_INTEGRATION_REPORT.md
+
+# Files the agent MUST keep in sync whenever functionality or versions change.
+hygiene_watchlist:
+  - CONTINUATION_PROMPT.md
+  - SYSTEMPROMPT.md
+  - README.md
+  - LICENSE
+  - scripts/install.ps1
+  - scripts/install.sh
+  - nexa_web/package.json
+  - nexa_web/app/page.tsx
+  - docs/MANUAL_TESTING_GUIDE.md

@@ -18,6 +18,7 @@ SPDX-License-Identifier: MIT
 
 import os
 from pathlib import Path
+from typing import Any, Dict, Optional
 
 # Load environment variables from .env if it exists.
 try:
@@ -66,6 +67,43 @@ metadata and the runtime banner).
 
 NEXA_AUTHOR: str = "Dearly Febriano Irwansyah"
 """The copyright holder and primary author."""
+
+
+# ---------------------------------------------------------------------------
+# v4.1.6: canonical config.yaml as a secondary, human-editable source of truth
+# ---------------------------------------------------------------------------
+
+_NEXA_REPO_META_CACHE: Optional[Dict[str, Any]] = None
+
+
+def read_repo_meta() -> Dict[str, Any]:
+    """
+    Read canonical metadata from the repo-root ``config.yaml``.
+
+    The YAML file is the single source of truth for: repository description,
+    author URL, license file, frozen-history file list, and hygiene watchlist.
+    ``pyproject.toml`` remains the canonical version pin (read by
+    :func:`_read_version_from_pyproject`); this complements it.
+
+    Returns:
+        A dict with keys like ``project.name``, ``project.creator``,
+        ``project.repository``; empty dict if the file is unreadable.
+    """
+    global _NEXA_REPO_META_CACHE
+    if _NEXA_REPO_META_CACHE is not None:
+        return _NEXA_REPO_META_CACHE
+    try:
+        import yaml  # pyyaml from pyproject dependencies
+    except ImportError:  # pragma: no cover
+        return {}
+    try:
+        cfg_path = Path(__file__).resolve().parent.parent / "config.yaml"
+        raw = yaml.safe_load(cfg_path.read_text(encoding="utf-8"))
+        # yaml.safe_load returns None on empty file
+        _NEXA_REPO_META_CACHE = dict(raw) if isinstance(raw, dict) else {}
+    except Exception:
+        _NEXA_REPO_META_CACHE = {}
+    return _NEXA_REPO_META_CACHE
 
 NEXA_TAGLINE: str = "The advanced AI agent by Dearly Febriano Irwansyah"
 """A short marketing tagline used in prompts and metadata."""
