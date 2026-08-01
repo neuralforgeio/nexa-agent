@@ -44,8 +44,8 @@ class TestCatalogHasNewProviders:
         assert cfg.default_model.startswith("databricks-")
         assert "dapi" in cfg.api_key_hint or "DATABRICKS_TOKEN" in cfg.api_key_hint
 
-    def test_list_providers_returns_eight(self) -> None:
-        """list_providers() must return 8 providers (6 original + 2 new)."""
+    def test_list_providers_returns_twentyfour(self) -> None:
+        """list_providers() must return all 24 providers (8 original + 16 new in v4.2)."""
         providers = list_providers()
         names = [p.name for p in providers]
         assert "openai" in names
@@ -56,7 +56,24 @@ class TestCatalogHasNewProviders:
         assert "vllm" in names
         assert "tokenrouter" in names
         assert "databricks" in names
-        assert len(providers) == 8
+        # v4.2 additions
+        assert "anthropic" in names
+        assert "gemini" in names
+        assert "mistral" in names
+        assert "groq" in names
+        assert "together" in names
+        assert "fireworks" in names
+        assert "deepseek" in names
+        assert "xai" in names
+        assert "cohere" in names
+        assert "perplexity" in names
+        assert "localai" in names
+        assert "textgen" in names
+        assert "jan" in names
+        assert "koboldcpp" in names
+        assert "litellm" in names
+        assert "helicone" in names
+        assert len(providers) == 24
 
 
 class TestResolveProviderTokenRouter:

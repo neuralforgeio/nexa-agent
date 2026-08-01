@@ -70,11 +70,37 @@ class ToolCallEntry:
         ok:        Whether the call succeeded.
         duration_ms: Wall-clock duration in milliseconds.
         output:    Short output preview.
+        args:      Original JSON argument payload (v4.2.0).
     """
     name: str
     ok: bool
     duration_ms: float
     output: str = ""
+    args: str = ""  # raw arguments the LLM asked for
+
+
+@dataclass
+class PersonaBadge:
+    """
+    The persona currently active in the virtual-agent state machine.
+
+    Driven from ``agent_persona`` SSE events (or local orchestrator state).
+    """
+
+    name: str = ""
+    icon: str = "🧠"
+    color: str = "#9A9A9A"
+    goal: str = ""
+
+
+@dataclass
+class WorkingProcessStep:
+    """One step in the Working Process panel."""
+
+    label: str
+    ok: bool = True
+    kind: str = "thinking"  # thinking | tool | observation
+    detail: str = ""
 
 
 @dataclass
@@ -88,6 +114,9 @@ class TUIState:
         server_up:     Whether the gateway is up.
         streaming:     Whether the agent is currently streaming.
         token_estimate: Rough token estimate for the current turn.
+        persona:       Active persona (or ``None``).
+        working_process: Recent steps for the Working Process panel.
+        sidebar_open:  Whether the tool/persona sidebar is shown (Ctrl+B).
     """
     messages: List[ChatMessage] = field(default_factory=list)
     tool_calls: List[ToolCallEntry] = field(default_factory=list)
@@ -95,6 +124,9 @@ class TUIState:
     server_up: bool = False
     streaming: bool = False
     token_estimate: int = 0
+    persona: Optional[PersonaBadge] = None
+    working_process: List[WorkingProcessStep] = field(default_factory=list)
+    sidebar_open: bool = True
 
 
 # ---------------------------------------------------------------------------
@@ -143,21 +175,65 @@ def _render_chat_area(state: TUIState) -> RenderableType:
 
 
 def _render_tool_log(state: TUIState) -> RenderableType:
-    """Render the right column tool log."""
+    """Render the right column tool log.
+
+    Each entry shows ok/fail, name, latency, the LLM-provided argument
+    preview (v4.2.0), and a short output preview.
+    """
     if not state.tool_calls:
         body = Align.center(Text("No tool calls yet.", style="dim italic"))
     else:
         lines: List[RenderableType] = []
         for tc in state.tool_calls[-15:]:  # cap to last 15
             status = "[green]✓[/green]" if tc.ok else "[red]✗[/red]"
+            args_preview = (tc.args[:60] + "…") if tc.args and len(tc.args) > 60 else (tc.args or "")
             preview = (tc.output[:80] + "…") if len(tc.output) > 80 else tc.output
             lines.append(Text.from_markup(
                 f"{status} [bold]{tc.name}[/bold] [dim]({tc.duration_ms:.0f}ms)[/dim]"
             ))
+            if args_preview:
+                lines.append(Text.from_markup(f"   [dim cyan]args:[/dim cyan] [dim]{args_preview}[/dim]"))
             if preview:
                 lines.append(Text(f"   {preview}", style="dim"))
         body = Group(*lines)
     return Panel(body, title="[cyan]Tool Log[/cyan]", border_style="cyan")
+
+
+def _render_persona_panel(state: TUIState) -> RenderableType:
+    """Render the active virtual-agent persona (v4.2.0)."""
+    if state.persona is None:
+        return Panel(
+            Align.center(Text("no persona active", style="dim italic")),
+            title="[magenta]Persona[/magenta]",
+            border_style="magenta",
+        )
+    p = state.persona
+    return Panel(
+        Group(
+            Text(f"{p.icon} {p.name}", style="bold"),
+            Text(p.goal, style="dim"),
+        ),
+        title="[magenta]Persona[/magenta]",
+        border_style="magenta",
+    )
+
+
+def _render_working_process_panel(state: TUIState) -> RenderableType:
+    """Render the Working-Process trace (v4.2.0)."""
+    if not state.working_process:
+        return Panel(
+            Align.center(Text("No activity yet.", style="dim italic")),
+            title="[blue]Working Process[/blue]",
+            border_style="blue",
+        )
+    rows: List[RenderableType] = []
+    for step in state.working_process[-20:]:
+        icon = {"thinking": "🧠", "tool": "🔧", "observation": "👁"}.get(step.kind, "•")
+        status = "[green]✓[/green]" if step.ok else "[red]✗[/red]"
+        rows.append(Text(f"{icon} {status} {step.label}"))
+        if step.detail:
+            rows.append(Text(f"   {step.detail[:120]}", style="dim"))
+    return Panel(Group(*rows), title="[blue]Working Process[/blue]", border_style="blue")
 
 
 def _render_input_box(state: TUIState, current_input: str = "") -> Panel:
@@ -195,14 +271,28 @@ def build_layout(state: TUIState, current_input: str = "") -> Layout:
         Layout(name="body", ratio=1),
         Layout(name="footer", size=3),
     )
-    layout["body"].split_row(
-        Layout(name="chat", ratio=3),
-        Layout(name="tools", ratio=2),
-    )
+
+    # v4.2.0: the "tools" panel hosts 3 stacked sub-panes — Persona,
+    # Working Process, Tool Log — and the whole right-side column can be
+    # collapsed with Ctrl+B (parity with the web UI).
+    if state.sidebar_open:
+        layout["body"].split_row(
+            Layout(name="chat", ratio=3),
+            Layout(name="tools", ratio=2),
+        )
+        layout["tools"].split_column(
+            Layout(name="persona", size=6),
+            Layout(name="work", ratio=2),
+            Layout(name="calls", ratio=2),
+        )
+        layout["persona"].update(_render_persona_panel(state))
+        layout["work"].update(_render_working_process_panel(state))
+        layout["calls"].update(_render_tool_log(state))
+    else:
+        layout["body"].split_row(Layout(name="chat", ratio=1))
 
     layout["header"].update(_render_status_bar(state))
     layout["chat"].update(_render_chat_area(state))
-    layout["tools"].update(_render_tool_log(state))
     layout["footer"].update(_render_input_box(state, current_input))
     return layout
 
@@ -218,12 +308,15 @@ def render_snapshot(state: TUIState, current_input: str = "") -> Group:
     Returns:
         A :class:`rich.console.Group` of all three regions stacked.
     """
-    return Group(
+    parts: List[RenderableType] = [
         _render_status_bar(state),
+        _render_persona_panel(state) if state.persona else Text(""),
         _render_chat_area(state),
+        _render_working_process_panel(state),
         _render_tool_log(state),
         _render_input_box(state, current_input),
-    )
+    ]
+    return Group(*parts)
 
 
 # ---------------------------------------------------------------------------
@@ -262,7 +355,10 @@ def apply_event(state: TUIState, event: Dict[str, Any]) -> None:
     Apply a conversation-loop event to the TUI state.
 
     Recognized event types: ``thinking``, ``token``, ``tool_result``,
-    ``done``, ``error``.
+    ``done``, ``error``, plus the v4.2 introspection events
+    (``agent_persona``, ``patterns``, ``reflection``, ``suggestions``,
+    ``confidence``, ``heal``, ``failover``, ``expand``, ``intent``,
+    ``autolearn``, ``compressing``, ``memory``).
 
     Args:
         state: The TUI state to mutate.
@@ -271,6 +367,9 @@ def apply_event(state: TUIState, event: Dict[str, Any]) -> None:
     etype = event.get("type")
     if etype == "thinking":
         state.streaming = True
+        state.working_process.append(
+            WorkingProcessStep(label="thinking", detail="Model is reasoning…")
+        )
     elif etype == "token":
         add_assistant_token(state, event.get("text", ""))
     elif etype == "tool_result":
@@ -280,12 +379,68 @@ def apply_event(state: TUIState, event: Dict[str, Any]) -> None:
             ok=result.get("ok", False),
             duration_ms=result.get("duration_ms", 0.0),
             output=str(result.get("output", ""))[:200],
+            args=str(result.get("args", ""))[:200],
         ))
+        state.working_process.append(
+            WorkingProcessStep(
+                label=str(result.get("tool", "tool")),
+                ok=bool(result.get("ok", False)),
+                kind="tool",
+                detail=str(result.get("output", ""))[:160],
+            )
+        )
+    elif etype == "agent_persona":
+        badge = event.get("persona", {}) or {}
+        state.persona = PersonaBadge(
+            name=badge.get("name", ""),
+            icon=badge.get("icon", "🧠"),
+            color=badge.get("color", "#9A9A9A"),
+            goal=badge.get("goal", ""),
+        )
+        state.working_process.append(
+            WorkingProcessStep(
+                label=f"persona:{state.persona.name}",
+                kind="observation",
+                detail=state.persona.goal,
+            )
+        )
+    elif etype == "patterns":
+        state.working_process.append(
+            WorkingProcessStep(label="patterns", kind="observation", detail=str(event.get("detail", ""))[:160])
+        )
+    elif etype == "reflection":
+        state.working_process.append(
+            WorkingProcessStep(label="reflection", kind="observation", detail=str(event.get("summary", ""))[:160])
+        )
+    elif etype == "suggestions":
+        items = event.get("items", []) or []
+        for it in items[:2]:
+            label = it.get("label") if isinstance(it, dict) else str(it)
+            state.working_process.append(
+                WorkingProcessStep(label="suggestion", detail=str(label)[:160])
+            )
+    elif etype == "confidence":
+        state.working_process.append(
+            WorkingProcessStep(
+                label="confidence",
+                detail=f"score={event.get('score')} enrich={event.get('should_enrich')}",
+            )
+        )
+    elif etype in ("heal", "failover", "expand", "intent", "autolearn", "compressing", "memory"):
+        state.working_process.append(
+            WorkingProcessStep(label=etype, kind="observation", detail=str(event.get("message") or event.get("detail") or event.get("summary") or "")[:160])
+        )
     elif etype == "done":
         state.streaming = False
+        state.working_process.append(
+            WorkingProcessStep(label="done", kind="observation", detail="answer ready")
+        )
         finalize_assistant_message(state, event.get("answer", ""))
     elif etype == "error":
         state.streaming = False
+        state.working_process.append(
+            WorkingProcessStep(label="error", ok=False, kind="observation", detail=str(event.get("message", ""))[:160])
+        )
         state.messages.append(ChatMessage(
             role="assistant", content=f"[error] {event.get('message', '')}"
         ))

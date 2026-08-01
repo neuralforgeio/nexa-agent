@@ -38,6 +38,13 @@ class ProviderConfig:
         api_key_hint:  A hint about the API key (some local providers
                        accept any non-empty string).
         description:   A short human-readable description.
+        api_key_env:   The canonical env var that holds the API key.
+        category:      ``"cloud"`` | ``"local"`` | ``"router"``.
+        icon:          Emoji icon for the UI badge.
+        free_tier:     ``True`` if the provider offers a free tier.
+        capabilities:  Comma-separated tags (streaming, vision, tool_use, ...).
+        docs_url:      Setup/docs URL for the dashboard button.
+        auth_header:   Header name for the API key (bearer/x-api-key/api-key).
     """
 
     name: str
@@ -45,6 +52,13 @@ class ProviderConfig:
     default_model: str
     api_key_hint: str
     description: str
+    api_key_env: str = ""
+    category: str = "cloud"
+    icon: str = "◆"
+    free_tier: bool = False
+    capabilities: str = "streaming,tool_use"
+    docs_url: str = ""
+    auth_header: str = "bearer"
 
 
 #: The catalog of known providers. Keys are lowercase provider names.
@@ -114,6 +128,233 @@ PROVIDER_CATALOG: Dict[str, ProviderConfig] = {
             "DATABRICKS_TOKEN to your PAT. Models: databricks-claude-sonnet-*, "
             "databricks-gpt-oss-*, databricks-meta-llama-*, etc."
         ),
+        api_key_env="DATABRICKS_TOKEN",
+        category="cloud",
+        icon="🧱",
+        free_tier=False,
+        capabilities="streaming,tool_use,fine_tuning",
+        docs_url="https://docs.databricks.com/en/machine-learning/foundation-models/",
+    ),
+
+    # ─────────────────────────────────────────────────────────────────────
+    # v4.1.6 wave 1: cloud LLM providers
+    # ─────────────────────────────────────────────────────────────────────
+    "anthropic": ProviderConfig(
+        name="anthropic",
+        base_url="https://api.anthropic.com/v1",
+        default_model="claude-sonnet-4-6",
+        api_key_hint="Requires ANTHROPIC_API_KEY (sk-ant-...)",
+        description="Anthropic Claude — long-context reasoning, prompt caching, vision.",
+        api_key_env="ANTHROPIC_API_KEY",
+        category="cloud",
+        icon="🟣",
+        free_tier=False,
+        capabilities="streaming,tool_use,vision,prompt_caching,extended_thinking",
+        docs_url="https://docs.anthropic.com/en/api",
+        auth_header="x-api-key",
+    ),
+    "gemini": ProviderConfig(
+        name="gemini",
+        base_url="https://generativelanguage.googleapis.com/v1beta/openai",
+        default_model="gemini-2.0-flash",
+        api_key_hint="Requires GOOGLE_API_KEY or GEMINI_API_KEY",
+        description="Google Gemini — largest context window (1M tokens), multimodal.",
+        api_key_env="GEMINI_API_KEY",
+        category="cloud",
+        icon="🔷",
+        free_tier=True,
+        capabilities="streaming,tool_use,vision,audio,video,code_execution",
+        docs_url="https://ai.google.dev/gemini-api/docs",
+    ),
+    "mistral": ProviderConfig(
+        name="mistral",
+        base_url="https://api.mistral.ai/v1",
+        default_model="mistral-large-latest",
+        api_key_hint="Requires MISTRAL_API_KEY",
+        description="Mistral — European open-weight frontier lab.",
+        api_key_env="MISTRAL_API_KEY",
+        category="cloud",
+        icon="🌀",
+        free_tier=True,
+        capabilities="streaming,tool_use,json_mode,vision",
+        docs_url="https://docs.mistral.ai/api/",
+    ),
+    "groq": ProviderConfig(
+        name="groq",
+        base_url="https://api.groq.com/openai/v1",
+        default_model="llama-3.3-70b-versatile",
+        api_key_hint="Requires GROQ_API_KEY",
+        description="Groq — ultra-fast LPU inference (500+ tok/s). OpenAI-compatible.",
+        api_key_env="GROQ_API_KEY",
+        category="cloud",
+        icon="⚡",
+        free_tier=True,
+        capabilities="streaming,tool_use,json_mode",
+        docs_url="https://console.groq.com/docs/api-reference",
+    ),
+    "together": ProviderConfig(
+        name="together",
+        base_url="https://api.together.xyz/v1",
+        default_model="meta-llama/Llama-3.3-70B-Instruct-Turbo",
+        api_key_hint="Requires TOGETHER_API_KEY",
+        description="Together AI — open-source model cloud with fine-tuning.",
+        api_key_env="TOGETHER_API_KEY",
+        category="cloud",
+        icon="🤝",
+        free_tier=True,
+        capabilities="streaming,tool_use,fine_tuning,image_generation",
+        docs_url="https://docs.together.ai/reference/chat-completions",
+    ),
+    "fireworks": ProviderConfig(
+        name="fireworks",
+        base_url="https://api.fireworks.ai/inference/v1",
+        default_model="accounts/fireworks/models/llama-v3p3-70b-instruct",
+        api_key_hint="Requires FIREWORKS_API_KEY",
+        description="Fireworks AI — production-grade fast inference for open models.",
+        api_key_env="FIREWORKS_API_KEY",
+        category="cloud",
+        icon="🎆",
+        free_tier=True,
+        capabilities="streaming,tool_use,json_mode,fine_tuning",
+        docs_url="https://docs.fireworks.ai/api-reference",
+    ),
+    "deepseek": ProviderConfig(
+        name="deepseek",
+        base_url="https://api.deepseek.com/v1",
+        default_model="deepseek-chat",
+        api_key_hint="Requires DEEPSEEK_API_KEY",
+        description="DeepSeek — strong reasoning & coding at very low cost.",
+        api_key_env="DEEPSEEK_API_KEY",
+        category="cloud",
+        icon="🌊",
+        free_tier=True,
+        capabilities="streaming,tool_use,reasoning,json_mode",
+        docs_url="https://api-docs.deepseek.com/",
+    ),
+    "xai": ProviderConfig(
+        name="xai",
+        base_url="https://api.x.ai/v1",
+        default_model="grok-2-latest",
+        api_key_hint="Requires XAI_API_KEY",
+        description="xAI Grok — long-horizon reasoning, native agency.",
+        api_key_env="XAI_API_KEY",
+        category="cloud",
+        icon="✖️",
+        free_tier=False,
+        capabilities="streaming,tool_use,vision",
+        docs_url="https://docs.x.ai/api",
+    ),
+    "cohere": ProviderConfig(
+        name="cohere",
+        base_url="https://api.cohere.com/compatibility/v1",
+        default_model="command-r-plus",
+        api_key_hint="Requires COHERE_API_KEY",
+        description="Cohere — enterprise RAG / embeddings (OpenAI mode).",
+        api_key_env="COHERE_API_KEY",
+        category="cloud",
+        icon="🔁",
+        free_tier=True,
+        capabilities="streaming,tool_use,reranking,embeddings,web_search",
+        docs_url="https://docs.cohere.com/reference/compatibility-api",
+    ),
+    "perplexity": ProviderConfig(
+        name="perplexity",
+        base_url="https://api.perplexity.ai",
+        default_model="sonar-pro",
+        api_key_hint="Requires PPLX_API_KEY",
+        description="Perplexity — sonar online models with built-in web search.",
+        api_key_env="PPLX_API_KEY",
+        category="cloud",
+        icon="🧭",
+        free_tier=False,
+        capabilities="streaming,tool_use,web_search",
+        docs_url="https://docs.perplexity.ai/api-reference",
+    ),
+
+    # ─────────────────────────────────────────────────────────────────────
+    # v4.1.6 wave 2: local / self-hosted
+    # ─────────────────────────────────────────────────────────────────────
+    "localai": ProviderConfig(
+        name="localai",
+        base_url="http://localhost:8080/v1",
+        default_model="gpt-3.5-turbo",
+        api_key_hint="Any non-empty string",
+        description="LocalAI — OpenAI-compatible local runner (GGML/GGUF).",
+        api_key_env="LOCALAI_API_KEY",
+        category="local",
+        icon="🏠",
+        free_tier=True,
+        capabilities="streaming,tool_use,embeddings,image_generation,transcription",
+        docs_url="https://localai.io/docs/",
+    ),
+    "textgen": ProviderConfig(
+        name="textgen",
+        base_url="http://localhost:5000/v1",
+        default_model="loaded-model",
+        api_key_hint="Any non-empty string",
+        description="Text Generation WebUI (oobabooga) — OpenAI-compat mode.",
+        api_key_env="TEXTGEN_API_KEY",
+        category="local",
+        icon="🖊️",
+        free_tier=True,
+        capabilities="streaming",
+        docs_url="https://github.com/oobabooga/text-generation-webui",
+    ),
+    "jan": ProviderConfig(
+        name="jan",
+        base_url="http://localhost:1337/v1",
+        default_model="llama3.2",
+        api_key_hint="Any non-empty string",
+        description="Jan — local desktop app with OpenAI-compatible server.",
+        api_key_env="JAN_API_KEY",
+        category="local",
+        icon="📔",
+        free_tier=True,
+        capabilities="streaming,tool_use",
+        docs_url="https://jan.ai/docs",
+    ),
+    "koboldcpp": ProviderConfig(
+        name="koboldcpp",
+        base_url="http://localhost:5001/v1",
+        default_model="loaded-model",
+        api_key_hint="Any non-empty string",
+        description="KoboldCpp — GGUF runner with story-focused OpenAI-compat API.",
+        api_key_env="KOBOLDCPP_API_KEY",
+        category="local",
+        icon="🪶",
+        free_tier=True,
+        capabilities="streaming",
+        docs_url="https://github.com/LostRuins/koboldcpp",
+    ),
+
+    # ─────────────────────────────────────────────────────────────────────
+    # v4.1.6 wave 3: routers / gateways
+    # ─────────────────────────────────────────────────────────────────────
+    "litellm": ProviderConfig(
+        name="litellm",
+        base_url="http://localhost:4000/v1",
+        default_model="gpt-3.5-turbo",
+        api_key_hint="Requires LITELLM_API_KEY",
+        description="LiteLLM Proxy — front-door for 100+ backends with fallbacks.",
+        api_key_env="LITELLM_API_KEY",
+        category="router",
+        icon="🔀",
+        free_tier=True,
+        capabilities="streaming,tool_use,fallbacks,load_balancing,budget_tracking",
+        docs_url="https://docs.litellm.ai/docs/proxy",
+    ),
+    "helicone": ProviderConfig(
+        name="helicone",
+        base_url="https://oai.hconeai.com/v1",
+        default_model="gpt-4o",
+        api_key_hint="Requires HELICONE_API_KEY",
+        description="Helicone — OpenAI proxy with observability + caching.",
+        api_key_env="HELICONE_API_KEY",
+        category="router",
+        icon="📊",
+        free_tier=True,
+        capabilities="streaming,tool_use,observability,cost_tracking,caching",
+        docs_url="https://docs.helicone.ai/getting-started/proxy",
     ),
 }
 
@@ -189,8 +430,16 @@ def resolve_provider(
     # v3.0.0: provider-specific token env vars.
     if not api_key and name == "databricks":
         api_key = os.environ.get("DATABRICKS_TOKEN", "")
-    # Local providers accept any non-empty key.
-    if not api_key and config.name in ("ollama", "llamacpp", "lmstudio", "vllm"):
+    # v4.1.6+: iterate catalog's api_key_env for the canonical per-provider
+    # token lookup, so e.g. ``ANTHROPIC_API_KEY`` is honored for anthropic
+    # instead of relying on callers manually exporting OPENAI_API_KEY=...
+    if not api_key and getattr(config, "api_key_env", ""):
+        api_key = os.environ.get(config.api_key_env, "")
+    # Local + router providers accept any non-empty key.
+    if not api_key and config.name in (
+        "ollama", "llamacpp", "lmstudio", "vllm",
+        "localai", "textgen", "jan", "koboldcpp", "litellm",
+    ):
         api_key = "dummy"
 
     return base_url, model, api_key

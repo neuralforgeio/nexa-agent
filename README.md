@@ -4,7 +4,7 @@
 > **Version 4.1.0** · Extended MIT License · [SYSTEMPROMPT.md](./SYSTEMPROMPT.md)
 
 A terminal-first local AI agent with iterative tool-calling, multi-provider
-support (8 providers + custom endpoints), a self-improvement memory system,
+support (24 providers + custom endpoints), a self-improvement memory system,
 an interactive TUI built with prompt_toolkit + rich, and a full Web UI
 (Next.js + React) with sidebar/toolstreams.
 
@@ -36,8 +36,10 @@ an interactive TUI built with prompt_toolkit + rich, and a full Web UI
 
 ## Features
 
-- **8 Providers + Custom Endpoints** — OpenAI, OpenRouter, Ollama, llama.cpp,
-  LM Studio, vLLM, TokenRouter, Databricks, or any OpenAI-compatible endpoint
+- **24 Providers + Custom Endpoints** — Anthropic Claude, Google Gemini, Mistral, Groq,
+  Together, Fireworks, DeepSeek, xAI, Cohere, Perplexity, LocalAI, textgen, Jan,
+  KoboldCpp, LiteLLM, Helicone, plus the original OpenAI/OpenRouter/Ollama/llama.cpp/
+  LM Studio/vLLM/TokenRouter/Databricks, and any OpenAI-compatible custom endpoint.
 - **Local AI Architecture** — All user data, memory, and state stored in `~/.nexa/`
 - **Interactive TUI** — Streaming responses, slash commands, tool visualization,
   multi-pane layout (status bar + chat + tool log + input)
@@ -82,7 +84,7 @@ a virtual environment, installs dependencies, and runs `nexa setup`. After it
 finishes, open a **new terminal** and run:
 
 ```bash
-nexa provider list          # see all 8 providers
+nexa provider list          # see all 24 providers
 nexa provider add tokenrouter   # interactive — prompts for API key + model
 nexa provider use tokenrouter   # activate
 nexa-chat                       # start chatting!
@@ -165,7 +167,7 @@ nexa setup            # initialize ~/.nexa/
 nexa doctor           # self-health diagnostics
 nexa gateway start    # start backend (port 8000)
 nexa gateway status   # check if running
-nexa provider list    # list all 8 providers
+nexa provider list    # list all 24 providers
 nexa provider test openai  # health check
 
 # Web UI server (backend on port 8000, frontend on port 3000)
