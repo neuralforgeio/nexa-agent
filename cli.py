@@ -186,7 +186,7 @@ async def handle_slash_command(cmd: str, agent: NexaAgent, db: ConversationDB) -
         else:
             console.print(f"[green]Current model:[/green] {agent.provider.model}\n")
     elif command == "/provider":
-        # v3.0.0: extended /provider command with list/use/add/remove/test subcommands.
+        # v4.1.0: extended /provider command with list/use/add/remove/test subcommands.
         # Backward compat: `/provider <name>` still switches to a catalog provider.
         from nexa.provider_registry import ProviderRegistry, StoredProviderConfig
         reg = ProviderRegistry()

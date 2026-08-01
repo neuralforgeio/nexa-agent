@@ -287,7 +287,7 @@ async def chat_stream(req: ChatStreamRequest) -> StreamingResponse:
         """
         Generate SSE events from the agent's streaming output, with keepalive.
 
-        v4.0.0: emits a ``: ping`` comment every 15 s of inactivity so that
+        v4.1.0: emits a ``: ping`` comment every 15 s of inactivity so that
         (a) browsers don't close the connection during a long llamacpp
         prompt-processing phase, and (b) llama-server doesn't interpret a
         silent socket as a stalled client. This directly fixes the
@@ -1015,7 +1015,7 @@ async def _ws_terminal_command_mode(websocket) -> None:
 
 
 # ---------------------------------------------------------------------------
-# v4.0.0 — Sandbox endpoints (Web Preview + Terminal sidebar)
+# v4.1.0 — Sandbox endpoints (Web Preview + Terminal sidebar)
 # ---------------------------------------------------------------------------
 from pathlib import Path as _Path
 

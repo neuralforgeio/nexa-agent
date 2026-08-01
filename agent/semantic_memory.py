@@ -1,5 +1,5 @@
 """
-Nexa Agent — Semantic Vector Memory (v3.1.0)
+Nexa Agent — Semantic Vector Memory (v4.1.0)
 =============================================
 
 A lightweight semantic memory store that retrieves past memories/conversations

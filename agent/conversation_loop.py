@@ -196,7 +196,7 @@ async def run_conversation(
                     confidence=fact.confidence,
                 )
 
-    # v3.1.0: Ask Question Mode — when True, skip tools (instant response).
+    # v4.1.0: Ask Question Mode — when True, skip tools (instant response).
     tools = None if quick_mode else registry.get_openai_schemas()
     tool_results: List[Dict[str, Any]] = []
     errors_seen: List[str] = []
@@ -270,7 +270,7 @@ async def run_conversation(
             errors_seen.append(str(exc))
             yield {"type": "heal", "plan": plan.to_dict()}
 
-            # v2.0/v3.0: provider failover (if enabled and chain provided).
+            # v4.1.0: provider failover (if enabled and chain provided).
             if (
                 failover_chain is not None
                 and is_failover_enabled()
@@ -278,7 +278,7 @@ async def run_conversation(
             ):
                 next_provider = failover_chain.advance(reason=str(exc))
                 if next_provider is not None:
-                    # v3.0.0: ACTUALLY swap the provider's connection params
+                    # v4.1.0: ACTUALLY swap the provider's connection params
                     # so the next iteration hits the new provider, not the
                     # dead one. This was a dead-code scaffold in v2.0.
                     provider.base_url = next_provider.base_url
@@ -400,7 +400,7 @@ async def run_conversation(
                     "items": [s.to_dict() for s in suggestions],
                 }
 
-            # v3.0.0: persist error memory to ~/.nexa/memory/errors.json
+            # v4.1.0: persist error memory to ~/.nexa/memory/errors.json
             # so error records survive process restarts.
             try:
                 error_memory.save()
@@ -408,7 +408,7 @@ async def run_conversation(
                 # Persistence failure must not break the loop.
                 pass
 
-            # v3.1.0: record trajectory (prompt → tool → response) for fine-tuning.
+            # v4.1.0: record trajectory (prompt → tool → response) for fine-tuning.
             try:
                 from agent.trajectory_recorder import (
                     TrajectoryRecorder,
@@ -437,7 +437,7 @@ async def run_conversation(
             return
 
     # Iteration budget exhausted.
-    # v3.0.0: persist error memory before final yield.
+    # v4.1.0: persist error memory before final yield.
     try:
         error_memory.save()
     except Exception:

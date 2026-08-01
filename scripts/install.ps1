@@ -82,7 +82,7 @@ Write-Host "     ██║╚████══█ ██╔══╝   ██�
 Write-Host "     ██║ ╚███║  ███████╗██╔╝ ██╗██║  ██║" -ForegroundColor Cyan
 Write-Host "     ╚═╝  ╚══╝  ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "  Nexa Agent v3.1.0  ·  Local AI Agent" -ForegroundColor White
+Write-Host "  Nexa Agent v4.1.0  ·  Local AI Agent" -ForegroundColor White
 Write-Host "  by Dearly Febriano Irwansyah · Indonesia" -ForegroundColor DarkGray
 Write-Host ""
 

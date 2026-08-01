@@ -81,7 +81,7 @@ print_logo() {
      ╚═╝  ╚══╝  ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝
 LOGO_EOF
     echo -e "${NC}"
-    echo -e "${WHITE}${BOLD}  Nexa Agent v3.1.0${NC} ${DIM}·${NC} ${CYAN}Local AI Agent${NC}"
+    echo -e "${WHITE}${BOLD}  Nexa Agent v4.1.0${NC} ${DIM}·${NC} ${CYAN}Local AI Agent${NC}"
     echo -e "${DIM}  by Dearly Febriano Irwansyah · Indonesia${NC}"
     echo ""
 }

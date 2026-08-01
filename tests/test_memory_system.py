@@ -48,7 +48,7 @@ def temp_memory_dir(tmp_path, monkeypatch):
     monkeypatch.setattr(mf, "MEMORY_DIR", temp_dir)
     monkeypatch.setattr(mf, "MEMORY_FILE", temp_dir / "MEMORY.md")
     monkeypatch.setattr(mf, "USER_FILE", temp_dir / "USER.md")
-    # v4.0.0: also neutralize the root-level USER.md / PROCEDURES.md so a
+    # v4.1.0: also neutralize the root-level USER.md / PROCEDURES.md so a
     # real ~/.nexa directory on the dev machine can't leak into tests.
     monkeypatch.setattr(mf, "USER_FILE_ROOT", tmp_path / "_no_user.md")
     monkeypatch.setattr(mf, "PROCEDURES_FILE", tmp_path / "_no_procs.md")
@@ -182,7 +182,7 @@ class TestMemoryCuratorFileIntegration:
         monkeypatch.setattr(mf, "MEMORY_DIR", temp_dir)
         monkeypatch.setattr(mf, "MEMORY_FILE", temp_dir / "MEMORY.md")
         monkeypatch.setattr(mf, "USER_FILE", temp_dir / "USER.md")
-        # Neutralize root-level USER.md / PROCEDURES.md (v4.0.0).
+        # Neutralize root-level USER.md / PROCEDURES.md (v4.1.0).
         monkeypatch.setattr(mf, "USER_FILE_ROOT", tmp_path / "_no_user.md")
         monkeypatch.setattr(mf, "PROCEDURES_FILE", tmp_path / "_no_procs.md")
 
@@ -212,7 +212,7 @@ class TestMemoryCuratorFileIntegration:
         monkeypatch.setattr(mf, "MEMORY_DIR", temp_dir)
         monkeypatch.setattr(mf, "MEMORY_FILE", temp_dir / "MEMORY.md")
         monkeypatch.setattr(mf, "USER_FILE", temp_dir / "USER.md")
-        # Neutralize root-level USER.md / PROCEDURES.md (v4.0.0).
+        # Neutralize root-level USER.md / PROCEDURES.md (v4.1.0).
         monkeypatch.setattr(mf, "USER_FILE_ROOT", tmp_path / "_no_user.md")
         monkeypatch.setattr(mf, "PROCEDURES_FILE", tmp_path / "_no_procs.md")
 

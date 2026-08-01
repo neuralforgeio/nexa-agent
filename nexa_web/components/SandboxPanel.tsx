@@ -1,5 +1,5 @@
 /**
- * Nexa Agent — Sandbox Panel (v4.0.0)
+ * Nexa Agent — Sandbox Panel (v4.1.0)
  *
  * Right-side panel with vertically split Preview + Terminal.
  * - Preview (top): iframe for built web projects (auto-served via /workspace-preview)
