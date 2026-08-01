@@ -92,33 +92,21 @@ class TerminalExecTool:
             session = self._sessions[session_id]
 
         # Run the command.
+        # v4.1.6: propagate ValueError (security boundary) and timeout errors
+        # by RAISING so the registry turns them into ok=False ToolResults with
+        # a clear classification, instead of burying them inside an ``ok``
+        # dict that downstream consumers can't distinguish from success.
         try:
             result = await run_terminal_command(
                 command,
                 timeout=timeout,
                 cwd=cwd or (session.cwd if session else None),
             )
-        except ValueError as exc:
-            return {
-                "ok": False,
-                "output": f"blocked: {exc}",
-                "session_id": session_id,
-                "broadcast": broadcast_to_ui,
-            }
-        except asyncio.TimeoutError as exc:
-            return {
-                "ok": False,
-                "output": f"timeout: {exc}",
-                "session_id": session_id,
-                "broadcast": broadcast_to_ui,
-            }
+        except (ValueError, asyncio.TimeoutError, PermissionError):
+            # Re-raise so registry.execute wraps it into a proper error result.
+            raise
         except Exception as exc:
-            return {
-                "ok": False,
-                "output": f"error: {exc}",
-                "session_id": session_id,
-                "broadcast": broadcast_to_ui,
-            }
+            raise RuntimeError(f"terminal_exec failed: {exc}") from exc
 
         # Record in session buffer.
         if session is not None:
