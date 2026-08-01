@@ -181,7 +181,7 @@ async def run_terminal_command(
     # leak OPENAI_API_KEY / DATABRICKS_TOKEN / *_API_KEY / *_TOKEN into a
     # subprocess that might pipe them to a remote server.
     _ALLOWED_ENV = {
-        "PATH", "HOME", "LANG", "LC_ALL", "LC_CTYPE", "TERM", "SHELL",
+        "PATH", "LANG", "LC_ALL", "LC_CTYPE", "TERM", "SHELL",
         "USER", "LOGNAME", "TMPDIR", "TMP", "TEMP", "PROMPT", "PS1", "PS2",
         # Platform essentials (Windows needs these to find cmd.exe etc.)
         "SYSTEMROOT", "WINDIR", "COMSPEC", "PATHEXT", "OS",
@@ -200,10 +200,22 @@ async def run_terminal_command(
         for k, v in env.items():
             if k.upper().endswith(("_API_KEY", "_TOKEN", "_SECRET", "_PASSWORD")):
                 continue  # never let a tool-specified secret through either
+            if k.upper() in ("HOME", "NEXA_HOME", "NEXA_WORKSPACE"):
+                continue  # don't let caller redirect HOME back to ~/
             full_env[k] = v
 
     # Resolve working directory (project-scoped boundary).
     work_dir = _validate_cwd(cwd)
+
+    # v4.1.2 security: override HOME/NEXA_HOME/NEXA_WORKSPACE so any
+    # ``chr(126)+chr(47)+chr(46)+chr(110)...``-style obfuscated path (or any
+    # ``os.path.expanduser('~/.nexa/...')`` call inside a spawned Python)
+    # resolves to the workspace, NOT the real user home. Without this the
+    # entire chr()-based exfiltration family works because the regex block
+    # matches nothing on the command string.
+    full_env["HOME"] = str(work_dir)
+    full_env["NEXA_HOME"] = str(work_dir)
+    full_env["NEXA_WORKSPACE"] = str(work_dir)
 
     # Spawn the process with a new process group (so timeout can kill the tree).
     popen_kwargs: Dict[str, Any] = {

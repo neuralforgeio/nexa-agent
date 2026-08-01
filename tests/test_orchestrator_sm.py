@@ -91,6 +91,20 @@ class TestStateMachine:
         assert nxt2 == AgentPhase.DONE
         assert fresh_orch.state.round_count == 1
 
+    def test_decide_next_returns_actual_phase_when_cap_hit(self, fresh_orch):
+        """BUG P0-AGENT-1: decide_next returned CODING while state was DONE."""
+        fresh_orch.transition_to(AgentPhase.CODING)
+        # Drive 3 REVIEWING→CODING loops via decide_next.
+        for i in range(3):
+            fresh_orch.transition_to(AgentPhase.REVIEWING)
+            result = fresh_orch.decide_next({"saw_error": True, "error_summary": f"fail {i+1}"})
+            # The returned phase MUST match the actual phase.
+            assert result == fresh_orch.current_phase, (
+                f"loop {i+1}: returned {result} but actual is {fresh_orch.current_phase}"
+            )
+        # After 3 loops we must be DONE.
+        assert fresh_orch.current_phase == AgentPhase.DONE
+
     def test_history_uses_log_event(self, fresh_orch):
         fresh_orch.transition_to(AgentPhase.CODING, reason="initial")
         fresh_orch.transition_to(AgentPhase.REVIEWING, reason="ready to review")

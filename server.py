@@ -120,8 +120,13 @@ def verify_token_ws(token: Optional[str]) -> None:
 # ---------------------------------------------------------------------------
 # Singleton instances
 # ---------------------------------------------------------------------------
+from run_agent import set_active_agent  # for the delegate tool
+
 _db: ConversationDB = ConversationDB()
 _agent: NexaAgent = NexaAgent(db=_db)
+# Register the singleton as the active agent so tools like ``delegate`` and
+# ``terminal_exec`` can find the running instance at runtime.
+set_active_agent(_agent)
 
 
 # ---------------------------------------------------------------------------

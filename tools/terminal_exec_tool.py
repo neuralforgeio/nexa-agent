@@ -23,7 +23,7 @@ from dataclasses import dataclass, field
 from typing import Any, AsyncGenerator, Dict, List, Optional
 
 from tools.terminal_tool import run_terminal_command
-from nexa.config import NEXA_HOME
+from nexa.config import NEXA_HOME, NEXA_WORKSPACE
 
 
 # ---------------------------------------------------------------------------
@@ -87,7 +87,7 @@ class TerminalExecTool:
         if session_id:
             if session_id not in self._sessions:
                 self._sessions[session_id] = TerminalSession(
-                    session_id=session_id, cwd=cwd or str(NEXA_HOME)
+                    session_id=session_id, cwd=cwd or str(NEXA_WORKSPACE)
                 )
             session = self._sessions[session_id]
 
