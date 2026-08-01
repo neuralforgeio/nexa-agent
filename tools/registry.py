@@ -33,17 +33,48 @@ _FORBIDDEN_IMPORTS = frozenset({
 #: Dangerous names a tool body may not reference.
 _FORBIDDEN_NAMES = frozenset({
     "eval", "exec", "__import__", "compile", "globals", "locals",
-    "open", "input", "breakpoint", "exit", "quit",
+    "open", "input", "breakpoint", "exit", "quit", "__builtins__",
 })
+
+#: Forbidden attribute chains (``<base>.<attr>``).
+_FORBIDDEN_ATTR_CHAINS = frozenset({
+    ("sys", "modules"),
+    ("sys", "__import__"),
+    ("os", "system"),
+    ("os", "popen"),
+    ("builtins", "__import__"),
+    ("builtins", "open"),
+    ("builtins", "exec"),
+    ("builtins", "eval"),
+    ("builtins", "compile"),
+    ("builtins", "getattr"),
+    ("builtins", "setattr"),
+    ("builtins", "vars"),
+    ("builtins", "dir"),
+    # __builtins__ may resolve to either dict or module depending on context.
+    ("__builtins__", "open"),
+    ("__builtins__", "exec"),
+    ("__builtins__", "eval"),
+    ("__builtins__", "compile"),
+    ("__builtins__", "__import__"),
+    ("__builtins__", "getattr"),
+})
+
+#: Forbidden direct subscript form: __builtins__["open"](...)
+_FORBIDDEN_SUBSCRIPT_BASES = frozenset({"__builtins__", "builtins"})
 
 
 def ast_check_tool_source(source: str) -> Tuple[bool, str]:
     """
     Static analysis on a user tool's Python source.
 
-    Walks the AST and rejects the file if it uses a forbidden import
-    (``os``, ``subprocess``, ...) or dangerous builtin (``eval``, ``exec``,
-    ``__import__``, attribute access like ``sys.modules`` / ``builtins.*``).
+    Walks the AST and rejects files that:
+      - import a forbidden module (``os``, ``subprocess``, ...)
+      - call a forbidden builtin (``eval``, ``exec``, ``__import__``, ...)
+      - reach these via ``__builtins__.*`` / ``builtins.*`` attribute chains,
+        e.g. ``__builtins__.open("/etc/passwd")`` or ``sys.modules[...]``.
+      - use the subscript variant ``__builtins__["open"](...)``.
+      - invoke ``getattr(<mod>, "system")`` style indirect dispatch.
 
     Args:
         source: The full Python source code of the tool file.
@@ -67,17 +98,35 @@ def ast_check_tool_source(source: str) -> Tuple[bool, str]:
             top = (node.module or "").split(".")[0]
             if top in _FORBIDDEN_IMPORTS:
                 return False, f"forbidden import: {node.module}"
-        # Reject dangerous bare names: eval(...), exec(...), __import__(...).
+
+        # Reject forbidden bare names: eval(...), exec(...), open, ...
         elif isinstance(node, ast.Name):
             if node.id in _FORBIDDEN_NAMES:
                 return False, f"forbidden name: {node.id}"
-        # Reject ``sys.modules`` / ``builtins.__import__`` attribute chains.
+
+        # Reject dangerous attribute chains on builtins/sys/os.
         elif isinstance(node, ast.Attribute):
-            if node.attr in ("modules", "__import__", "system", "popen") and isinstance(
-                node.value, ast.Name
-            ):
-                if node.value.id in ("sys", "builtins", "importlib", "os"):
-                    return False, f"forbidden attribute: {node.value.id}.{node.attr}"
+            if isinstance(node.value, ast.Name):
+                base = node.value.id
+                if (base, node.attr) in _FORBIDDEN_ATTR_CHAINS:
+                    return False, f"forbidden attribute chain: {base}.{node.attr}"
+                # Also catch sys.modules
+                if base == "sys" and node.attr == "modules":
+                    return False, "forbidden attribute: sys.modules"
+
+        # Reject __builtins__ / builtins via subscript: __builtins__["open"]
+        # or builtins.open() through the open attribute.
+        elif isinstance(node, ast.Subscript):
+            if isinstance(node.value, ast.Name) and node.value.id in _FORBIDDEN_SUBSCRIPT_BASES:
+                return False, f"forbidden subscript on {node.value.id}"
+            # Block __builtins__[any-dynamic] via __getattr__ through getattr.
+            if isinstance(node.value, ast.Call):
+                f = node.value.func
+                if isinstance(f, ast.Name) and f.id == "getattr":
+                    # getattr(<x>, <literal>) — flag if base is dangerous
+                    if node.value.args and isinstance(node.value.args[0], ast.Name):
+                        if node.value.args[0].id in _FORBIDDEN_SUBSCRIPT_BASES:
+                            return False, "forbidden getattr on builtins"
 
     return True, "ok"
 
@@ -242,7 +291,7 @@ class ToolRegistry:
         ]
         return "\n".join(lines)
 
-    async def execute(self, name: str, **kwargs: Any) -> ToolResult:
+    async def execute(self, name: str, /, **kwargs: Any) -> ToolResult:
         """
         Execute a registered tool by name.
 

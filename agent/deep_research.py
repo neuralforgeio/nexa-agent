@@ -196,6 +196,44 @@ _CLAIM_PATTERN = re.compile(
 )
 
 
+def _parse_search_text(text: str) -> List[Dict[str, Any]]:
+    """
+    Parse a ``web_search`` tool's standard text output back into a list of
+    hit dicts.
+
+    Expects the formatted layout::
+
+        Web search results for 'query' (N found):
+
+        1. Title
+           URL: https://example.com
+           snippet...
+
+        2. ...
+
+    Returns:
+        A list of ``{"title": ..., "url": ..., "snippet": ...}`` dicts.
+    """
+    hits: List[Dict[str, Any]] = []
+    if not text:
+        return hits
+    # Split by "N." markers at line start.
+    blocks = re.split(r"\n\s*\d+\.\s", text)
+    for block in blocks[1:]:  # skip header
+        lines = block.strip().split("\n")
+        if len(lines) < 2:
+            continue
+        title = lines[0].strip().lstrip("0123456789. ")
+        url_match = re.search(r"URL:\s*(.+?)\s*$", lines[1])
+        if not url_match:
+            continue
+        url = url_match.group(1).strip()
+        snippet = " ".join(l.strip() for l in lines[2:]).strip()
+        if url:
+            hits.append({"title": title, "url": url, "snippet": snippet})
+    return hits
+
+
 def _extract_facts(
     content: str,
     source_url: str,
@@ -282,14 +320,29 @@ async def deep_research(
         try:
             results = await search_fn(q)
             if results:
-                all_results.extend(results)
+                # Defensive parsing (v4.1.2): some search fns return a
+                # formatted string (e.g. ``web_search``) instead of a list
+                # of dicts — coerce either shape into a list of dicts so
+                # downstream ``r.get("url")`` doesn't explode with
+                # ``AttributeError: 'str' object has no attribute 'get'``.
+                if isinstance(results, str):
+                    all_results.extend(_parse_search_text(results))
+                elif isinstance(results, list):
+                    all_results.extend(r for r in results if isinstance(r, dict))
+                elif isinstance(results, dict):
+                    all_results.append(results)
         except Exception:
             continue
+
+    # Keep only entries that look like a real search hit.
+    valid: List[Dict[str, Any]] = [
+        r for r in all_results if isinstance(r, dict) and r.get("url")
+    ]
 
     # Deduplicate by URL, keep top half.
     seen_urls: set = set()
     unique_results: List[Dict[str, Any]] = []
-    for r in all_results:
+    for r in valid:
         url = r.get("url", "")
         if url and url not in seen_urls:
             seen_urls.add(url)

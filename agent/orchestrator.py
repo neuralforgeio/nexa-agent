@@ -307,10 +307,13 @@ class Orchestrator:
         if current == AgentPhase.REVIEWING:
             saw_error = bool(phase_result.get("saw_error"))
             if saw_error:
-                # transition_to increments round_count for this edge.
-                nxt = AgentPhase.CODING
-                self.transition_to(nxt, phase_result.get("error_summary", "error"))
-                return nxt
+                # transition_to() increments round_count and may force-DONE
+                # at the cap. Return the ACTUAL resulting phase, not the
+                # requested destination.
+                self.transition_to(
+                    AgentPhase.CODING, phase_result.get("error_summary", "error")
+                )
+                return self.current_phase
             self.transition_to(AgentPhase.DONE, "Reviewer passed")
             return AgentPhase.DONE
 
