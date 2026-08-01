@@ -7,7 +7,7 @@ Copy-paste seluruh blok di bawah ini ke chat baru:
 
 Anda adalah "Nexa Autonomous Principal Engineer". Anda akan melanjutkan pengembangan Nexa Agent — Local AI Agent murni Python dengan ekosistem antarmuka modular. Anda memiliki akses terminal penuh melalui IDE desktop.
 
-## STATUS PROYEK SAAT INI (v4.1.0)
+## STATUS PROYEK SAAT INI (v4.1.6)
 
 - **Repo GitHub**: https://github.com/neuralforgeio/nexa-agent
 - **GitHub Username**: neuralforgeio
@@ -16,15 +16,35 @@ Anda adalah "Nexa Autonomous Principal Engineer". Anda akan melanjutkan pengemba
 - **Path lokal**: `C:\Users\Dearly Febriano\nexa-agent` (BUKAN `Documents/Prism-Agent` — folder Documents diblokir CFA)
 - **Branch**: main
 - **Python**: 3.13.3 (pakai `.venv/Scripts/python.exe`)
-- **Versi pyproject.toml**: 4.0.0 [Latest Released]
-- **Tests terakhir**: 603 passing, 0 failed
+- **Versi pyproject.toml**: 4.1.6 [Latest Released]
+- **Tests terakhir**: 633 passing, 0 failed
 - **Tools**: 33 (13 core + 20 planning di `tools/planning/`)
-- **Agent modules**: 33
+- **Agent modules**: 36 (33 asli + orchestrator + persona_manager + memory_files v4.1)
 - **Providers**: 8 (openai, openrouter, ollama, llamacpp, lmstudio, vllm, tokenrouter, databricks) + custom endpoints
 - **Python packages**: nexa/, agent/, tools/, providers/, nexa_cli/, ui_tui/, tui_gateway/
 - **User-tools**: `~/.nexa/tools/*.py` auto-loaded (see `tools/registry.py::load_user_tools`)
 
-## v4.1.0 HEADLINES
+## v4.1.0–v4.1.6 HEADLINES
+
+- **v4.1.0** introduced the Virtual Multi-Agent Orchestrator (Planner → Explorer → Coder
+  → Reviewer) with five persona badges, the shared workspace state files in
+  `~/.nexa/workspace/`, an `agent_persona` SSE event, and full intelligence-mesh
+  wiring in `run_agent.py`'s transcript builder. New modules:
+  `agent/orchestrator.py`, `agent/persona_manager.py`.
+
+- **v4.1.6** fixed six live bugs found during GLM-5.2 audit:
+  - `ToolRegistry.execute` collision when a tool has a `name=` parameter.
+  - AST sandbox was blind to `__builtins__.open()` and `__builtins__['open']` —
+    now rejected.
+  - Orchestrator `decide_next` returned a stale phase when the cap triggered.
+  - `terminal_exec` was calling `run_terminal_command` with `NEXA_HOME` as cwd
+    instead of `NEXA_WORKSPACE` and swallowing errors into dicts.
+  - Subprocess env leaks: `HOME` redirected to the workspace so
+    `chr(126)+chr(47)+chr(46)+chr(110)...`-style exfiltration is neutralised.
+  - `pyproject.toml` now explicitly declares `fastapi`, `uvicorn`, `websockets`,
+    `watchdog`.
+
+## v4.1.0 HEADLINES (kept for context)
 
 - **Sandbox Panel** (web UI): right sidebar with Preview-over-Terminal split, draggable divider, dev-server autodetect, static-file fallback via `/api/sandbox/preview`.
 - **Working Process dropdown**: nested thinking traces that auto-collapse on completion (one-line summary left behind).
@@ -198,6 +218,24 @@ tool-results/              # runtime artifacts
 9. **CROSS-PLATFORM**: JANGAN hardcode `python3` — pakai `sys.executable`. Build scripts frontend jangan pakai `cp -r`/`tee` (Unix-only) — pakai Node scripts atau `shx`.
 10. **PROJECT-SCOPED BOUNDARY** (bukan sandbox isolasi penuh): Validasi path via `Path.resolve().is_relative_to(NEXA_WORKSPACE)`. Untuk `code_execution`, tambah HITL approval callback.
 11. **UPDATE CONTINUATION_PROMPT.md SETIAP FEATURE BARU**: Setelah menyelesaikan setiap sub-task (P1.1, P1.2, dst), UPDATE file ini agar user bisa switch chat tanpa kehilangan context.
+12. **BRANCH + TAG + RELEASE DISCIPLINE** (mandatory, effective v4.1.6):
+    - Setiap pekerjaan baru: `git checkout -b nexa-demo-<8-hex>` dari `main`.
+    - Implementasikan di branch demo; **JANGAN push langsung ke `main`**.
+    - Setelah semua gate hijau (pytest + lint + build): `git push -u origin nexa-demo-<id>` untuk testing/UAT.
+    - User verify demo branch, lalu: `git checkout main && git merge --no-ff nexa-demo-<id> -m "Merge ..."`.
+    - Tag wajib `git tag -a vX.Y.Z -m "Nexa Agent vX.Y.Z — <headline>"` lalu `git push origin main vX.Y.Z`.
+    - GitHub Release dibuat dari tag (via API atau UI). Dokumen release notes
+      wajib ada di `.plans/release_body.json` sebelum curl POST.
+    - Nomor versi PATCH (v4.1.X) mencerminkan **jumlah bug yang fixed** dalam
+      batch tsb. MINOR (v4.X.0) untuk fitur baru. MAJOR (v5.0.0) untuk break
+      compat atau architecture shift yang signifikan.
+13. **HYGIENE SWEEP SEBELUM PUSH** (mandatory, effective v4.1.6):
+    - `grep -rE "v[34]\.[0-9]+\.[0-9]+" --include="*.py" --include="*.ts" --include="*.tsx" .` — pastikan tidak ada stale version refs.
+    - `git grep "ghp_"` — tidak ada token asli di commit.
+    - `.venv/Scripts/python.exe -m pytest tests/ -q --tb=no` = SEMUA PASS.
+    - `cd nexa_web && npm run lint && npm run build` = 0 errors.
+    - File yang baru diubah ada di list `git status`; file yang di-push hanya yang termasuk di "STRUKTUR REPO (yang BOLEH di-push)".
+    - History files (`worklog.md`, `.plans/release_body.json`, `.plans/changelog*`) DIDOKUMENTASIKAN sebagai fakta historis, JANGAN diedit jadi "nanti".
 
 ## CARA MELANJUTKAN
 
