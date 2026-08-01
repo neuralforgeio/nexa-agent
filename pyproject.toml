@@ -1,6 +1,6 @@
 [project]
 name = "nexa-agent"
-version = "4.1.6"
+version = "4.2.0"
 description = "Nexa Agent — The advanced AI agent by Dearly Febriano Irwansyah"
 authors = [{ name = "Dearly Febriano Irwansyah" }]
 license = "MIT"
@@ -30,7 +30,15 @@ nexa-chat = "cli:main"
 nexa-agent = "run_agent:main"
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0", "pytest-asyncio>=0.24"]
+dev = ["pytest>=8.0", "pytest-asyncio>=0.24", "pytest-timeout>=2.3", "pytest-xdist>=3.6"]
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+markers = [
+    "timeout(seconds): per-test wall clock ceiling (pytest-timeout)",
+    "llamacpp: needs a live llama.cpp server on 127.0.0.1:8080",
+    "slow: tests slow enough to want filtering on CI",
+]
 
 [build-system]
 requires = ["setuptools>=77,<83"]

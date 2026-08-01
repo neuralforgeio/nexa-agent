@@ -1,4 +1,4 @@
-# Nexa Agent — Provider Setup Guide (v3.0.0)
+# Nexa Agent — Provider Setup Guide (v4.2.0)
 
 Nexa Agent supports any OpenAI-compatible LLM provider. Configure via
 interactive CLI, env vars, or the Web UI Settings panel.
@@ -19,18 +19,46 @@ nexa provider use tokenrouter
 nexa-chat
 ```
 
-## Supported Providers (8)
+## Supported Providers (24 in v4.2.0)
 
-| Provider | Base URL | Default Model | Auth |
-|----------|----------|---------------|------|
-| openai | https://api.openai.com/v1 | gpt-4o | OPENAI_API_KEY (sk-...) |
-| openrouter | https://openrouter.ai/api/v1 | anthropic/claude-3.5-sonnet | OPENROUTER_API_KEY |
-| ollama | http://localhost:11434/v1 | llama3.2 | dummy (local) |
-| llamacpp | http://localhost:8080/v1 | local-model | dummy (local) |
-| lmstudio | http://localhost:1234/v1 | loaded-model | dummy (local) |
-| vllm | http://localhost:8000/v1 | meta-llama/Llama-3.1-8B-Instruct | dummy (local) |
-| **tokenrouter** | https://api.tokenrouter.io/v1 | auto:balance | TOKENROUTER_API_KEY (tr_...) |
-| **databricks** | (set NEXA_BASE_URL) | databricks-claude-sonnet-4-6 | DATABRICKS_TOKEN (dapi...) |
+### Cloud providers (paid or free tier)
+
+| Provider | Base URL | Default Model | Env var | Free tier |
+|----------|----------|---------------|---------|-----------|
+| **openai** | https://api.openai.com/v1 | gpt-4o | OPENAI_API_KEY | – |
+| **anthropic** | https://api.anthropic.com/v1 | claude-sonnet-4 | ANTHROPIC_API_KEY | – |
+| **cohere** | https://api.cohere.com/compatibility/v1 | command-r-plus | COHERE_API_KEY | ✓ |
+| **databricks** | (set `NEXA_BASE_URL`) | databricks-claude-sonnet-4-6 | DATABRICKS_TOKEN | – |
+| **deepseek** | https://api.deepseek.com/v1 | deepseek-chat | DEEPSEEK_API_KEY | ✓ |
+| **fireworks** | https://api.fireworks.ai/inference/v1 | llama-v3p3-70b | FIREWORKS_API_KEY | ✓ |
+| **gemini** | https://generativelanguage.googleapis.com/v1beta/openai | gemini-2.0-flash | GEMINI_API_KEY / GOOGLE_API_KEY | ✓ |
+| **groq** | https://api.groq.com/openai/v1 | llama-3.3-70b-versatile | GROQ_API_KEY | ✓ |
+| **mistral** | https://api.mistral.ai/v1 | mistral-large-latest | MISTRAL_API_KEY | ✓ |
+| **perplexity** | https://api.perplexity.ai | sonar-pro | PPLX_API_KEY | – |
+| **together** | https://api.together.xyz/v1 | Llama-3.3-70B-Instruct-Turbo | TOGETHER_API_KEY | ✓ |
+| **xai** | https://api.x.ai/v1 | grok-2-latest | XAI_API_KEY | – |
+
+### Local / self-hosted
+
+| Provider | Base URL | Default model |
+|----------|----------|---------------|
+| **jan** | http://localhost:1337/v1 | llama3.2 |
+| **koboldcpp** | http://localhost:5001/v1 | loaded-model |
+| **llamacpp** | http://localhost:8080/v1 | local-model |
+| **lmstudio** | http://localhost:1234/v1 | loaded-model |
+| **localai** | http://localhost:8080/v1 | gpt-3.5-turbo |
+| **ollama** | http://localhost:11434/v1 | llama3.2 |
+| **textgen** | http://localhost:5000/v1 | loaded-model |
+| **vllm** | http://localhost:8000/v1 | meta-llama/Llama-3.1-8B-Instruct |
+
+### Routers / gateways
+
+| Provider | Base URL | Default model | Notes |
+|----------|----------|---------------|-------|
+| **helicone** | https://oai.hconeai.com/v1 | gpt-4o | Observability + caching proxy |
+| **litellm** | http://localhost:4000/v1 | gpt-3.5-turbo | Front door for 100+ models |
+| **openrouter** | https://openrouter.ai/api/v1 | anthropic/claude-3.5-sonnet | 100+ downstreams |
+| **tokenrouter** | https://api.tokenrouter.io/v1 | auto:balance | Cost/latency/quality routing |
 
 ## TokenRouter (v3.0.0 new)
 
