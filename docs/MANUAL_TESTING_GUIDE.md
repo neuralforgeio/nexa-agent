@@ -75,7 +75,7 @@ python -m ui_tui.app
 Layout:
 
 ```
-┌─ Nexa Agent v3.1.0 │ model: Ornith-1.0-9b │ tokens: ~0 │ server: UP │ 14:32 ─┐
+┌─ Nexa Agent v4.1.0 │ model: Ornith-1.0-9b │ tokens: ~0 │ server: UP │ 14:32 ─┐
 ├──────────────────────────────────────┬─────────────────────────────────────┤
 │ Chat                                                       │ Tool Log:        │
 │                                                            │                  │

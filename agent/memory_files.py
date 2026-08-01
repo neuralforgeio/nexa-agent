@@ -40,7 +40,7 @@ MEMORY_FILE: Path = MEMORY_DIR / "MEMORY.md"
 USER_FILE: Path = MEMORY_DIR / "USER.md"
 
 #: Optional root-level USER.md at ``~/.nexa/USER.md`` overrides the
-#: per-memory copy if present (v4.0.0). Users can edit the root file for
+#: per-memory copy if present (v4.1.0). Users can edit the root file for
 #: quick tweaks without digging into the memory subdirectory.
 USER_FILE_ROOT: Path = NEXA_HOME / "USER.md"
 
@@ -76,7 +76,7 @@ def read_user_file() -> str:
     """
     Read the contents of ``USER.md``.
 
-    Resolution order (v4.0.0):
+    Resolution order (v4.1.0):
       1. ``~/.nexa/USER.md`` (root-level, easier for users to edit), if
          it exists and is non-empty.
       2. ``~/.nexa/memory/USER.md``.

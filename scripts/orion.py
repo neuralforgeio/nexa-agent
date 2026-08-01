@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Nexa Agent — Ornith helper for llama.cpp (v3.2.0)
+Nexa Agent — Ornith helper for llama.cpp (v4.1.0)
 
 Verifies:
     - llama-server listening on http://127.0.0.1:8080
@@ -77,7 +77,7 @@ async def main() -> int:
     )
     args = parser.parse_args()
 
-    print(f"Nexa Ornith Tool v3.2.0 (llama-server:{args.base_url})")
+    print(f"Nexa Ornith Tool v4.1.0 (llama-server:{args.base_url})")
     print(f"Model: {args.model}")
     print()
 

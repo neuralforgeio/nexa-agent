@@ -1,5 +1,5 @@
 /**
- * Nexa Agent — Main Chat Page (v4.0.0 — Enterprise Workspace)
+ * Nexa Agent — Main Chat Page (v4.1.0 — Security + Virtual Multi-Agent)
  *
  * Layout:
  *   [Sidebar | Chat | Sandbox(right, resizable 50/50 preview+terminal)]
@@ -48,7 +48,7 @@ export default function Page() {
   // (or clicks the toggle). This prevents the sandbox from loading
   // the Nexa UI itself on first paint.
   const [sandboxOpen, setSandboxOpen] = useState(false);
-  const [appVersion, setAppVersion] = useState<string>("4.0.0");
+  const [appVersion, setAppVersion] = useState<string>("4.1.0");
   const scrollRef = useRef<HTMLDivElement>(null);
   const inFlightRef = useRef(false);
 

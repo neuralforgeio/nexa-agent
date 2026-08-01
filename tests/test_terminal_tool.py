@@ -73,7 +73,7 @@ class TestOutputTruncation:
     @pytest.mark.asyncio
     async def test_stdout_truncation_indicator(self) -> None:
         """When stdout exceeds MAX_STDOUT, a truncation indicator must appear."""
-        # v3.0.1: use sys.executable (cross-platform, not hardcoded python3).
+        # v4.1.0: use sys.executable (cross-platform, not hardcoded python3).
         import sys as _sys
         result = await run_terminal_command(
             f'"{_sys.executable}" -c "print(\'x\' * 5000)"'
@@ -152,7 +152,7 @@ class TestEnvironmentAndCwd:
     @pytest.mark.asyncio
     async def test_env_variable_injection(self) -> None:
         """Custom environment variables must be accessible in the command."""
-        # v3.0.1: cross-platform — use Python's os.environ instead of shell
+        # v4.1.0: cross-platform — use Python's os.environ instead of shell
         # expansion (which differs between bash, cmd.exe, and Git Bash).
         import sys as _sys
         result = await run_terminal_command(
@@ -195,7 +195,7 @@ class TestRegistryIntegration:
     """Tests that the new tools are registered correctly."""
 
     def test_eleven_tools_registered(self, registry: ToolRegistry) -> None:
-        """The registry must now have 33 tools (v4.0.0: 13 core + 20 planning)."""
+        """The registry must now have 33 tools (v4.1.0: 13 core + 20 planning)."""
         names = set(registry.list_names())
         assert "list_background_processes" in names
         assert "kill_background_process" in names
@@ -203,7 +203,7 @@ class TestRegistryIntegration:
         assert "code_execution" in names
         assert "file_patch" in names
         assert "revert_file" in names
-        assert len(names) == 33  # v4.0.0: +20 planning tools
+        assert len(names) == 33  # v4.1.0: +20 planning tools
 
     def test_bg_tools_have_schemas(self, registry: ToolRegistry) -> None:
         """Background tools must have valid OpenAI schemas."""

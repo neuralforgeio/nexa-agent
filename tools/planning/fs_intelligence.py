@@ -1,5 +1,5 @@
 """
-Nexa Agent — Planning Tools: Filesystem Intelligence (v4.0.0)
+Nexa Agent — Planning Tools: Filesystem Intelligence (v4.1.0)
 =============================================================
 
 Four tools:

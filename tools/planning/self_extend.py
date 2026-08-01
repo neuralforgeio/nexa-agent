@@ -1,5 +1,5 @@
 """
-Nexa Agent — Planning Tools: Self-Extension (v4.0.0)
+Nexa Agent — Planning Tools: Self-Extension (v4.1.0)
 =====================================================
 
 The "getting smarter" tier:

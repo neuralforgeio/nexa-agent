@@ -81,7 +81,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         help=f"Port for the gateway server (default: {DEFAULT_GATEWAY_PORT})",
     )
 
-    # provider (v3.0.0): interactive add/use/list/remove/test
+    # provider (v4.1.0): interactive add/use/list/remove/test
     provider_parser = subparsers.add_parser(
         "provider", help="Manage LLM providers (add/use/list/remove/test)"
     )
@@ -145,11 +145,11 @@ def _print_rich_help() -> None:
         ("gateway start", "Start the gateway server", "nexa gateway start --port 8000"),
         ("gateway stop", "Stop the gateway server (graceful SIGTERM)", "nexa gateway stop"),
         ("gateway status", "Check if the gateway server is running", "nexa gateway status"),
-        ("provider list", "List all LLM providers (v3.0.0)", "nexa provider list"),
-        ("provider add", "Interactively add a custom provider (v3.0.0)", "nexa provider add tokenrouter"),
-        ("provider use", "Switch the active provider (v3.0.0)", "nexa provider use tokenrouter"),
-        ("provider remove", "Remove a custom provider (v3.0.0)", "nexa provider remove tokenrouter"),
-        ("provider test", "Health-check a provider (v3.0.0)", "nexa provider test openai"),
+        ("provider list", "List all LLM providers (v4.1.0)", "nexa provider list"),
+        ("provider add", "Interactively add a custom provider (v4.1.0)", "nexa provider add tokenrouter"),
+        ("provider use", "Switch the active provider (v4.1.0)", "nexa provider use tokenrouter"),
+        ("provider remove", "Remove a custom provider (v4.1.0)", "nexa provider remove tokenrouter"),
+        ("provider test", "Health-check a provider (v4.1.0)", "nexa provider test openai"),
         ("doctor", "Run self-health diagnostics", "nexa doctor"),
     ]
     for cmd, desc, example in rows:
@@ -293,7 +293,7 @@ def _cmd_provider(
     model: Optional[str] = None,
 ) -> int:
     """
-    Manage LLM providers (v3.0.0): add / use / list / remove / test.
+    Manage LLM providers (v4.1.0): add / use / list / remove / test.
 
     Args:
         action:  One of 'add', 'use', 'list', 'remove', 'test'.

@@ -1,5 +1,5 @@
 """
-Nexa Agent — Planning Tools: Task Plan + TODO Lists (v4.0.0)
+Nexa Agent — Planning Tools: Task Plan + TODO Lists (v4.1.0)
 =============================================================
 
 Three tools:

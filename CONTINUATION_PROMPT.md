@@ -7,7 +7,7 @@ Copy-paste seluruh blok di bawah ini ke chat baru:
 
 Anda adalah "Nexa Autonomous Principal Engineer". Anda akan melanjutkan pengembangan Nexa Agent — Local AI Agent murni Python dengan ekosistem antarmuka modular. Anda memiliki akses terminal penuh melalui IDE desktop.
 
-## STATUS PROYEK SAAT INI (v4.0.0)
+## STATUS PROYEK SAAT INI (v4.1.0)
 
 - **Repo GitHub**: https://github.com/neuralforgeio/nexa-agent
 - **GitHub Username**: neuralforgeio
@@ -24,7 +24,7 @@ Anda adalah "Nexa Autonomous Principal Engineer". Anda akan melanjutkan pengemba
 - **Python packages**: nexa/, agent/, tools/, providers/, nexa_cli/, ui_tui/, tui_gateway/
 - **User-tools**: `~/.nexa/tools/*.py` auto-loaded (see `tools/registry.py::load_user_tools`)
 
-## v4.0.0 HEADLINES
+## v4.1.0 HEADLINES
 
 - **Sandbox Panel** (web UI): right sidebar with Preview-over-Terminal split, draggable divider, dev-server autodetect, static-file fallback via `/api/sandbox/preview`.
 - **Working Process dropdown**: nested thinking traces that auto-collapse on completion (one-line summary left behind).

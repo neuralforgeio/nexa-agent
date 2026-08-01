@@ -1,14 +1,14 @@
 # Nexa Agent
 
 > **The Ultimate Local AI Agent Enterprise — by Dearly Febriano Irwansyah**
-> **Version 4.0.0** · Extended MIT License · [SYSTEMPROMPT.md](./SYSTEMPROMPT.md)
+> **Version 4.1.0** · Extended MIT License · [SYSTEMPROMPT.md](./SYSTEMPROMPT.md)
 
 A terminal-first local AI agent with iterative tool-calling, multi-provider
 support (8 providers + custom endpoints), a self-improvement memory system,
 an interactive TUI built with prompt_toolkit + rich, and a full Web UI
 (Next.js + React) with sidebar/toolstreams.
 
-**v4.0.0 highlights**
+**v4.1.0 highlights**
 
 - **Sandbox Panel** — right-hand sidebar with a vertically-split
   **Web Preview** (top half) and **real PTY Terminal** (bottom half).
@@ -31,7 +31,8 @@ an interactive TUI built with prompt_toolkit + rich, and a full Web UI
   double-binds port 8000.
 - **33-agent intelligence mesh** — reasoning chains, memory curator, error
   classifier, self-healer, prompt expander, intent classifier, persona
-  adapter, trajectory recorder, semantic memory… and the v4.0 planner.
+  adapter, trajectory recorder, semantic memory… and the v4.0 planner
+  (now fully wired into the system prompt as of v4.1.0).
 
 ## Features
 
@@ -43,7 +44,8 @@ an interactive TUI built with prompt_toolkit + rich, and a full Web UI
 - **Web UI** — Next.js + React with collapsible sidebar (`Ctrl+B`), sandbox
   (`Ctrl+J`), streaming chat, tool cards, SettingsPanel, TerminalPanel
 - **33 Tools** — 13 core (read_file, write_file, run_terminal_command,
-  delegate, code_execution, web_search, file_patch, …) + 20 v4.0 planning tools
+  delegate, code_execution, web_search, file_patch, …) + 20 planning tools
+  (added v4.0, hardened v4.1)
 - **30+ Intelligence Modules** — Self-improvement, self-healing, autonomous
   web learning, knowledge cache, confidence scoring, intent classification,
   pattern recognition, error memory, adaptive persona, reasoning chain,
@@ -228,7 +230,7 @@ python cli.py --provider llamacpp
 | `deep_research` | Multi-source research with citations |
 | `terminal_exec` | Terminal command with session persistence |
 
-### v4.0 Planning Toolkit (20 tools)
+### Planning Toolkit (20 tools — added v4.0, hardened v4.1)
 
 **Planning & reasoning**
 
@@ -284,7 +286,7 @@ All file/terminal operations are sandboxed to `nexa-workspace/` (or the
 `NEXA_WORKSPACE` env var you've set). Read-only tools may read project
 files but never mutate anything outside the workspace.
 
-## Sandbox Panel (v4.0 Web UI)
+## Sandbox Panel (Web UI)
 
 The web UI at `http://localhost:3000` ships with a new right-hand sidebar
 called the **Sandbox**:

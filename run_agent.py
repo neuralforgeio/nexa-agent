@@ -101,7 +101,7 @@ class NexaAgent:
             db:            Override the default storage instance.
         """
         # Resolve provider config.
-        # v3.1.0: first try the ProviderRegistry (custom providers like 'ornith'),
+        # v4.1.0: first try the ProviderRegistry (custom providers like 'ornith'),
         # then fall back to the catalog (openai, ollama, etc.).
         if provider_name:
             from nexa.provider_registry import ProviderRegistry
@@ -125,7 +125,7 @@ class NexaAgent:
         self.registry = registry or create_default_registry()
         self.db = db or ConversationDB()
 
-        # v3.0.0: build a failover chain if NEXA_FAILOVER_ENABLED=1.
+        # v4.1.0: build a failover chain if NEXA_FAILOVER_ENABLED=1.
         # The chain lets the conversation loop swap providers on failure.
         self.failover_chain = None
         try:
@@ -203,7 +203,7 @@ class NexaAgent:
         Returns:
             The full transcript ready for the LLM API call.
         """
-        # v3.0.0: load long-term memory + user profile from ~/.nexa/memory/.
+        # v4.1.0: load long-term memory + user profile from ~/.nexa/memory/.
         memory_digest = ""
         user_profile = ""
         learning_stats = None
@@ -341,7 +341,7 @@ class NexaAgent:
 
         history = history or []
 
-        # v3.1.0: Ask Question Mode — decide BEFORE the transcript build so
+        # v4.1.0: Ask Question Mode — decide BEFORE the transcript build so
         # the (large) "Available Tools" section can be stripped (v4.1.0).
         from agent.ask_question_mode import (
             should_use_quick_mode,
