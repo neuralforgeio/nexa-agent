@@ -52,7 +52,18 @@ export type EventType =
   | "error"
   | "end"
   | "compressing"
-  | "memory";
+  | "memory"
+  // v4.1.6 introspection events
+  | "heal"
+  | "failover"
+  | "expand"
+  | "intent"
+  | "confidence"
+  | "reflection"
+  | "suggestions"
+  | "autolearn"
+  | "patterns"
+  | "agent_persona";
 
 export interface ChatEvent {
   type: EventType;

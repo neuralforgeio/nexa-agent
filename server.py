@@ -349,6 +349,24 @@ async def chat_stream(req: ChatStreamRequest) -> StreamingResponse:
                     yield f"data: {encoder({'type': 'memory', 'memories': event.get('memories', [])})}\n\n"
                 elif ev_type == "patterns":
                     yield f"data: {encoder({'type': 'patterns', 'detail': event.get('detail', '')})}\n\n"
+                # v4.1.6: forward the additional introspection events so the
+                # UI can show healing/failover/confidence in real time.
+                elif ev_type == "heal":
+                    yield f"data: {encoder({'type': 'heal', 'plan': event.get('plan', {})})}\n\n"
+                elif ev_type == "failover":
+                    yield f"data: {encoder({'type': 'failover', 'from': event.get('from'), 'to': event.get('to'), 'reason': event.get('reason', '')})}\n\n"
+                elif ev_type == "expand":
+                    yield f"data: {encoder({'type': 'expand', 'expanded': event.get('expanded', '')})}\n\n"
+                elif ev_type == "intent":
+                    yield f"data: {encoder({'type': 'intent', 'intent': event.get('intent', {})})}\n\n"
+                elif ev_type == "confidence":
+                    yield f"data: {encoder({'type': 'confidence', 'score': event.get('score'), 'should_enrich': event.get('should_enrich', False)})}\n\n"
+                elif ev_type == "reflection":
+                    yield f"data: {encoder({'type': 'reflection', 'summary': event.get('summary', '')})}\n\n"
+                elif ev_type == "suggestions":
+                    yield f"data: {encoder({'type': 'suggestions', 'items': event.get('items', [])})}\n\n"
+                elif ev_type == "autolearn":
+                    yield f"data: {encoder({'type': 'autolearn', 'query': event.get('query', ''), 'fact': event.get('fact')})}\n\n"
                 elif ev_type == "done":
                     yield f"data: {encoder({'type': 'done', 'answer': event['answer']})}\n\n"
                 elif ev_type == "error":

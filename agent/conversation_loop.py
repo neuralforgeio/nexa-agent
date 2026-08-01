@@ -428,7 +428,8 @@ async def run_conversation(
                         ],
                         assistant_response=content or "",
                         errors=errors_seen,
-                        confidence=report.score if 'report' in dir() else 0.5,
+                        # v4.1.6: use a proper locals() check instead of dir().
+                        confidence=report.score if "report" in locals() else 0.5,
                     ))
             except Exception:
                 pass
