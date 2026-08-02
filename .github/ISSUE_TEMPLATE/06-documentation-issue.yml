@@ -1,0 +1,71 @@
+name: 📚 Documentation Issue
+description: Docs are wrong, missing, or misleading
+title: "[DOCS] "
+labels: ["documentation", "needs-triage"]
+body:
+  - type: dropdown
+    id: doc_type
+    attributes:
+      label: Affected documentation
+      options:
+        - README.md
+        - docs/*.md (installation / providers / tools / gateways)
+        - SYSTEMPROMPT.md
+        - PROCEDURES.md
+        - In-app tooltips
+        - CLI help text
+        - Code comments / docstrings
+        - Website / landing page
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: issue_type
+    attributes:
+      label: Issue type
+      options:
+        - Content is wrong
+        - Content is missing
+        - Content is ambiguous
+        - Content is outdated
+        - Typo / grammar
+        - Broken link
+        - Code sample doesn't work
+        - Translation mistake
+    validations:
+      required: true
+
+  - type: input
+    id: doc_location
+    attributes:
+      label: Location
+      placeholder: e.g. docs/providers.md, README.md#features
+    validations:
+      required: true
+
+  - type: textarea
+    id: current
+    attributes:
+      label: Current text
+      description: Quote the existing text exactly.
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What it should say
+      description: Quote replacement text (or describe the gap).
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: User impact
+      description: Who is misled by this? What's the wrong outcome if unfixed?
+    validations:
+      required: false

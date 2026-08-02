@@ -1,0 +1,47 @@
+name: 🚀 Enhancement Request
+description: Improve an existing feature (not a new feature)
+title: "[ENHANCEMENT] "
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: input
+    id: feature
+    attributes:
+      label: Feature to improve
+      placeholder: e.g. Sidebar resize, Provider picker grouping
+    validations:
+      required: true
+
+  - type: textarea
+    id: current
+    attributes:
+      label: Current behavior
+      placeholder: Describe what the feature does today.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed improvement
+      placeholder: Describe the change you want.
+    validations:
+      required: true
+
+  - type: textarea
+    id: rationale
+    attributes:
+      label: Rationale
+      description: Why is this improvement valuable? What becomes possible/cheaper/safer?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: breaking
+    attributes:
+      label: Breaking change?
+      options:
+        - No — backward compatible
+        - Minor — needs a deprecation warning first
+        - Major — requires a version bump
+    validations:
+      required: true
