@@ -1677,3 +1677,48 @@ Stage Summary:
 - 2 new subsystem modules (orchestrator, persona_manager)
 - 1,400 lines of code, ~150 lines of security-related
 - 618 → 632 tests, 0 failures
+
+
+---
+
+## Task ID: 27 (v4.1.0 — Orchestrator, Persona Manager, Security Hardening, Tool Metadata)
+Agent: ZCode autonomy loop
+
+### Summary
+v4.1.0 ships the virtual multi-agent state machine (Planner→Explorer→Coder
+→Reviewer→Done), persona badges, full intelligence-mesh wiring, hardened
+security (auth opt-in, CORS, CSP, env scrub, AST gate, PTY opt-in), installer
+branding safety, and dynamic system-prompt sections. The QA pass that followed
+(GLM forensic review) verified the shipped behavior and identified one
+additional hardening gap — a NUL-byte path-injection hole — that was fixed in
+v4.2.1.
+
+### Bug fixes (GLM-verified hardening pass)
+1. `ToolRegistry.execute(name=...)` collision — was TypeError'd.
+2. AST sandbox bypass (`__builtins__.open()`, `__builtins__['open']`,
+   `getattr(__builtins__, 'open')`) — all rejected.
+3. `Orchestrator.decide_next` returned a stale phase when the review-loop cap
+   was hit.
+4. `HOME` env leak — subprocesses could read `~/.nexa/` via `~` expansion.
+   HOME now points at the workspace for any spawned process.
+5. `deep_research` crashed on stringified `web_search` results — now coerces.
+6. `pyproject.toml` was missing the runtime deps used by `server.py`:
+   fastapi, uvicorn, websockets, watchdog.
+7. `terminal_exec` defaulted to `NEXA_HOME` instead of `NEXA_WORKSPACE` and
+   swallowed errors into dicts — both fixed.
+8. `set_active_agent` was never called when `server.py` was imported
+   directly — the delegate tool silently failed in-process.
+
+### Tests
+- Added: `tests/test_orchestrator_sm.py` (7 state-machine cases),
+  `tests/test_persona_manager.py` (14 persona catalog/whitelist cases),
+  `tests/test_installer_spec.py` (13 static installer contract tests), and
+  regression cases for `test_terminal_tool`, `test_delegate_tool`,
+  `test_file_patch`, `test_pydantic_schemas`.
+- Result (full suite): **633 → 636** passing; the live llama.cpp E2E run adds
+  7 more under `NEXA_E2E_LLAMACPP=1` (those are gated by env).
+
+### Docs
+- `README.md` version banner, install scripts, `docs/MANUAL_TESTING_GUIDE.md`,
+  `CONTINUATION_PROMPT.md`, `SYSTEMPROMPT.md`, and `.plans/TOOL_CATALOG`
+  all synced to v4.1.0. A new `config.yaml` centralizes project metadata.
