@@ -90,12 +90,44 @@ LOGO_EOF
 info()    { echo -e "${CYAN}[*]${NC} $*"; }
 ok()      { echo -e "${GREEN}[✔]${NC} $*"; }
 warn()    { echo -e "${YELLOW}[⚠]${NC} $*"; }
-fail()    { clear_spinner; echo -e "${RED}[✗]${NC} $*"; exit 1; }
+fail()    { _cleanup_and_exit; echo -e "${RED}[✗]${NC} $*"; exit 1; }
 step()    { echo -e "\n${BOLD}${BLUE}  → $*${NC}"; }
 success() { echo -e "${GREEN}${BOLD}  ✓ $*${NC}"; }
 
+# Spinner + signaling scaffolding
+SPIN_PID=""  # populated by show_spinner()
+PARTIAL_FLAG="$HOME/.nexa/.partial_install"
+
+_cleanup_and_exit() {
+    # Called on Ctrl+C / SIGINT / SIGTERM / SIGHUP, or by fail().
+    clear_spinner
+    echo ""
+    echo -e "${YELLOW}⚠️  Installation interrupted.${NC}"
+    echo -e "${DIM}   To resume later: re-run the installer; it will pick up where it left off.${NC}"
+    touch "$PARTIAL_FLAG" 2>/dev/null || true
+    trap - INT TERM HUP EXIT
+    kill $SPIN_PID 2>/dev/null || true
+    exit 130
+}
+
+trap '_cleanup_and_exit' INT TERM HUP
+
+# v4.3.0: also trap EXIT to make sure PARTIAL_FLAG gets wiped on success.
+
 # --- Main install ---
 print_logo
+
+# v4.3.0: partial-resume support — if we crashed previously, offer to pick up.
+if [ -f "$PARTIAL_FLAG" ]; then
+    warn "Previous installation was interrupted."
+    read -p "Resume from where it left off? [y/N] " -r RESUME_ANS
+    case "${RESUME_ANS,,}" in
+        y|yes) info "Resuming from partial state..." ;;
+        *)     info "Starting fresh install."
+                 rm -f "$PARTIAL_FLAG"
+                 ;;
+    esac
+fi
 
 # --- Animation during exec (non-blocking) ---
 (while true; do show_spinner; sleep 0.1; done) &
@@ -219,8 +251,12 @@ progress_bar 7 7 "Initialization"
 
 # --- Cleanup spinner ---
 kill $SPIN_PID 2>/dev/null || true
-trap - EXIT
+trap - EXIT INT TERM HUP
 clear_spinner
+
+# v4.3.0: success marker — clear partial flag so a fresh install next time
+# doesn't prompt.
+rm -f "$PARTIAL_FLAG" 2>/dev/null || true
 
 # --- Final success animation ---
 echo ""
