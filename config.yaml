@@ -16,7 +16,7 @@ project:
   repository: "neuralforgeio/nexa-agent"
 
 version:
-  current: "4.2.1"
+  current: "4.2.2"
   codename: "Security-Hardened + Virtual Multi-Agent"
   released: "2026-07-31"
   semver_scheme: "MAJOR.MINOR.PATCH"

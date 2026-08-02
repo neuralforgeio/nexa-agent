@@ -38,6 +38,35 @@ function Write-Fail($msg)  { Write-Host "[✗] $msg" -ForegroundColor Red; exit 
 function Write-Step($msg)  { Write-Host "`n  → $msg" -ForegroundColor Blue }
 function Write-Success($msg) { Write-Host "  ✓ $msg" -ForegroundColor Green }
 
+$global:PartialFlagPath = Join-Path $HOME ".nexa\\.partial_install"
+
+# v4.3.0: traps for SIGINT (Ctrl+C) — PowerShell catches them as pipeline
+# terminates, so we hook the underlying Console.CancelKeyPress event.
+$null = Register-EngineEvent -SourceIdentifier PowerShell.Exiting -Action {
+  if (Test-Path $global:PartialFlagPath) { return }
+  New-Item -ItemType File -Force -Path $global:PartialFlagPath | Out-Null
+  Write-Host "`n[!] Install interrupted. Run again to resume." -ForegroundColor Yellow
+}
+# If we bail via an unhandled error the same flag gets written.
+trap {
+  if (Test-Path $global:PartialFlagPath) { return }
+  New-Item -ItemType File -Force -Path $global:PartialFlagPath | Out-Null
+  Write-Host "`n[!] Install error. Run again to resume." -ForegroundColor Yellow
+  exit 1
+}
+
+# Offer to resume if a partial install already exists
+if (Test-Path $global:PartialFlagPath) {
+  Write-Warn "Previous installation was interrupted."
+  $resume = Read-Host "Resume from where it left off? [y/N]"
+  if ($resume -match '^[Yy]') {
+    Write-Info "Resuming from partial state..."
+  } else {
+    Write-Info "Restarting from scratch."
+    Remove-Item -Force -ErrorAction SilentlyContinue $global:PartialFlagPath
+  }
+}
+
 # Spinner animation (runs in background).
 $global:SpinnerRunning = $false
 function Start-Spinner {
@@ -82,7 +111,7 @@ Write-Host "     ██║╚████══█ ██╔══╝   ██�
 Write-Host "     ██║ ╚███║  ███████╗██╔╝ ██╗██║  ██║" -ForegroundColor Cyan
 Write-Host "     ╚═╝  ╚══╝  ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "  Nexa Agent v4.1.0  ·  Local AI Agent" -ForegroundColor White
+Write-Host "  Nexa Agent v4.2.1  ·  Local AI Agent" -ForegroundColor White
 Write-Host "  by Dearly Febriano Irwansyah · Indonesia" -ForegroundColor DarkGray
 Write-Host ""
 

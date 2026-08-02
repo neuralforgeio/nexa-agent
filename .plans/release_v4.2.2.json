@@ -1,0 +1,9 @@
+Nine lines later, the tag body should reference the new tag name.
+{
+  "tag_name": "v4.2.2",
+  "name": "Nexa Agent v4.2.2 — Installer Hardening + QA Pass",
+  "body": "## What's new\n\n- **Installer resume + safety trap** (both `install.sh` and `install.ps1`): on Ctrl+C / SIGTERM / SIGHUP the installer writes `~/.nexa/.partial_install`, so the next run asks whether to resume from where you left off instead of forcing a full re-install. The partial flag is cleared automatically on success.\n- **NEW: `tests/test_installer_spec.py`** pins the installer's structural contract (banner, spinner frames, signal traps, partial-resume logic) — catching version-drift bugs before they hit a user's terminal.\n- **Manual Testing Guide refresh** (`docs/MANUAL_TESTING_GUIDE.md`) — bumped banner to v4.2.x and lists all the new capabilities baked in since v4.1 (persona-driven orchestrator, 24-provider catalog, hardened AST gate, atomic `write_file`, FTS5 triggers, NUL-byte path rejection).\n- **Version metadata sync**: `pyproject.toml`, `nexa_web/package.json`, `config.yaml` all show 4.2.2.\n\n## Test count\n- 636 → 649 tests passing (+13 installer spec tests).\n- Live `llama.cpp` E2E run: 7/7 pass in ~78s (mock-free).\n- Frontend: `tsc --noEmit` clean, `next build` clean, `eslint` clean.\n\n**Full Changelog**: https://github.com/neuralforgeio/nexa-agent/compare/v4.2.1...v4.2.2",
+  "draft": false,
+  "prerelease": false,
+  "generate_release_notes": false
+}

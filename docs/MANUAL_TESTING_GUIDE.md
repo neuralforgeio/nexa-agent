@@ -1,8 +1,12 @@
 # Nexa Agent — Manual Testing Guide
 
-> **Version**: v3.1.0+ | **Creator**: Dearly Febriano Irwansyah | **License**: MIT
+> **Version**: v4.2.1+ | **Creator**: Dearly Febriano Irwansyah | **License**: MIT
 
 Panduan lengkap untuk menguji Nexa Agent secara manual: instalasi, provider config, CLI, TUI, Web UI, terminal security, dan skenario end-to-end.
+
+Implicitly the v4 line adds: persona-driven orchestrator (NEXA_ORCHESTRATOR=1),
+expanded provider catalog (24), hardened AST gate for user tools, atomic
+write_file, FTS5 message triggers, and the v4.2.1 path-hygiene fix.
 
 ---
 
