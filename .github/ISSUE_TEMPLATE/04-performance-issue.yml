@@ -1,0 +1,98 @@
+name: 🐌 Performance Issue
+description: Slowness, hang, memory leak, or CPU spike
+title: "[PERF] "
+labels: ["performance", "needs-triage"]
+body:
+  - type: dropdown
+    id: perf_type
+    attributes:
+      label: Performance issue type
+      options:
+        - High latency (slow first token / slow final answer)
+        - High memory usage
+        - High CPU usage
+        - Memory leak (usage grows with each turn)
+        - Hang / freeze
+        - Slow startup
+        - Disk I/O bottleneck
+        - Network bottleneck
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - P0 — Cannot use (>30 s of nothing / OOM crash)
+        - P1 — Major (5×+ slower than expected)
+        - P2 — Minor (noticeable but usable)
+        - P3 — Optimization opportunity
+    validations:
+      required: true
+
+  - type: textarea
+    id: scenario
+    attributes:
+      label: Scenario that reproduces the slowness
+      placeholder: |
+        - sent 100 messages back-to-back
+        - opened 5 sandbox tabs
+        - switched provider mid-turn
+        - invoked a tool that returns a 10 MB blob
+    validations:
+      required: true
+
+  - type: textarea
+    id: measurements
+    attributes:
+      label: Measurements
+      description: |
+        Real numbers. Suggested tools: `python -X importtime server.py`,
+        `htop`, `Activity Monitor`, browser DevTools → Performance tab.
+      render: shell
+      placeholder: |
+        **Startup:** 8.5s (expected: <2s)
+        **RSS idle:** 250 MB
+        **RSS after 50 messages:** 1.2 GB
+        **TTFB (single chat turn):** 8.2s
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected performance
+      placeholder: "- Startup: < 2s\n- TTFB: < 2s\n- RSS growth: < 100 MB across 100 turns"
+    validations:
+      required: true
+
+  - type: textarea
+    id: hardware
+    attributes:
+      label: Hardware + load context
+      description: CPU / RAM / GPU, other apps running, count of parallel sessions.
+      render: shell
+    validations:
+      required: true
+
+  - type: input
+    id: nexa_version
+    attributes:
+      label: Nexa Agent version
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Linux
+        - macOS (Intel)
+        - macOS (Apple Silicon)
+        - Windows 11
+        - Windows 10
+        - Docker
+    validations:
+      required: true

@@ -1,0 +1,93 @@
+name: 🔄 Regression
+description: Something worked before, broke after an update
+title: "[REGRESSION] "
+labels: ["bug", "regression", "needs-triage"]
+body:
+  - type: input
+    id: last_working_version
+    attributes:
+      label: Last working version
+      placeholder: e.g. 4.1.0
+    validations:
+      required: true
+
+  - type: input
+    id: first_broken_version
+    attributes:
+      label: First broken version
+      placeholder: e.g. 4.2.0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - Frontend
+        - Backend
+        - Tools
+        - Agent / orchestrator
+        - Provider / adapter
+        - Gateways
+        - CLI / TUI
+        - Database / state
+        - Installer
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: feature
+    attributes:
+      label: Feature that regressed
+      placeholder: e.g. WebSocket terminal, SSO login, model failover
+    validations:
+      required: true
+
+  - type: textarea
+    id: behavior_before
+    attributes:
+      label: Behavior before (working version)
+    validations:
+      required: true
+
+  - type: textarea
+    id: behavior_after
+    attributes:
+      label: Behavior after (broken version)
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      value: |
+        1. Install nexa-agent <last_working_version>
+        2. Confirm feature works
+        3. Upgrade to <first_broken_version>
+        4. Re-run the same flow
+        5. Observe regression
+    validations:
+      required: true
+
+  - type: input
+    id: bisect_commit
+    attributes:
+      label: Bisected commit (optional)
+      placeholder: SHA of the offending commit, if known
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: ack
+    attributes:
+      label: Confirmation
+      options:
+        - label: I verified this works on the last working version
+          required: true
+        - label: I verified this does not work on the broken version
+          required: true
+        - label: I searched for existing regressions
+          required: true

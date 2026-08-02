@@ -1,0 +1,137 @@
+name: 🐛 Bug Report
+description: Report an unexpected behavior in Nexa Agent
+title: "[BUG] "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug report.
+
+        Please confirm:
+        - The issue reproduces on the latest `main`.
+        - I've searched open issues (no duplicates).
+        - This isn't a usage question (those go to Discussions) and isn't a critical security vulnerability (those go to `security@nexa-agent.dev`).
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - P0 — Critical / blocking
+        - P1 — High — major feature broken
+        - P2 — Medium — workaround exists
+        - P3 — Low — cosmetic
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - Frontend (nexa_web)
+        - Backend (server.py / FastAPI)
+        - Tools (built-in tool registry)
+        - Agent intelligence mesh
+        - Orchestrator / Persona
+        - Provider (LLM adapter)
+        - Gateways (Telegram / Discord / etc.)
+        - CLI (nexa / nexa-chat)
+        - TUI (ui_tui)
+        - Database / state (nexa/state.py)
+        - Installer / packaging
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: One-sentence description of the problem.
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction steps
+      description: |
+        Numbered steps to reproduce. Include exact commands and any input text.
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence (logs, screenshots, curl -v, browser console, etc.)
+      description: Attach anything that helps the developer reproduce this without asking follow-up questions.
+      render: markdown
+    validations:
+      required: false
+
+  - type: input
+    id: nexa_version
+    attributes:
+      label: Nexa Agent version
+      description: Run `python -c "from nexa.config import NEXA_VERSION; print(NEXA_VERSION)"` and paste the output.
+      placeholder: 4.2.1
+    validations:
+      required: true
+
+  - type: input
+    id: python_version
+    attributes:
+      label: Python version
+      placeholder: Python 3.12.x
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Operating system
+      placeholder: e.g. Windows 11 23H2, macOS 15 (Apple Silicon), Ubuntu 24.04
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment_config
+    attributes:
+      label: Provider / environment (redacted)
+      description: Provider name, active models, anything important. Redact tokens.
+      render: shell
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: disclosure
+    attributes:
+      label: Before submitting
+      options:
+        - label: I have verified this is on the latest `main` branch.
+          required: true
+        - label: I have not included any API keys or secrets in this report.
+          required: true
+        - label: I understand maintainers may ask for additional logs.
+          required: true

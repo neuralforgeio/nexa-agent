@@ -67,3 +67,49 @@ logs/
 logs-backend.txt
 start_server.py
 tests/real_integration_e2e.py
+
+# === AI ASSISTANT WORKDIRS (never push — internal scaffolding only) ===
+# These directories hold on-device working state produced by AI coding
+# assistants (plans, scratch, drafts). They are not part of the product
+# surface and should never be visible to downstream contributors.
+.zcode/           # ZCode CLI session cache + prompt/scratch state
+.zai/             # Z.ai CLI cache
+.cursor/          # Cursor agent state
+.curosr/          # typo-vendor lockout (paranoid)
+.claude/          # Claude Code per-project state
+.claude-code/     # Hyphen variant
+.aider/           # Aider session history
+.aider.conf.yml
+.aider.input.history
+.aider.chat.history.md
+.continue/        # Continue.dev assistant state
+.codeium/         # Codeium extension state
+.copilot/         # Copilot workspace state
+.copilot-chat/    # Copilot chat session state
+.windsurf/        # Windsurf editor state
+.compose.yml     # Local scratch compose manifests we may have used
+*.prompt.md       # Loose prompt scratch files
+*.draft.md        # Loose draft scratch files
+.anthropic/       # Anthropic SDK extension state
+.openai/          # OpenAI SDK extension state
+.gemini/          # Gemini SDK extension state
+.groq/            # Groq SDK extension state
+.mistral/         # Mistral SDK extension state
+.deepseek/        # DeepSeek SDK extension state
+.claudemd         # Project-level Claude instructions
+.AI-rules/        # Generic AI-tool rules dir
+.ai-rules/        # alt-case
+.ai/              # generic .ai assistant dir
+.ai-rules.md
+.cursorrules
+.cursorrules.local
+
+# Buildout / release tooling scratch
+.plans/tmp/
+.plans/drafts/
+.plans/scratchpad/
+
+# Local development state (never share)
+.nexa-local/
+
+# === End AI assistant exclusions ===

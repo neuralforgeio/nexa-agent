@@ -1,0 +1,66 @@
+name: ❓ Cannot Reproduce
+description: Intermittent bug you saw once but can't deterministically re-trigger
+title: "[NEEDS-REPRO] "
+labels: ["bug", "needs-repro", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This is for bugs you observed but couldn't stabilize into a reproducer.
+        Maintainers may be able to identify the failure pattern from your logs.
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: Describe the visible failure mode.
+    validations:
+      required: true
+
+  - type: textarea
+    id: first_seen
+    attributes:
+      label: When did you first see it?
+      description: Timestamp, app state, active provider, model, recent config changes.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: frequency
+    attributes:
+      label: How often has it happened?
+      options:
+        - Once
+        - A few times in the same session
+        - Recurs daily/weekly
+        - Random — no pattern I can see
+    validations:
+      required: true
+
+  - type: textarea
+    id: tried
+    attributes:
+      label: What did you try to reproduce it?
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: textarea
+    id: hypothesis
+    attributes:
+      label: Hypothesis (optional)
+      description: Any suspicion about the trigger (race condition, network dropout, provider timeout, etc.)
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log excerpt
+      description: Pull from ~/.nexa/logs/nexa.log around the failure timestamp.
+      render: shell
+    validations:
+      required: true
