@@ -1,14 +1,27 @@
 # Nexa Agent
 
 > **The Ultimate Local AI Agent Enterprise — by Dearly Febriano Irwansyah**
-> **Version 4.1.0** · Extended MIT License · [SYSTEMPROMPT.md](./SYSTEMPROMPT.md)
+> **Version 4.2.2** · Extended MIT License · [SYSTEMPROMPT.md](./SYSTEMPROMPT.md)
 
 A terminal-first local AI agent with iterative tool-calling, multi-provider
 support (24 providers + custom endpoints), a self-improvement memory system,
 an interactive TUI built with prompt_toolkit + rich, and a full Web UI
 (Next.js + React) with sidebar/toolstreams.
 
-**v4.1.0 highlights**
+**v4.2.2 highlights**
+
+- **Latest hardening**: installer scripts now recover from Ctrl+C — they
+  write `~/.nexa/.partial_install` on SIGINT/SIGTERM/SIGHUP, and on the
+  next run offer to resume without redoing completed steps.
+- **Integrity**: 12 new static tests in `tests/test_installer_spec.py`
+  pin the installer's signal-resume contract.
+- **Version banner**: installer now picks the version string straight from
+  this repository's `pyproject.toml`, so release announcements on GitHub
+  and the install banner never drift.
+- **24 providers + 33 tools + 36 agent modules + virtual multi-agent FSM** —
+  the same set added across the v4.1/v4.2 arcs.
+
+**v4.1.0 highlights** (for context)
 
 - **Sandbox Panel** — right-hand sidebar with a vertically-split
   **Web Preview** (top half) and **real PTY Terminal** (bottom half).
