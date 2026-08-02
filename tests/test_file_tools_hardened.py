@@ -193,3 +193,35 @@ class TestDRYConsistency:
         from tools._paths import resolve_in_workspace as shared
         # Either patch_resolver IS shared, or it wraps shared.
         assert patch_resolver is shared or patch_resolver.__module__ == "tools._paths"
+
+
+# ---------------------------------------------------------------------------
+# v4.2.1 — Workspace-path hygiene gate
+# ---------------------------------------------------------------------------
+class TestPathHygiene:
+    """Tests for resolve_in_workspace control-byte / whitespace rejection."""
+
+    def test_rejects_null_byte(self):
+        from tools._paths import resolve_in_workspace
+        import pytest
+        with pytest.raises(ValueError):
+            resolve_in_workspace("\x00mid")
+        with pytest.raises(ValueError):
+            resolve_in_workspace("file\x00.txt")
+
+    def test_rejects_whitespace_only(self):
+        from tools._paths import resolve_in_workspace
+        import pytest
+        with pytest.raises(ValueError):
+            resolve_in_workspace("   ")
+        with pytest.raises(ValueError):
+            resolve_in_workspace("")
+
+    def test_allows_legit_paths(self):
+        from tools._paths import resolve_in_workspace
+        # Tab is intentionally allowed (multi-line headers use it).
+        p = resolve_in_workspace("notes\tsection.txt")
+        assert "notes" in p.name
+        # Plain relative file.
+        p2 = resolve_in_workspace("docs/readme.md")
+        assert p2.name == "readme.md"

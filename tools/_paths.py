@@ -44,6 +44,21 @@ def resolve_in_workspace(raw: str) -> Path:
             ...
         ValueError: path '../../etc/passwd' escapes the nexa workspace (...)
     """
+    # v4.2.1-fix: reject control characters and NUL. On Windows + Linux
+    # paths, a NUL byte (``\x00``) is a recognised path terminator trick —
+    # accepted by some OS calls before erroring on downstream consumers.
+    # We reject any byte < 0x20 (excluding tab/newline/carriage return) or
+    # 0x7f to cut off smuggling attempts at the boundary.
+    if not raw or not raw.strip():
+        raise ValueError("path cannot be empty or whitespace-only")
+    bad = [c for c in raw if ord(c) < 0x20 and c not in ("\t",)]
+    if bad:
+        raise ValueError(
+            f"invalid control character in path: U+{ord(bad[0]):04X}"
+        )
+    if "\x00" in raw or "\ufffd" in raw:
+        raise ValueError("path contains null byte or invalid marker")
+
     base = NEXA_WORKSPACE.resolve()
     resolved = (base / raw).resolve()
     try:
