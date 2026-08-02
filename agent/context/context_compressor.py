@@ -23,7 +23,7 @@ SPDX-License-Identifier: MIT
 
 from typing import Any, Dict, List, Optional, Tuple
 
-from agent.message_sanitizer import estimate_tokens
+from agent.core.message_sanitizer import estimate_tokens
 
 #: Default token budget for the context window.
 DEFAULT_TOKEN_BUDGET = 30_000

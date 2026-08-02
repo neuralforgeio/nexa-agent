@@ -19,7 +19,7 @@ Storage:
     - The TF-IDF index is built in-memory on load + updated on add.
 
 Usage:
-    >>> from agent.semantic_memory import SemanticMemory
+    >>> from agent.memory.semantic_memory import SemanticMemory
     >>> sm = SemanticMemory()
     >>> sm.add("user_prefers_python", "The user prefers Python over JavaScript")
     >>> results = sm.search("what language does the user like?")

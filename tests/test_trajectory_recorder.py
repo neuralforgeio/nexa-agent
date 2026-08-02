@@ -20,7 +20,7 @@ from pathlib import Path
 
 import pytest
 
-from agent.trajectory_recorder import (
+from agent.observability.trajectory_recorder import (
     DEFAULT_TRAJECTORY_PATH,
     SYSTEM_PROMPT_TRUNCATE,
     TrajectoryRecorder,

@@ -450,7 +450,7 @@ def _cmd_doctor() -> int:
     """
     import asyncio
     from nexa.state import ConversationDB
-    from agent.self_health import SelfHealth
+    from agent.core.self_health import SelfHealth
 
     async def run():
         db = ConversationDB()

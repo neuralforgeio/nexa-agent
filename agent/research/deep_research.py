@@ -36,11 +36,11 @@ import re
 from dataclasses import dataclass, field
 from typing import Any, AsyncGenerator, Dict, List, Optional
 
-from agent.confidence_scorer import score_answer
-from agent.fact_validator import validate_claims, extract_claims
-from agent.intent_classifier import classify_intent
-from agent.query_reformulator import ReformulatedQuery, pick_best_query, reformulate
-from agent.response_synthesizer import SynthesisResult, reconcile_conflicts, synthesize
+from agent.reasoning.confidence_scorer import score_answer
+from agent.reasoning.fact_validator import validate_claims, extract_claims
+from agent.understanding.intent_classifier import classify_intent
+from agent.understanding.query_reformulator import ReformulatedQuery, pick_best_query, reformulate
+from agent.reasoning.response_synthesizer import SynthesisResult, reconcile_conflicts, synthesize
 
 
 # ---------------------------------------------------------------------------

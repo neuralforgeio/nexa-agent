@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 
 import pytest
 
-from agent.error_classifier import (
+from agent.error.error_classifier import (
     ErrorCategory,
     classify_error,
     is_context_overflow,

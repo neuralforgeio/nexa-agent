@@ -13,8 +13,8 @@ from __future__ import annotations
 
 import pytest
 
-from agent.orchestrator import AgentPhase, new_session
-from agent.persona_manager import (
+from agent.persona.orchestrator import AgentPhase, new_session
+from agent.persona.persona_manager import (
     PERSONAS,
     PersonaManager,
     base_persona_block,

@@ -15,7 +15,7 @@ SPDX-License-Identifier: MIT
 import os
 import pytest
 
-from agent.ask_question_mode import (
+from agent.prompt.ask_question_mode import (
     build_quick_system_prompt,
     is_quick_mode_enabled,
     should_use_quick_mode,

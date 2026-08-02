@@ -20,7 +20,7 @@ SPDX-License-Identifier: MIT
 
 import pytest
 
-from agent.prompt_builder import (
+from agent.prompt.prompt_builder import (
     build_system_prompt,
     _build_identity_section,
     _build_behavior_section,
