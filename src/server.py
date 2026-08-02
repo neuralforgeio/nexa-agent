@@ -47,7 +47,7 @@ from nexa import bootstrap as nexa_bootstrap  # noqa: F401 — must be imported 
 from agent.self_health import SelfHealth
 from nexa.config import NEXA_NAME, NEXA_VERSION
 from nexa.provider_failover import is_failover_enabled
-from run_agent import NexaAgent
+from src.run_agent import NexaAgent
 from nexa.state import ConversationDB
 
 
@@ -120,7 +120,7 @@ def verify_token_ws(token: Optional[str]) -> None:
 # ---------------------------------------------------------------------------
 # Singleton instances
 # ---------------------------------------------------------------------------
-from run_agent import set_active_agent  # for the delegate tool
+from src.run_agent import set_active_agent  # for the delegate tool
 
 _db: ConversationDB = ConversationDB()
 _agent: NexaAgent = NexaAgent(db=_db)

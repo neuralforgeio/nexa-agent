@@ -652,7 +652,7 @@ def main() -> int:
         0 on success.
     """
     import asyncio
-    from run_agent import NexaAgent, set_active_agent
+    from src.run_agent import NexaAgent, set_active_agent
 
     agent = NexaAgent()
     set_active_agent(agent)

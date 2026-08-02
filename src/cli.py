@@ -38,7 +38,7 @@ from rich.text import Text
 from agent.self_health import SelfHealth
 from nexa.constants import NEXA_AUTHOR, NEXA_NAME, NEXA_VERSION
 from providers.catalog import list_providers, resolve_provider
-from run_agent import NexaAgent
+from src.run_agent import NexaAgent
 from nexa.state import ConversationDB
 
 console = Console()

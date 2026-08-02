@@ -8,7 +8,7 @@ provides a ``main()`` entry point for running the agent standalone.
 
 Usage as a library::
 
-    from run_agent import NexaAgent
+    from src.run_agent import NexaAgent
     agent = NexaAgent(provider_name="ollama", model="llama3.2")
     async for event in agent.run_streaming("Hello", conv_id="..."):
         print(event)

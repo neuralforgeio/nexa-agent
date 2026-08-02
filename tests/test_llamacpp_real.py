@@ -103,7 +103,7 @@ def _llamacpp_reachable(host: str = "127.0.0.1", port: int = 8080, timeout: floa
 def _build_agent():
     """Build a NexaAgent pointed at the local llamacpp server."""
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-    from run_agent import NexaAgent
+    from src.run_agent import NexaAgent
 
     return NexaAgent(
         provider_name="llamacpp",
@@ -135,7 +135,7 @@ class TestMockedProviderLoop:
                 yield ("token", "ok")
                 yield ("done", None)
 
-        from run_agent import NexaAgent
+        from src.run_agent import NexaAgent
 
         agent = NexaAgent(provider_name="ollama")  # any valid provider stub
         agent.provider = _Fake()  # swap

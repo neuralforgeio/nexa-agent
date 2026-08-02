@@ -13,8 +13,8 @@ from pathlib import Path
 
 import pytest
 
-INSTALL_SH = Path(__file__).resolve().parent.parent / "scripts" / "install.sh"
-INSTALL_PS1 = Path(__file__).resolve().parent.parent / "scripts" / "install.ps1"
+INSTALL_SH = Path(__file__).resolve().parent.parent / "scripts" / "install" / "install.sh"
+INSTALL_PS1 = Path(__file__).resolve().parent.parent / "scripts" / "install" / "install.ps1"
 
 
 def _read(p: Path) -> str:

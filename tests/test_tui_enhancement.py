@@ -16,7 +16,7 @@ SPDX-License-Identifier: MIT
 import pytest
 import pytest_asyncio
 
-from cli import SLASH_COMMANDS
+from src.cli import SLASH_COMMANDS
 from nexa.state import ConversationDB
 
 

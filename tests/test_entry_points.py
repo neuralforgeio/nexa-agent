@@ -38,21 +38,21 @@ class TestEntryPoints:
             f"nexa should point to nexa_cli.main:main, got {match.group(1)!r}"
         )
 
-    def test_nexa_chat_points_to_cli_main(self) -> None:
-        """The `nexa-chat` console script must point to cli:main (interactive REPL)."""
+    def test_nexa_chat_points_to_src_cli(self) -> None:
+        """The `nexa-chat` console script must point to src.cli:main (interactive REPL)."""
         content = _read_pyproject()
         match = re.search(r'nexa[-_]chat\s*=\s*"([^"]+)"', content)
         assert match is not None, "nexa-chat entry point not found"
-        assert match.group(1) == "cli:main", (
-            f"nexa-chat should point to cli:main, got {match.group(1)!r}"
+        assert match.group(1) == "src.cli:main", (
+            f"nexa-chat should point to src.cli:main, got {match.group(1)!r}"
         )
 
-    def test_nexa_agent_points_to_run_agent(self) -> None:
-        """The `nexa-agent` console script must still point to run_agent:main."""
+    def test_nexa_agent_points_to_src_run_agent(self) -> None:
+        """The `nexa-agent` console script must still point to src.run_agent:main."""
         content = _read_pyproject()
         match = re.search(r'nexa[-_]agent\s*=\s*"([^"]+)"', content)
         assert match is not None, "nexa-agent entry point not found"
-        assert "run_agent" in match.group(1)
+        assert "src.run_agent" in match.group(1)
 
 
 class TestPackagesFind:
@@ -68,10 +68,10 @@ class TestPackagesFind:
         content = _read_pyproject()
         assert "ui_tui" in content, "ui_tui not in packages.find"
 
-    def test_packages_find_includes_tui_gateway(self) -> None:
-        """packages.find must include tui_gateway* so the package ships."""
+    def test_packages_find_includes_src(self) -> None:
+        """packages.find must include src* so the entry-point package ships."""
         content = _read_pyproject()
-        assert "tui_gateway" in content, "tui_gateway not in packages.find"
+        assert "src*" in content, "src* not in packages.find"
 
 
 class TestCliDispatch:
