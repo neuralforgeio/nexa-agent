@@ -14,7 +14,7 @@ SPDX-License-Identifier: MIT
 import pytest
 import pytest_asyncio
 
-from agent.session_search import search_sessions, format_search_results
+from agent.memory.session_search import search_sessions, format_search_results
 from nexa.state import ConversationDB
 
 

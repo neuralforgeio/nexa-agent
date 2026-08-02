@@ -24,7 +24,7 @@ from tools.delegate_tool import (
     _has_pending_tool_calls,
     delegate,
 )
-from run_agent import NexaAgent, get_active_agent, set_active_agent
+from src.run_agent import NexaAgent, get_active_agent, set_active_agent
 
 
 # ---------------------------------------------------------------------------
@@ -127,14 +127,14 @@ class TestDelegateValidation:
     async def test_no_active_agent_returns_error(self) -> None:
         """When no active agent is set, delegate returns a clear error string."""
         # Force the singleton to None.
-        import run_agent
-        old = run_agent._agent_singleton
-        run_agent._agent_singleton = None
+        import src.run_agent as run_agent_mod
+        old = run_agent_mod._agent_singleton
+        run_agent_mod._agent_singleton = None
         try:
             result = await delegate("test task")
             assert "Could not access" in result or "no active agent" in result.lower()
         finally:
-            run_agent._agent_singleton = old
+            run_agent_mod._agent_singleton = old
 
     @pytest.mark.asyncio
     async def test_clamps_max_iterations_too_high(self) -> None:

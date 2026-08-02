@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import pytest
 
-from agent.orchestrator import AgentPhase, Orchestrator, new_session
+from agent.persona.orchestrator import AgentPhase, Orchestrator, new_session
 
 
 @pytest.fixture
@@ -137,7 +137,7 @@ class TestPersonaPrompt:
 class TestWorkspace:
     def test_workspace_files_round_trip(self, tmp_path):
         """write_workspace_file and read_workspace_file work end-to-end."""
-        from agent.orchestrator import read_workspace_file, write_workspace_file
+        from agent.persona.orchestrator import read_workspace_file, write_workspace_file
 
         write_workspace_file("task.md", "# Task\nBuild the thing.")
         write_workspace_file("context.md", "# Context\nExisting code: src/")
@@ -145,7 +145,7 @@ class TestWorkspace:
         assert "Existing code" in read_workspace_file("context.md")
 
     def test_workspace_append(self, tmp_path):
-        import agent.orchestrator as orch_mod
+        import agent.persona.orchestrator as orch_mod
 
         write = orch_mod.write_workspace_file("pending.md", "first line")
         orch_mod.append_workspace_file("pending.md", "second line")

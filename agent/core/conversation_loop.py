@@ -31,30 +31,30 @@ SPDX-License-Identifier: MIT
 import asyncio
 from typing import Any, AsyncGenerator, Dict, List, Optional
 
-from agent.adaptive_persona import AdaptivePersona, persona_block
-from agent.autonomous_learner import (
+from agent.persona.adaptive_persona import AdaptivePersona, persona_block
+from agent.learning.autonomous_learner import (
     LearningBudget,
     should_auto_learn,
     learn_about,
     enrich_with_learned_facts,
 )
-from agent.confidence_scorer import score_answer
-from agent.context_compressor import ContextCompressor
-from agent.context_enricher import enrich_context
-from agent.error_classifier import classify_error, is_context_overflow
-from agent.error_memory import ErrorMemory
-from agent.intent_classifier import classify_intent, intent_block
-from agent.iteration_budget import IterationBudget
-from agent.knowledge_cache import KnowledgeCache
-from agent.learning_graph import LearningGraph
-from agent.memory_curator import MemoryCurator
-from agent.message_sanitizer import sanitize_messages
-from agent.pattern_recognizer import PatternRecognizer
-from agent.prompt_expander import expand_prompt, should_expand
-from agent.proactive_suggester import ProactiveSuggester, suggestion_block
-from agent.reasoning_chain import ReasoningChain
-from agent.self_healer import SelfHealer
-from agent.self_improvement import SelfImprovementLoop
+from agent.reasoning.confidence_scorer import score_answer
+from agent.context.context_compressor import ContextCompressor
+from agent.context.context_enricher import enrich_context
+from agent.error.error_classifier import classify_error, is_context_overflow
+from agent.error.error_memory import ErrorMemory
+from agent.understanding.intent_classifier import classify_intent, intent_block
+from agent.core.iteration_budget import IterationBudget
+from agent.memory.knowledge_cache import KnowledgeCache
+from agent.learning.learning_graph import LearningGraph
+from agent.memory.memory_curator import MemoryCurator
+from agent.core.message_sanitizer import sanitize_messages
+from agent.understanding.pattern_recognizer import PatternRecognizer
+from agent.prompt.prompt_expander import expand_prompt, should_expand
+from agent.understanding.proactive_suggester import ProactiveSuggester, suggestion_block
+from agent.reasoning.reasoning_chain import ReasoningChain
+from agent.error.self_healer import SelfHealer
+from agent.learning.self_improvement import SelfImprovementLoop
 from nexa.constants import NEXA_NAME
 from nexa.provider import LLMProvider
 from nexa.provider_failover import (
@@ -410,7 +410,7 @@ async def run_conversation(
 
             # v4.1.0: record trajectory (prompt → tool → response) for fine-tuning.
             try:
-                from agent.trajectory_recorder import (
+                from agent.observability.trajectory_recorder import (
                     TrajectoryRecorder,
                     TurnTrajectory,
                     is_trajectory_enabled,

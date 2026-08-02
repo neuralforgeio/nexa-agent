@@ -45,7 +45,7 @@ from nexa.provider_failover import (
     is_failover_enabled,
 )
 # Autonomous learner
-from agent.autonomous_learner import (
+from agent.learning.autonomous_learner import (
     LearnedFact,
     LearningBudget,
     detect_knowledge_gap,
@@ -54,7 +54,7 @@ from agent.autonomous_learner import (
     should_auto_learn,
 )
 # Prompt expander
-from agent.prompt_expander import (
+from agent.prompt.prompt_expander import (
     INTENT_CHAT,
     INTENT_CODE_FIX,
     INTENT_GENERATE,
@@ -64,7 +64,7 @@ from agent.prompt_expander import (
     should_expand,
 )
 # Self-healer
-from agent.self_healer import (
+from agent.error.self_healer import (
     CAT_AUTH,
     CAT_IMPORT,
     CAT_NETWORK,
@@ -73,7 +73,7 @@ from agent.self_healer import (
     SelfHealer,
 )
 # Self-improvement
-from agent.self_improvement import (
+from agent.learning.self_improvement import (
     TYPE_AVOID,
     TYPE_BEHAVIORAL,
     Improvement,
@@ -81,11 +81,11 @@ from agent.self_improvement import (
     reflect_on_turn,
 )
 # Knowledge cache
-from agent.knowledge_cache import CachedFact, KnowledgeCache
+from agent.memory.knowledge_cache import CachedFact, KnowledgeCache
 # Confidence scorer
-from agent.confidence_scorer import ConfidenceReport, score_answer, should_fact_check
+from agent.reasoning.confidence_scorer import ConfidenceReport, score_answer, should_fact_check
 # Intent classifier
-from agent.intent_classifier import (
+from agent.understanding.intent_classifier import (
     INTENT_CODE_HELP,
     INTENT_CONVERSATION,
     INTENT_FACTUAL_QA,
@@ -94,11 +94,11 @@ from agent.intent_classifier import (
     intent_block,
 )
 # Pattern recognizer
-from agent.pattern_recognizer import PatternRecognizer
+from agent.understanding.pattern_recognizer import PatternRecognizer
 # Error memory
-from agent.error_memory import ErrorMemory, make_signature
+from agent.error.error_memory import ErrorMemory, make_signature
 # Response synthesizer
-from agent.response_synthesizer import (
+from agent.reasoning.response_synthesizer import (
     SynthesisResult,
     deduplicate_facts,
     reconcile_conflicts,
@@ -106,28 +106,28 @@ from agent.response_synthesizer import (
     summarize_tool_results,
 )
 # Adaptive persona
-from agent.adaptive_persona import AdaptivePersona, persona_block
+from agent.persona.adaptive_persona import AdaptivePersona, persona_block
 # Proactive suggester
-from agent.proactive_suggester import ProactiveSuggester, Suggestion, suggestion_block
+from agent.understanding.proactive_suggester import ProactiveSuggester, Suggestion, suggestion_block
 # Reasoning chain
-from agent.reasoning_chain import ReasoningChain, ReasoningStep, quick_chain
+from agent.reasoning.reasoning_chain import ReasoningChain, ReasoningStep, quick_chain
 # Fact validator
-from agent.fact_validator import (
+from agent.reasoning.fact_validator import (
     ValidationResult,
     extract_claims,
     validate_claims,
 )
 # Context enricher
-from agent.context_enricher import EnrichedContext, detect_entities, enrich_context
+from agent.context.context_enricher import EnrichedContext, detect_entities, enrich_context
 # Memory consolidator
-from agent.memory_consolidator import (
+from agent.memory.memory_consolidator import (
     ConsolidationReport,
     build_consolidated_digest,
     consolidate_memories,
     pick_survivors,
 )
 # Query reformulator
-from agent.query_reformulator import (
+from agent.understanding.query_reformulator import (
     ReformulatedQuery,
     detect_intent as reformulate_intent,
     extract_keywords,
@@ -819,7 +819,7 @@ class TestAdaptivePersona:
 
     def test_persona_block_returns_string(self) -> None:
         """persona_block returns a non-empty string."""
-        from agent.adaptive_persona import Persona
+        from agent.persona.adaptive_persona import Persona
         block = persona_block(Persona(formality=0.8, verbosity=0.2, tone="technical"))
         assert "formal" in block.lower()
         assert "concise" in block.lower() or "short" in block.lower()
@@ -996,7 +996,7 @@ class TestContextEnricher:
 
     def test_enrich_context_includes_facts(self, tmp_path: Path) -> None:
         """Cached facts appear in the enriched block."""
-        from agent.knowledge_cache import KnowledgeCache, CachedFact
+        from agent.memory.knowledge_cache import KnowledgeCache, CachedFact
         cache = KnowledgeCache(cache_dir=tmp_path)
         cache.store(CachedFact(entity="OpenAI", summary="AI research lab."))
         result = enrich_context(

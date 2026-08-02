@@ -626,7 +626,7 @@ async def _handle_tui_slash_command(
         return True
     if cmd == "/doctor":
         try:
-            from agent.self_health import SelfHealth
+            from agent.core.self_health import SelfHealth
             from nexa.state import ConversationDB
             db = agent.db if hasattr(agent, "db") and agent.db else ConversationDB()
             health = SelfHealth(db)
@@ -652,7 +652,7 @@ def main() -> int:
         0 on success.
     """
     import asyncio
-    from run_agent import NexaAgent, set_active_agent
+    from src.run_agent import NexaAgent, set_active_agent
 
     agent = NexaAgent()
     set_active_agent(agent)

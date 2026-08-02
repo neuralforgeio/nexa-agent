@@ -21,7 +21,7 @@ from unittest.mock import patch
 import pytest
 import pytest_asyncio
 
-from agent.memory_files import (
+from agent.memory.memory_files import (
     MEMORY_FILE,
     USER_FILE,
     append_to_memory,
@@ -34,14 +34,14 @@ from agent.memory_files import (
     write_memory_file,
     write_user_file,
 )
-from agent.memory_curator import MemoryCurator
+from agent.memory.memory_curator import MemoryCurator
 from nexa.state import ConversationDB
 
 
 @pytest.fixture
 def temp_memory_dir(tmp_path, monkeypatch):
     """Redirect memory files to a temp directory for isolation."""
-    import agent.memory_files as mf
+    import agent.memory.memory_files as mf
 
     temp_dir = tmp_path / "memory"
     temp_dir.mkdir()
@@ -175,7 +175,7 @@ class TestMemoryCuratorFileIntegration:
     @pytest.mark.asyncio
     async def test_curate_turn_writes_to_files(self, db_for_curator, tmp_path, monkeypatch) -> None:
         """curate_turn must write memories to MEMORY.md and USER.md."""
-        import agent.memory_files as mf
+        import agent.memory.memory_files as mf
 
         temp_dir = tmp_path / "memory"
         temp_dir.mkdir()
@@ -205,7 +205,7 @@ class TestMemoryCuratorFileIntegration:
     @pytest.mark.asyncio
     async def test_build_memory_digest_includes_files(self, db_for_curator, tmp_path, monkeypatch) -> None:
         """build_memory_digest must include file-based memories."""
-        import agent.memory_files as mf
+        import agent.memory.memory_files as mf
 
         temp_dir = tmp_path / "memory"
         temp_dir.mkdir()

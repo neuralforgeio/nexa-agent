@@ -16,7 +16,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from agent.deep_research import (
+from agent.research.deep_research import (
     DEEP_RESEARCH_SCHEMA,
     ResearchResult,
     deep_research,
@@ -147,8 +147,8 @@ class TestDeepResearchTool:
     @pytest.mark.asyncio
     async def test_tool_returns_string(self) -> None:
         """The tool returns a string answer."""
-        from agent.deep_research import deep_research_tool
-        from agent.deep_research import ResearchResult
+        from agent.research.deep_research import deep_research_tool
+        from agent.research.deep_research import ResearchResult
 
         mock_search = AsyncMock(return_value=[])
 

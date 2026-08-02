@@ -18,7 +18,7 @@ from pathlib import Path
 
 import pytest
 
-from agent.semantic_memory import (
+from agent.memory.semantic_memory import (
     DEFAULT_SEMANTIC_PATH,
     SemanticDocument,
     SemanticMemory,

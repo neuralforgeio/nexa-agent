@@ -30,7 +30,7 @@ SPDX-License-Identifier: MIT
 import re
 from typing import Any, Dict, List, Optional
 
-from agent.memory_files import append_to_memory, append_to_user
+from agent.memory.memory_files import append_to_memory, append_to_user
 from nexa.state import ConversationDB
 
 
@@ -256,7 +256,7 @@ class MemoryCurator:
         Returns:
             A formatted string of memories, or empty string if none.
         """
-        from agent.memory_files import build_memory_file_digest
+        from agent.memory.memory_files import build_memory_file_digest
 
         parts: List[str] = []
 

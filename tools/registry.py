@@ -495,7 +495,7 @@ def create_default_registry() -> ToolRegistry:
         parameters=REVERT_FILE_SCHEMA,
     )
     # Register deep_research tool (v3.2.0).
-    from agent.deep_research import deep_research_tool, DEEP_RESEARCH_SCHEMA
+    from agent.research.deep_research import deep_research_tool, DEEP_RESEARCH_SCHEMA
     registry.register(
         name="deep_research",
         fn=deep_research_tool,

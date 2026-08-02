@@ -8,7 +8,7 @@ provides a ``main()`` entry point for running the agent standalone.
 
 Usage as a library::
 
-    from run_agent import NexaAgent
+    from src.run_agent import NexaAgent
     agent = NexaAgent(provider_name="ollama", model="llama3.2")
     async for event in agent.run_streaming("Hello", conv_id="..."):
         print(event)
@@ -26,8 +26,8 @@ import asyncio
 import sys
 from typing import Any, AsyncGenerator, Dict, List, Optional
 
-from agent.conversation_loop import run_conversation
-from agent.prompt_builder import build_system_prompt
+from agent.core.conversation_loop import run_conversation
+from agent.prompt.prompt_builder import build_system_prompt
 from nexa.constants import NEXA_MAX_CONTEXT_MESSAGES, NEXA_NAME
 from nexa.provider import LLMProvider
 from providers.catalog import resolve_provider
@@ -145,15 +145,15 @@ class NexaAgent:
         # attributes so they accumulate observations across turns instead of
         # being rebuilt (and therefore forgotten) every single turn.
         try:
-            from agent.adaptive_persona import AdaptivePersona
-            from agent.error_memory import ErrorMemory
-            from agent.knowledge_cache import KnowledgeCache
-            from agent.orchestrator import Orchestrator
-            from agent.pattern_recognizer import PatternRecognizer
-            from agent.persona_manager import PersonaManager
-            from agent.proactive_suggester import ProactiveSuggester
-            from agent.self_healer import SelfHealer
-            from agent.self_improvement import SelfImprovementLoop
+            from agent.persona.adaptive_persona import AdaptivePersona
+            from agent.error.error_memory import ErrorMemory
+            from agent.memory.knowledge_cache import KnowledgeCache
+            from agent.persona.orchestrator import Orchestrator
+            from agent.understanding.pattern_recognizer import PatternRecognizer
+            from agent.persona.persona_manager import PersonaManager
+            from agent.understanding.proactive_suggester import ProactiveSuggester
+            from agent.error.self_healer import SelfHealer
+            from agent.learning.self_improvement import SelfImprovementLoop
 
             self.persona_adapter = AdaptivePersona()
             self.improvement_loop = SelfImprovementLoop()
@@ -208,7 +208,7 @@ class NexaAgent:
         user_profile = ""
         learning_stats = None
         try:
-            from agent.memory_files import (
+            from agent.memory.memory_files import (
                 build_memory_file_digest,
                 read_user_file,
             )
@@ -233,11 +233,11 @@ class NexaAgent:
         reasoning_block_text = ""
         virtual_agent_block = ""
         try:
-            from agent.adaptive_persona import persona_block
-            from agent.context_enricher import enrich_context
-            from agent.intent_classifier import classify_intent, intent_block
-            from agent.persona_manager import base_persona_block
-            from agent.reasoning_chain import ReasoningChain
+            from agent.persona.adaptive_persona import persona_block
+            from agent.context.context_enricher import enrich_context
+            from agent.understanding.intent_classifier import classify_intent, intent_block
+            from agent.persona.persona_manager import base_persona_block
+            from agent.reasoning.reasoning_chain import ReasoningChain
 
             if self.persona_adapter is not None:
                 persona_block_text = persona_block(self.persona_adapter.persona())
@@ -301,7 +301,7 @@ class NexaAgent:
         # to call tools anyway.
         if quick:
             try:
-                from agent.ask_question_mode import build_quick_system_prompt
+                from agent.prompt.ask_question_mode import build_quick_system_prompt
                 system_prompt = build_quick_system_prompt(system_prompt)
             except Exception:
                 pass
@@ -343,7 +343,7 @@ class NexaAgent:
 
         # v4.1.0: Ask Question Mode — decide BEFORE the transcript build so
         # the (large) "Available Tools" section can be stripped (v4.1.0).
-        from agent.ask_question_mode import (
+        from agent.prompt.ask_question_mode import (
             should_use_quick_mode,
             is_quick_mode_enabled,
         )
@@ -425,7 +425,7 @@ class NexaAgent:
         if os.environ.get("NEXA_ORCHESTRATOR", "0").lower() not in ("1", "true", "yes"):
             return
 
-        from agent.orchestrator import AgentPhase
+        from agent.persona.orchestrator import AgentPhase
 
         phase = self.orchestrator.current_phase
         tools_used = {tr.get("tool") for tr in tool_results}

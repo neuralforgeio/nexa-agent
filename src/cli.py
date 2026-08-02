@@ -35,10 +35,10 @@ from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.text import Text
 
-from agent.self_health import SelfHealth
+from agent.core.self_health import SelfHealth
 from nexa.constants import NEXA_AUTHOR, NEXA_NAME, NEXA_VERSION
 from providers.catalog import list_providers, resolve_provider
-from run_agent import NexaAgent
+from src.run_agent import NexaAgent
 from nexa.state import ConversationDB
 
 console = Console()
@@ -162,7 +162,7 @@ async def handle_slash_command(cmd: str, agent: NexaAgent, db: ConversationDB) -
         if not arg:
             console.print("[yellow]Usage:[/yellow] /search <query>\n")
         else:
-            from agent.session_search import search_sessions, format_search_results
+            from agent.memory.session_search import search_sessions, format_search_results
             results = await search_sessions(db, arg, limit=10)
             if not results:
                 console.print(f"[dim]No results for '{arg}'.[/dim]\n")
@@ -287,7 +287,7 @@ async def handle_slash_command(cmd: str, agent: NexaAgent, db: ConversationDB) -
                 )
             console.print()
     elif command == "/memory":
-        from agent.memory_files import (
+        from agent.memory.memory_files import (
             read_memory_file, read_user_file, sync_db_to_files,
             MEMORY_FILE, USER_FILE,
         )
@@ -401,7 +401,7 @@ async def handle_slash_command(cmd: str, agent: NexaAgent, db: ConversationDB) -
         console.print()
     elif command == "/persona":
         # v2.0: show adaptive persona state.
-        from agent.adaptive_persona import AdaptivePersona
+        from agent.persona.adaptive_persona import AdaptivePersona
         p = AdaptivePersona()
         # In a full integration the persona would be a long-lived object
         # on the agent; here we display the neutral default for inspection.
@@ -414,7 +414,7 @@ async def handle_slash_command(cmd: str, agent: NexaAgent, db: ConversationDB) -
         console.print()
     elif command == "/knowledge":
         # v2.0: show cached learned facts.
-        from agent.knowledge_cache import KnowledgeCache
+        from agent.memory.knowledge_cache import KnowledgeCache
         cache = KnowledgeCache()
         facts = cache.list_all()
         if arg and arg.strip().lower() == "clear":
@@ -431,7 +431,7 @@ async def handle_slash_command(cmd: str, agent: NexaAgent, db: ConversationDB) -
         console.print()
     elif command == "/patterns":
         # v2.0: show recognized conversation patterns.
-        from agent.pattern_recognizer import PatternRecognizer
+        from agent.understanding.pattern_recognizer import PatternRecognizer
         r = PatternRecognizer()
         report = r.report()
         console.print(Panel("[bold]Conversation Patterns (v2.0)[/bold]", border_style="magenta"))
@@ -452,7 +452,7 @@ async def handle_slash_command(cmd: str, agent: NexaAgent, db: ConversationDB) -
         console.print()
     elif command == "/reflect":
         # v2.0: run a self-improvement reflection on the last turn.
-        from agent.self_improvement import SelfImprovementLoop
+        from agent.learning.self_improvement import SelfImprovementLoop
         loop = SelfImprovementLoop()
         # Without a stored last-turn, we just show the loop's stats.
         stats = loop.stats()

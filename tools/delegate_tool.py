@@ -84,10 +84,10 @@ async def delegate(
 
     # Discover the active agent instance (set by CLI/server at startup).
     try:
-        from run_agent import get_active_agent
+        from src.run_agent import get_active_agent
         agent = get_active_agent()
     except Exception:
-        return "[delegate] Could not import run_agent.get_active_agent."
+        return "[delegate] Could not import src.run_agent.get_active_agent."
 
     if agent is None:
         return "[delegate] No active agent instance. Call set_active_agent() at startup."

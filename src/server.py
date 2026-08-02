@@ -44,10 +44,10 @@ from fastapi.responses import StreamingResponse, JSONResponse
 from pydantic import BaseModel
 
 from nexa import bootstrap as nexa_bootstrap  # noqa: F401 — must be imported first for UTF-8 stdio.
-from agent.self_health import SelfHealth
+from agent.core.self_health import SelfHealth
 from nexa.config import NEXA_NAME, NEXA_VERSION
 from nexa.provider_failover import is_failover_enabled
-from run_agent import NexaAgent
+from src.run_agent import NexaAgent
 from nexa.state import ConversationDB
 
 
@@ -120,7 +120,7 @@ def verify_token_ws(token: Optional[str]) -> None:
 # ---------------------------------------------------------------------------
 # Singleton instances
 # ---------------------------------------------------------------------------
-from run_agent import set_active_agent  # for the delegate tool
+from src.run_agent import set_active_agent  # for the delegate tool
 
 _db: ConversationDB = ConversationDB()
 _agent: NexaAgent = NexaAgent(db=_db)
@@ -599,10 +599,10 @@ async def intelligence() -> Dict[str, Any]:
     Aggregates: provider failover status, knowledge cache stats,
     self-improvement stats, healer stats, and error memory stats.
     """
-    from agent.error_memory import ErrorMemory
-    from agent.knowledge_cache import KnowledgeCache
-    from agent.self_healer import SelfHealer
-    from agent.self_improvement import SelfImprovementLoop
+    from agent.error.error_memory import ErrorMemory
+    from agent.memory.knowledge_cache import KnowledgeCache
+    from agent.error.self_healer import SelfHealer
+    from agent.learning.self_improvement import SelfImprovementLoop
 
     healer = SelfHealer()
     loop = SelfImprovementLoop()
@@ -624,7 +624,7 @@ async def intelligence() -> Dict[str, Any]:
 @app.get("/api/persona")
 async def persona() -> Dict[str, Any]:
     """Return the current adaptive persona state (neutral default)."""
-    from agent.adaptive_persona import AdaptivePersona
+    from agent.persona.adaptive_persona import AdaptivePersona
     p = AdaptivePersona().persona()
     return p.to_dict()
 
@@ -653,7 +653,7 @@ async def orchestrator_state() -> Dict[str, Any]:
 @app.get("/api/knowledge")
 async def knowledge_list() -> Dict[str, Any]:
     """List all cached learned facts."""
-    from agent.knowledge_cache import KnowledgeCache
+    from agent.memory.knowledge_cache import KnowledgeCache
     cache = KnowledgeCache()
     facts = cache.list_all()
     return {
@@ -676,7 +676,7 @@ async def knowledge_list() -> Dict[str, Any]:
 @app.delete("/api/knowledge")
 async def knowledge_clear() -> Dict[str, Any]:
     """Clear all cached learned facts."""
-    from agent.knowledge_cache import KnowledgeCache
+    from agent.memory.knowledge_cache import KnowledgeCache
     cache = KnowledgeCache()
     n = cache.clear()
     return {"cleared": n}
@@ -685,7 +685,7 @@ async def knowledge_clear() -> Dict[str, Any]:
 @app.get("/api/patterns")
 async def patterns() -> Dict[str, Any]:
     """Return recognized conversation patterns (empty until observed)."""
-    from agent.pattern_recognizer import PatternRecognizer
+    from agent.understanding.pattern_recognizer import PatternRecognizer
     r = PatternRecognizer()
     return r.report().to_dict()
 
@@ -697,7 +697,7 @@ async def expand_prompt_endpoint(req: Dict[str, Any]) -> Dict[str, Any]:
 
     Request body: ``{"message": "fix it"}``
     """
-    from agent.prompt_expander import expand_prompt
+    from agent.prompt.prompt_expander import expand_prompt
     message = (req.get("message") or "").strip()
     if not message:
         return JSONResponse(
@@ -710,7 +710,7 @@ async def expand_prompt_endpoint(req: Dict[str, Any]) -> Dict[str, Any]:
 @app.post("/api/intent")
 async def intent_endpoint(req: Dict[str, Any]) -> Dict[str, Any]:
     """Classify the intent of a user message."""
-    from agent.intent_classifier import classify_intent
+    from agent.understanding.intent_classifier import classify_intent
     message = (req.get("message") or "").strip()
     if not message:
         return JSONResponse(
@@ -722,7 +722,7 @@ async def intent_endpoint(req: Dict[str, Any]) -> Dict[str, Any]:
 @app.post("/api/reformulate")
 async def reformulate_endpoint(req: Dict[str, Any]) -> Dict[str, Any]:
     """Reformulate a vague user message into precise search queries."""
-    from agent.query_reformulator import reformulate
+    from agent.understanding.query_reformulator import reformulate
     message = (req.get("message") or "").strip()
     if not message:
         return JSONResponse(
