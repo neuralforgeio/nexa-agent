@@ -1,0 +1,40 @@
+name: voice_cloning
+version: 0.1.0
+description: Clone a voice from a sample audio file and synthesize new text in that voice. Returns the workspace
+  path of the synthesized audio plus a voice similarity score.
+category: creative_media
+author: nexa-agent
+permissions:
+- filesystem:workspace
+- network:*
+input_schema:
+  type: object
+  required:
+  - sample_audio_path
+  - text
+  properties:
+    sample_audio_path: &id001
+      type: string
+    text: *id001
+    language:
+      type: string
+      default: en
+output_schema:
+  type: object
+  required:
+  - audio_path
+  properties:
+    audio_path: *id001
+    similarity_score:
+      type: number
+      minimum: 0.0
+      maximum: 1.0
+examples:
+- input:
+    sample_audio_path: media/voice_sample.wav
+    text: Welcome back, your daily briefing is ready.
+    language: en
+tags:
+- voice
+- creative-media
+- cloning

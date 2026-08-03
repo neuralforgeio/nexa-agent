@@ -1,0 +1,41 @@
+name: music_generation
+version: 0.1.0
+description: Generate a short music track from a prompt with a target duration and optional genre and mood. Returns
+  the workspace path of the audio file plus generation metadata.
+category: creative_media
+author: nexa-agent
+permissions:
+- network:*
+- filesystem:workspace:write
+input_schema:
+  type: object
+  required:
+  - prompt
+  - duration
+  properties:
+    prompt: &id001
+      type: string
+    duration:
+      type: integer
+      minimum: 1
+      maximum: 600
+    genre: *id001
+    mood: *id001
+output_schema:
+  type: object
+  required:
+  - audio_path
+  properties:
+    audio_path: *id001
+    metadata:
+      type: object
+examples:
+- input:
+    prompt: lo-fi hip hop beat for deep focus
+    duration: 60
+    genre: lofi
+    mood: calm
+tags:
+- music
+- creative-media
+- audio

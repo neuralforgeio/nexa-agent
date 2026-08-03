@@ -1,0 +1,59 @@
+name: deep_research
+version: 0.1.0
+description: Perform multi-source web research on a topic with a configurable depth. Returns a synthesis summary,
+  structured sources with credibility ratings, and formatted citations.
+category: web_research
+author: nexa-agent
+permissions:
+- network:*
+- memory:read
+- memory:write
+input_schema:
+  type: object
+  required:
+  - topic
+  - depth
+  properties:
+    topic: &id001
+      type: string
+    depth:
+      type: string
+      enum:
+      - quick
+      - standard
+      - deep
+    max_sources:
+      type: integer
+      default: 10
+      minimum: 1
+output_schema:
+  type: object
+  required:
+  - summary
+  - sources
+  properties:
+    summary: *id001
+    sources:
+      type: array
+      items:
+        type: object
+        properties:
+          url: *id001
+          title: *id001
+          snippet: *id001
+          credibility: *id001
+        required:
+        - url
+        - title
+    citations:
+      type: array
+      items: *id001
+examples:
+- input:
+    topic: state of on-device small language models in 2026
+    depth: standard
+    max_sources: 10
+tags:
+- research
+- web
+- web-research

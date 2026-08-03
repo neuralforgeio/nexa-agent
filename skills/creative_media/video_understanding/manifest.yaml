@@ -1,0 +1,64 @@
+name: video_understanding
+version: 0.1.0
+description: 'Understand a video from a workspace path or URL: answer questions about it, produce a scene-by-scene
+  breakdown, and return a spoken-word transcript.'
+category: creative_media
+author: nexa-agent
+permissions:
+- filesystem:workspace
+- network:*
+input_schema:
+  anyOf:
+  - type: object
+    required:
+    - video_path
+    - questions
+    properties:
+      video_path: &id001
+        type: string
+      video_url: *id001
+      questions:
+        type: array
+        items: *id001
+        minItems: 1
+  - type: object
+    required:
+    - video_url
+    - questions
+    properties:
+      video_path: *id001
+      video_url: *id001
+      questions:
+        type: array
+        items: *id001
+        minItems: 1
+output_schema:
+  type: object
+  required:
+  - summary
+  - scenes
+  properties:
+    summary: *id001
+    scenes:
+      type: array
+      items:
+        type: object
+        properties:
+          start: &id002
+            type: number
+          end: *id002
+          description: *id001
+        required:
+        - start
+        - end
+        - description
+    transcript: *id001
+examples:
+- input:
+    video_url: https://example.com/talk.mp4
+    questions:
+    - What are the main announcements?
+tags:
+- video
+- creative-media
+- understanding

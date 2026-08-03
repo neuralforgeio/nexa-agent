@@ -1,0 +1,1 @@
+"""Skill: web_monitoring."""

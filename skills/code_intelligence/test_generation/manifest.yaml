@@ -1,0 +1,43 @@
+name: test_generation
+version: 0.1.0
+description: Generate unit tests (pytest or unittest) for a workspace source file, optionally targeting one function.
+  Returns the generated test code, the test file path, and an estimated line coverage percentage.
+category: code_intelligence
+author: nexa-agent
+permissions:
+- filesystem:workspace
+- filesystem:workspace:write
+input_schema:
+  type: object
+  required:
+  - file_path
+  - framework
+  properties:
+    file_path: &id001
+      type: string
+    function_name: *id001
+    framework:
+      type: string
+      enum:
+      - pytest
+      - unittest
+output_schema:
+  type: object
+  required:
+  - test_code
+  - test_file_path
+  properties:
+    test_code: *id001
+    test_file_path: *id001
+    coverage_estimate:
+      type: integer
+      minimum: 0
+      maximum: 100
+examples:
+- input:
+    file_path: agent/core/router.py
+    framework: pytest
+tags:
+- testing
+- code-intelligence
+- test-generation

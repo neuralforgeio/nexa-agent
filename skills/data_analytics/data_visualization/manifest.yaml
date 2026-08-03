@@ -1,0 +1,50 @@
+name: data_visualization
+version: 0.1.0
+description: Build a dashboard, chart, or report visualization from a dataset with an optional layout. Returns the
+  output path, the components included, and a human-readable description.
+category: data_analytics
+author: nexa-agent
+permissions:
+- filesystem:workspace:write
+- terminal:execute
+input_schema:
+  type: object
+  required:
+  - data
+  - viz_type
+  properties:
+    data:
+      type: array
+    viz_type:
+      type: string
+      enum:
+      - dashboard
+      - chart
+      - report
+    layout:
+      type: object
+output_schema:
+  type: object
+  required:
+  - dashboard_path
+  properties:
+    dashboard_path: &id001
+      type: string
+    components:
+      type: array
+      items: *id001
+    description: *id001
+examples:
+- input:
+    data:
+    - day: Mon
+      signups: 34
+    - day: Tue
+      signups: 51
+    viz_type: dashboard
+    layout:
+      columns: 2
+tags:
+- visualization
+- data-analytics
+- dashboard

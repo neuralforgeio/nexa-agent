@@ -1,0 +1,1 @@
+"""Skill: trend_analysis."""

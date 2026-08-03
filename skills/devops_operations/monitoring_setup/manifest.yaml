@@ -1,0 +1,61 @@
+name: monitoring_setup
+version: 0.1.0
+description: 'Configure monitoring for an application: emit ready-to-use config files for metrics, alerting, and
+  a dashboard on the chosen observability platform.'
+category: devops_operations
+author: nexa-agent
+permissions:
+- filesystem:workspace:write
+- terminal:execute
+input_schema:
+  type: object
+  required:
+  - app_path
+  - metrics
+  - alerting
+  - platform
+  properties:
+    app_path: &id001
+      type: string
+    metrics:
+      type: array
+      items: *id001
+      minItems: 1
+    alerting:
+      type: object
+    platform:
+      type: string
+      enum:
+      - prometheus
+      - datadog
+      - newrelic
+output_schema:
+  type: object
+  required:
+  - config_files
+  properties:
+    config_files:
+      type: array
+      items:
+        type: object
+        properties:
+          path: *id001
+          content: *id001
+        required:
+        - path
+        - content
+    dashboard_url: *id001
+examples:
+- input:
+    app_path: agent
+    metrics:
+    - request_latency
+    - error_rate
+    alerting:
+      channel: slack
+      threshold: error_rate > 0.05
+    platform: prometheus
+tags:
+- monitoring
+- devops
+- observability

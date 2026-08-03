@@ -1,0 +1,60 @@
+name: web_monitoring
+version: 0.1.0
+description: Monitor a set of URLs on a fixed interval for content, price, or status changes. Returns whether monitoring
+  was armed and any changes detected so far, each with its diff.
+category: web_research
+author: nexa-agent
+permissions:
+- network:*
+- memory:write
+input_schema:
+  type: object
+  required:
+  - urls
+  - check_interval
+  - change_type
+  properties:
+    urls:
+      type: array
+      items: &id001
+        type: string
+      minItems: 1
+    check_interval:
+      type: integer
+      minimum: 1
+    change_type:
+      type: string
+      enum:
+      - any
+      - content
+      - price
+      - status
+output_schema:
+  type: object
+  required:
+  - monitored
+  - changes_detected
+  properties:
+    monitored:
+      type: boolean
+    changes_detected:
+      type: array
+      items:
+        type: object
+        properties:
+          url: *id001
+          change_type: *id001
+          diff: *id001
+        required:
+        - url
+        - change_type
+examples:
+- input:
+    urls:
+    - https://example.com/pricing
+    check_interval: 3600
+    change_type: price
+tags:
+- monitoring
+- web
+- web-research

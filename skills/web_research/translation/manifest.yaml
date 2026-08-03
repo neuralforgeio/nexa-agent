@@ -1,0 +1,45 @@
+name: translation
+version: 0.1.0
+description: Translate text from a source language to a target language, with optional domain context. Returns the
+  translated text, optionally a detected language, and a confidence score.
+category: web_research
+author: nexa-agent
+permissions:
+- memory:read
+input_schema:
+  type: object
+  required:
+  - text
+  - from
+  - to
+  properties:
+    text: &id001
+      type: string
+    from:
+      type: string
+      minLength: 1
+    to:
+      type: string
+      minLength: 1
+    context: *id001
+output_schema:
+  type: object
+  required:
+  - translated_text
+  - confidence
+  properties:
+    translated_text: *id001
+    detected_language: *id001
+    confidence:
+      type: number
+      minimum: 0.0
+      maximum: 1.0
+examples:
+- input:
+    text: The deployment failed because the health check timed out.
+    from: en
+    to: id
+tags:
+- translation
+- language
+- multilingual

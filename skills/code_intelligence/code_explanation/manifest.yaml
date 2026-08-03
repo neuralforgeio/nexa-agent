@@ -1,0 +1,40 @@
+name: code_explanation
+version: 0.1.0
+description: Explain what a source file does, at a brief, detailed, or ELI5 level. Returns a prose explanation,
+  the step-by-step flow, and the file's key dependencies.
+category: code_intelligence
+author: nexa-agent
+permissions:
+- filesystem:workspace
+input_schema:
+  type: object
+  required:
+  - file_path
+  - detail_level
+  properties:
+    file_path: &id001
+      type: string
+    detail_level:
+      type: string
+      enum:
+      - brief
+      - detailed
+      - eli5
+output_schema:
+  type: object
+  required:
+  - explanation
+  properties:
+    explanation: *id001
+    flow_steps: &id002
+      type: array
+      items: *id001
+    dependencies: *id002
+examples:
+- input:
+    file_path: skills/registry.py
+    detail_level: detailed
+tags:
+- explanation
+- code-intelligence
+- documentation

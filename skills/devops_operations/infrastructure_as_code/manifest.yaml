@@ -1,0 +1,50 @@
+name: infrastructure_as_code
+version: 0.1.0
+description: Generate infrastructure-as-code (Terraform, Pulumi, or CloudFormation) for a provider from a natural-language
+  description. Returns the IaC source, its workspace file path, and a cost estimate.
+category: devops_operations
+author: nexa-agent
+permissions:
+- filesystem:workspace:write
+- memory:read
+input_schema:
+  type: object
+  required:
+  - description
+  - provider
+  - iac_tool
+  properties:
+    description: &id001
+      type: string
+    provider:
+      type: string
+      enum:
+      - aws
+      - gcp
+      - azure
+      - cloudflare
+    iac_tool:
+      type: string
+      enum:
+      - terraform
+      - pulumi
+      - cloudformation
+output_schema:
+  type: object
+  required:
+  - iac_code
+  - file_path
+  properties:
+    iac_code: *id001
+    file_path: *id001
+    estimated_cost:
+      type: object
+examples:
+- input:
+    description: an S3 bucket with versioning and a CloudFront distribution in front
+    provider: aws
+    iac_tool: terraform
+tags:
+- iac
+- devops
+- terraform

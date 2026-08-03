@@ -41,8 +41,6 @@ mini-services/
 download/
 upload/
 
-# === PANEL DEFAULTS (never push) ===
-skills/
 Caddyfile
 
 # Next.js build cache

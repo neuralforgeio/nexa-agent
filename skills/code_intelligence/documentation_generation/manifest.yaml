@@ -1,0 +1,42 @@
+name: documentation_generation
+version: 0.1.0
+description: Generate documentation (docstrings, README, or API reference) for a workspace file. Returns the rendered
+  documentation plus the list of files that were created or updated.
+category: code_intelligence
+author: nexa-agent
+permissions:
+- filesystem:workspace
+- filesystem:workspace:write
+input_schema:
+  type: object
+  required:
+  - file_path
+  - doc_type
+  properties:
+    file_path: &id001
+      type: string
+    doc_type:
+      type: string
+      enum:
+      - docstring
+      - readme
+      - api_reference
+      - all
+output_schema:
+  type: object
+  required:
+  - documentation
+  - updated_files
+  properties:
+    documentation: *id001
+    updated_files:
+      type: array
+      items: *id001
+examples:
+- input:
+    file_path: agent/core/provider_registry.py
+    doc_type: docstring
+tags:
+- documentation
+- code-intelligence
+- docstrings

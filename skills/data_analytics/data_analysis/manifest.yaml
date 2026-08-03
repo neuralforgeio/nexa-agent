@@ -1,0 +1,55 @@
+name: data_analysis
+version: 0.1.0
+description: Analyse a data source for summary statistics, correlations, outliers, or a forecast. Returns structured
+  insights with evidence and recommendations, raw statistics, and visualization paths.
+category: data_analytics
+author: nexa-agent
+permissions:
+- filesystem:workspace
+- terminal:execute
+input_schema:
+  type: object
+  required:
+  - data_source
+  - analysis_type
+  properties:
+    data_source: &id001
+      type: string
+    analysis_type:
+      type: string
+      enum:
+      - summary
+      - correlation
+      - outlier
+      - forecast
+output_schema:
+  type: object
+  required:
+  - insights
+  - statistics
+  properties:
+    insights:
+      type: array
+      items:
+        type: object
+        properties:
+          finding: *id001
+          evidence: *id001
+          recommendation: *id001
+        required:
+        - finding
+        - evidence
+        - recommendation
+    statistics:
+      type: object
+    visualizations:
+      type: array
+      items: *id001
+examples:
+- input:
+    data_source: data/sales_2026.csv
+    analysis_type: summary
+tags:
+- analysis
+- data-analytics
+- statistics

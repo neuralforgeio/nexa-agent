@@ -1,0 +1,53 @@
+name: chart_generation
+version: 0.1.0
+description: Generate a bar, line, pie, scatter, or heatmap chart from tabular data. Returns the chart's rendering
+  code and the workspace path of the produced image.
+category: creative_media
+author: nexa-agent
+permissions:
+- filesystem:workspace:write
+- terminal:execute
+input_schema:
+  type: object
+  required:
+  - data
+  - chart_type
+  - title
+  properties:
+    data:
+      type: array
+      items: &id001
+        type: object
+      minItems: 1
+    chart_type:
+      type: string
+      enum:
+      - bar
+      - line
+      - pie
+      - scatter
+      - heatmap
+    title: &id002
+      type: string
+    options: *id001
+output_schema:
+  type: object
+  required:
+  - chart_code
+  - image_path
+  properties:
+    chart_code: *id002
+    image_path: *id002
+examples:
+- input:
+    data:
+    - quarter: Q1
+      revenue: 12.4
+    - quarter: Q2
+      revenue: 15.1
+    chart_type: bar
+    title: Quarterly revenue
+tags:
+- chart
+- creative-media
+- visualization

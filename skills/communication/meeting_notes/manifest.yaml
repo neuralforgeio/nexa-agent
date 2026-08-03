@@ -1,0 +1,53 @@
+name: meeting_notes
+version: 0.1.0
+description: 'Turn a meeting recording into structured notes: a transcript, action items with assignees and due
+  dates, key decisions, and an executive summary.'
+category: communication
+author: nexa-agent
+permissions:
+- filesystem:workspace
+- memory:write
+input_schema:
+  type: object
+  required:
+  - audio_path
+  properties:
+    audio_path: &id001
+      type: string
+    meeting_context: *id001
+    attendees: &id002
+      type: array
+      items: *id001
+output_schema:
+  type: object
+  required:
+  - transcript
+  - action_items
+  - decisions
+  - summary
+  properties:
+    transcript: *id001
+    action_items:
+      type: array
+      items:
+        type: object
+        properties:
+          task: *id001
+          assignee: *id001
+          due_date: *id001
+        required:
+        - task
+    decisions: *id002
+    summary: *id001
+examples:
+- input:
+    audio_path: media/sprint_review.mp3
+    meeting_context: Sprint 42 review
+    attendees:
+    - Dearly
+    - Ari
+    - Maya
+tags:
+- meetings
+- communication
+- notes

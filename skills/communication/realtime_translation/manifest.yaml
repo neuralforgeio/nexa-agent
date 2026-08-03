@@ -1,0 +1,38 @@
+name: realtime_translation
+version: 0.1.0
+description: Translate a live audio stream from a source language to a target language in near real time. Returns
+  a reference to the translated audio stream plus the observed end-to-end latency.
+category: communication
+author: nexa-agent
+permissions:
+- network:*
+input_schema:
+  type: object
+  required:
+  - audio_stream
+  - source_lang
+  - target_lang
+  properties:
+    audio_stream: &id001
+      type: string
+    source_lang: *id001
+    target_lang: *id001
+output_schema:
+  type: object
+  required:
+  - translated_stream
+  - latency
+  properties:
+    translated_stream: *id001
+    latency:
+      type: number
+      minimum: 0.0
+examples:
+- input:
+    audio_stream: stream://call/73f2/audio-in
+    source_lang: en
+    target_lang: id
+tags:
+- translation
+- communication
+- realtime

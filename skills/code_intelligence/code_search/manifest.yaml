@@ -1,0 +1,59 @@
+name: code_search
+version: 0.1.0
+description: Semantic search across the workspace, agent memory, or both. Returns ranked results with file path,
+  line number, code snippet, and a relevance score.
+category: code_intelligence
+author: nexa-agent
+permissions:
+- filesystem:workspace
+- memory:read
+input_schema:
+  type: object
+  required:
+  - query
+  properties:
+    query: &id001
+      type: string
+    search_scope:
+      type: string
+      enum:
+      - workspace
+      - memory
+      - all
+      default: all
+    limit:
+      type: integer
+      default: 10
+      minimum: 1
+output_schema:
+  type: object
+  required:
+  - results
+  properties:
+    results:
+      type: array
+      items:
+        type: object
+        properties:
+          file_path: *id001
+          line:
+            type: integer
+          snippet: *id001
+          relevance_score:
+            type: number
+            minimum: 0.0
+            maximum: 1.0
+        required:
+        - file_path
+        - line
+        - snippet
+        - relevance_score
+examples:
+- input:
+    query: retry with exponential backoff
+    search_scope: all
+    limit: 5
+tags:
+- search
+- code-intelligence
+- retrieval

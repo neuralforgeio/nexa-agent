@@ -1,0 +1,55 @@
+name: image_generation
+version: 0.1.0
+description: Generate one or more images from a text prompt with a chosen size and optional style. Returns image
+  references with generation metadata plus the wall-clock generation time.
+category: creative_media
+author: nexa-agent
+permissions:
+- network:*
+- filesystem:workspace:write
+input_schema:
+  type: object
+  required:
+  - prompt
+  - size
+  properties:
+    prompt: &id001
+      type: string
+    size:
+      type: string
+      enum:
+      - 256x256
+      - 512x512
+      - 1024x1024
+    style: *id001
+    n:
+      type: integer
+      default: 1
+      minimum: 1
+      maximum: 10
+output_schema:
+  type: object
+  required:
+  - images
+  properties:
+    images:
+      type: array
+      items:
+        type: object
+        properties:
+          url: *id001
+          metadata:
+            type: object
+    generation_time:
+      type: number
+      minimum: 0.0
+examples:
+- input:
+    prompt: isometric illustration of a self-hosted AI agent dashboard
+    size: 512x512
+    style: flat vector
+    n: 1
+tags:
+- image
+- creative-media
+- generation

@@ -1,0 +1,50 @@
+name: log_analysis
+version: 0.1.0
+description: Analyse logs from a file or endpoint for anomalies, patterns, errors, or security events. Returns anomalies,
+  recurring patterns, a root-cause hypothesis, and recommendations.
+category: devops_operations
+author: nexa-agent
+permissions:
+- filesystem:workspace
+- memory:read
+input_schema:
+  type: object
+  required:
+  - log_source
+  - log_format
+  - analysis_type
+  properties:
+    log_source: &id001
+      type: string
+    log_format: *id001
+    analysis_type:
+      type: string
+      enum:
+      - anomaly
+      - pattern
+      - error
+      - security
+output_schema:
+  type: object
+  required:
+  - anomalies
+  - patterns
+  - root_cause
+  - recommendations
+  properties:
+    anomalies:
+      type: array
+    patterns: &id002
+      type: array
+      items: *id001
+    root_cause: *id001
+    recommendations: *id002
+examples:
+- input:
+    log_source: logs/nexa-agent.log
+    log_format: json
+    analysis_type: error
+tags:
+- logs
+- devops
+- analysis

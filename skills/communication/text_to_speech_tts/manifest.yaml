@@ -1,0 +1,52 @@
+name: text_to_speech_tts
+version: 0.1.0
+description: Synthesize speech from text with a chosen voice, speed, and language. Returns the workspace path of
+  the audio file, its duration in seconds, and synthesis metadata.
+category: communication
+author: nexa-agent
+permissions:
+- filesystem:workspace:write
+- network:*
+input_schema:
+  type: object
+  required:
+  - text
+  - voice
+  - language
+  properties:
+    text: &id001
+      type: string
+    voice:
+      type: string
+      enum:
+      - male
+      - female
+      - neutral
+    speed:
+      type: number
+      default: 1.0
+      minimum: 0.25
+      maximum: 4.0
+    language: *id001
+output_schema:
+  type: object
+  required:
+  - audio_path
+  - duration
+  properties:
+    audio_path: *id001
+    duration:
+      type: number
+      minimum: 0.0
+    metadata:
+      type: object
+examples:
+- input:
+    text: Your build finished successfully.
+    voice: neutral
+    speed: 1.0
+    language: en
+tags:
+- speech
+- communication
+- tts
