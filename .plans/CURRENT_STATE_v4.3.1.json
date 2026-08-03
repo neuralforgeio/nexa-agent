@@ -1,0 +1,13 @@
+{
+  "as_of": "2026-08-03",
+  "session_close": true,
+  "current_version": "4.3.1",
+  "main_head": "773d9fe",
+  "branch_state": "main is ahead of all demos",
+  "provider_count": 24,
+  "tool_count": 33,
+  "test_count": 660,
+  "pyproject_entry_points": ["nexa", "nexa-chat", "nexa-agent", "nexa-gateway"],
+  "folders_reorganized": ["agent/<10-categories>", "src/", "docs/<audience>/", "scripts/<purpose>/", "tests/<suite>/"],
+  "notes": "Reorganization is complete; every import still funnels through shims so nothing broke."
+}

@@ -268,3 +268,21 @@ curl -s -X POST -H "Authorization: token $TOKEN" -H "Accept: application/vnd.git
 
 ## REFERENSI ARSITEKTUR (riset only, jangan mention di publik)
 - https://github.com/NousResearch/hermes-agent
+
+
+---
+
+## ContINUATION SNAPSHOT (per v4.3.1, session closure Aug 3 2026)
+
+To restart a new chat / IDE session with full context, use:
+
+```
+Continue Nexa Agent development from main and state file. Root personality and orchestrator currently support the following installed feature set: (24 providers personas-deep planner; tool_api registration surface; TS per conversation.
+Verification: run_agent works, registry is OK, conversations safest. When picking up anything new please ensure complexity stays **STRICTLY** scoped to system prompt.
+```
+
+Diagnostic quick start when resuming:
+1. `git status` should be clean except for `.zcode/` (internal CLI workdir, excluded via gitignore).
+2. Run `pytest tests/ -q` — 660+ passing.
+3. `cd nexa_web && pnpm tsc && pnpm lint && pnpm build` — all clean.
+4. Read `.plans/CURRENT_STATE_v4.3.1.json` for the exact shipped snapshot.
