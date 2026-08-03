@@ -1722,3 +1722,19 @@ v4.2.1.
 - `README.md` version banner, install scripts, `docs/MANUAL_TESTING_GUIDE.md`,
   `CONTINUATION_PROMPT.md`, `SYSTEMPROMPT.md`, and `.plans/TOOL_CATALOG`
   all synced to v4.1.0. A new `config.yaml` centralizes project metadata.
+
+---
+
+## Task ID: 28 (v4.3.0 — Agent Skills Registry + Foundation: Tool API + Gateways)
+Agent: Nexa autonomously planned
+
+### Summary
+- agent/tool_api.py: public API for user tools (register_tool/unregister_tool,
+  event bus via emit_event/on_event, sandboxed http_client()).
+- gateways/ package: base class GatewayBase + GatewayConfig + active registry.
+- tests/test_foundation_v43.py (11 tests).
+- Test count: 636 → 660 (+24 across releases).
+
+Stage Summary:
+- gateway base is fully contract-compliant so NexaAgent can attach more
+  channels later without breaking user code.
