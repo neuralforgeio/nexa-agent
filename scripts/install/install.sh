@@ -81,7 +81,14 @@ print_logo() {
      ╚═╝  ╚══╝  ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝
 LOGO_EOF
     echo -e "${NC}"
-    echo -e "${WHITE}${BOLD}  Nexa Agent v4.1.0${NC} ${DIM}·${NC} ${CYAN}Local AI Agent${NC}"
+    # v4.2.3: read the version from pyproject.toml instead of hard-coding.
+    # Graceful fall-back to "4.x" if anything goes wrong (e.g. older hosts
+    # without grep/sed in unusual locations).
+    local version="4.2.3"
+    if [ -f "$INSTALL_DIR/../pyproject.toml" ]; then
+        version=$(grep -E '^[[:space:]]*version[[:space:]]*=' "$INSTALL_DIR/../pyproject.toml" | head -1 | sed -E 's/.*"([^"]+)".*/\1/')
+    fi
+    echo -e "${WHITE}${BOLD}  Nexa Agent v${version}${NC} ${DIM}·${NC} ${CYAN}Local AI Agent${NC}"
     echo -e "${DIM}  by Dearly Febriano Irwansyah · Indonesia${NC}"
     echo ""
 }
@@ -231,12 +238,35 @@ progress_bar 5 7 "Virtual env"
 
 # --- Step 6: Install dependencies ---
 step "Installing dependencies (this may take a minute)..."
-export PATH="$INSTALL_DIR/.venv/bin:$PATH"
-# Try uv first (fastest), fall back to pip.
+VENV_PY="$INSTALL_DIR/.venv/bin/python"
+VENV_PIP="$INSTALL_DIR/.venv/bin/pip"
+# v4.2.3 bug fix: when the installer is invoked via `curl | bash`, stdin is
+# consumed by bash. If we inherit VIRTUAL_ENV from an outside environment,
+# `uv pip install -e .` would install into the OUTER interpreter instead of
+# our freshly created .venv/. Explicitly wire uv to the venv and also unset
+# VIRTUAL_ENV so auto-detection doesn't override it.
+unset VIRTUAL_ENV
+export VIRTUAL_ENV="$INSTALL_DIR/.venv"
+export PATH="$VIRTUAL_ENV/bin:$PATH"
+
+# Sanity: ensure the venv python is real.
+if [ ! -x "$VENV_PY" ]; then
+    fail "venv python missing at $VENV_PY — aborting."
+fi
+
+# Install with uv (preferred) or pip as fallback.
 if command -v uv &>/dev/null; then
-    uv pip install -e ".[dev]" 2>&1 | tail -1
+    info "Using uv pip install (explicit venv: $VENV_PY)"
+    uv pip install --python "$VENV_PY" -e ".[dev]" 2>&1 | tail -1
+elif [ -x "$VENV_PIP" ]; then
+    VIRTUAL_ENV="$VIRTUAL_ENV" "$VENV_PY" -m pip install -e ".[dev]" 2>&1 | tail -1
 else
-    python -m pip install -e ".[dev]" 2>&1 | tail -1
+    fail "No suitable installer found (uv or venv pip missing)."
+fi
+
+# v4.2.3 verify that the nexa binary was actually created.
+if [ ! -x "$INSTALL_DIR/.venv/bin/nexa" ]; then
+    fail "Dependencies installed but nexa binary is missing — cannot continue."
 fi
 ok "Dependencies installed ✓"
 progress_bar 6 7 "Dependencies"

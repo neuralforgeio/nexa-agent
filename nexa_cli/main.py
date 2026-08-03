@@ -62,6 +62,12 @@ def main(argv: Optional[List[str]] = None) -> int:
         description=f"{NEXA_NAME} v{NEXA_VERSION} — CLI",
         add_help=True,
     )
+    # v4.2.3: top-level --version flag (parses and exits before subcommands).
+    parser.add_argument(
+        "-V", "--version",
+        action="store_true",
+        help="Print the current nexa-agent version and exit.",
+    )
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # setup
@@ -110,6 +116,11 @@ def main(argv: Optional[List[str]] = None) -> int:
     subparsers.add_parser("doctor", help="Run self-health diagnostics")
 
     args = parser.parse_args(argv)
+
+    # v4.2.3: --version short-circuit (handled BEFORE subcommand dispatch).
+    if getattr(args, "version", False):
+        print(f"{NEXA_NAME} v{NEXA_VERSION}")
+        return 0
 
     if args.command == "setup":
         return _cmd_setup()
