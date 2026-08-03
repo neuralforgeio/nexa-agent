@@ -111,7 +111,18 @@ Write-Host "     ██║╚████══█ ██╔══╝   ██�
 Write-Host "     ██║ ╚███║  ███████╗██╔╝ ██╗██║  ██║" -ForegroundColor Cyan
 Write-Host "     ╚═╝  ╚══╝  ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "  Nexa Agent v4.2.1  ·  Local AI Agent" -ForegroundColor White
+# v4.2.3: read version from pyproject.toml (single source of truth) — so the
+# banner ALWAYS matches the package version, no more drift.
+$bannerVersion = "4.2.3"
+try {
+  $py = Join-Path $PSScriptRoot "..\..\pyproject.toml"
+  if (Test-Path $py) {
+    $line = Get-Content $py | Where-Object { $_ -match '^\s*version\s*=' } | Select-Object -First 1
+    if ($line -match '"([^"]+)"') { $bannerVersion = $Matches[1] }
+  }
+} catch {}
+
+Write-Host ("  Nexa Agent v{0}  ·  Local AI Agent" -f $bannerVersion) -ForegroundColor White
 Write-Host "  by Dearly Febriano Irwansyah · Indonesia" -ForegroundColor DarkGray
 Write-Host ""
 
