@@ -230,6 +230,28 @@ try {
 }
 Write-ProgressBar 6 7 "Dependencies"
 
+# --- Step 6b: Frontend dependencies (v4.6.1) ---
+# GLM QA v4.6.0 BUG-03: fresh clones failed npm run build with six
+# "Module not found" errors because npm install was never run. Auto-run when
+# npm is available; skip gracefully otherwise.
+if (Test-Path (Join-Path $InstallDir "nexa_web")) {
+    $npmOk = $false
+    try { npm --version | Out-Null; $npmOk = $true } catch {}
+    if ($npmOk) {
+        Write-Step "Installing frontend dependencies (nexa_web)..."
+        try {
+            Push-Location (Join-Path $InstallDir "nexa_web")
+            npm install --no-audit --no-fund 2>&1 | Out-Null
+            Pop-Location
+            Write-Ok "Frontend dependencies installed ✓"
+        } catch {
+            Write-Warn "npm install failed — run manually: cd nexa_web && npm install"
+        }
+    } else {
+        Write-Info "npm not found — frontend deps skipped. Later: cd nexa_web && npm install"
+    }
+}
+
 # --- Step 6: Initialize ---
 Write-Step "Initializing ~/.nexa/ home directory..."
 try {

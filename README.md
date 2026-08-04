@@ -1,7 +1,7 @@
 # Nexa Agent
 
 > **The Ultimate Local AI Agent Enterprise — by Dearly Febriano Irwansyah**
-> **Version 4.5.0** · Extended MIT License · [SYSTEMPROMPT.md](./SYSTEMPROMPT.md)
+> **Version 4.6.1** · Extended MIT License · [SYSTEMPROMPT.md](./SYSTEMPROMPT.md)
 
 A terminal-first local AI agent with iterative tool-calling, multi-provider
 support (24 providers + custom endpoints), a self-improvement memory system,

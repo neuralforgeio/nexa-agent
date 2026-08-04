@@ -106,11 +106,15 @@ async def test_workspace_is_untouched(ws):
     await handle(_input(), ScriptedProvider())
     assert pkg.read_text(encoding="utf-8") == before
     # No stray deploy artefacts were created anywhere in the workspace.
-    assert sorted(str(p.relative_to(ws)) for p in ws.rglob("*")) == [
+    # NOTE: build the expected list with os.path.join so this is portable —
+    # hardcoded backslashes fail on Linux/macOS where rglob yields '/'.
+    import os
+    expected = sorted([
         "apps",
-        "apps\\web-dashboard",
-        "apps\\web-dashboard\\package.json",
-    ]
+        os.path.join("apps", "web-dashboard"),
+        os.path.join("apps", "web-dashboard", "package.json"),
+    ])
+    assert sorted(str(p.relative_to(ws)) for p in ws.rglob("*")) == expected
 
 
 # ---------------------------------------------------------------------------

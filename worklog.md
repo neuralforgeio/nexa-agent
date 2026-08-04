@@ -1987,3 +1987,42 @@ of the best, and slash commands can quickly jump from idea through the
 
 Stage Summary:
 - v4.4.0 → v4.6.0 — Batch 9 completes. Backend + frontend + TUI all aligned.
+
+
+---
+
+## Task ID: 35 (v4.6.1 — GLM QA bugfix pass: skills deps + cross-platform tests + installer)
+Agent: ZCode autonomy loop (main) — responding to GLM QA report QA-v4.6.0-001
+
+### Summary
+Three real bugs from GLM's QA pass on v4.6.0, all in the Batch-8 skills surface:
+
+- **BUG-01 (P1)** — `spreadsheet_operations` raised SkillError("requires
+  openpyxl") on any fresh `pip install -e .` because openpyxl was never declared.
+    * Fixed: `openpyxl>=3.1.0` added to `pyproject.toml` `[project.dependencies]`
+      and `requirements.txt`.
+    * Added regression test: openpyxl importable + declared in both files.
+
+- **BUG-02 (P1)** — `tests/test_skills_deployment_automation.py`
+  `test_workspace_is_untouched` hardcoded Windows separators
+  (`apps\web-dashboard`), failing on Linux/macOS.
+    * Fixed: expected list built via `os.path.join` (OS-portable).
+    * Added AST-based regression test asserting no skill test asserts literal
+      backslash paths.
+
+- **BUG-03 (P2)** — installers (`install.sh`, `install.ps1`) only TOLD users
+  to run `npm install` for nexa_web — fresh clones hit six "Module not found"
+  errors on `npm run build`.
+    * Fixed: both installers now auto-run `npm install` in `nexa_web` when npm
+      is present, and skip gracefully (with a clear note) when it isn't.
+    * Added regression tests asserting the step exists and is graceful.
+
+### Tests
+- `tests/test_qa_v461_regressions.py` — 8 new guard tests (all pass).
+- Full suite: 998 passed, 0 failed (990 + 8 new); 17 llama.cpp E2E still gated.
+- Note: GLM reported 981/990 in their sandbox because 4 of their failures were
+  environment-specific (venv symlink + bash `type` builtin) and 4 were BUG-01 —
+  all resolved by this release.
+
+Stage Summary:
+- v4.6.0 → v4.6.1 (PATCH) — 3 QA bugs fixed, 8 regression guards added.
