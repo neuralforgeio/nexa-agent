@@ -4,10 +4,10 @@
 # ====================================================
 #
 # One-line install with animations:
-#   curl -fsSL https://raw.githubusercontent.com/neuralforgeio/nexa-agent/main/scripts/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/neuralforgeio/nexa-agent/main/scripts/install/install.sh| bash
 #
 # Or with wget:
-#   wget -qO- https://raw.githubusercontent.com/neuralforgeio/nexa-agent/main/scripts/install.sh | bash
+#   wget -qO- https://raw.githubusercontent.com/neuralforgeio/nexa-agent/main/scripts/install/install.sh| bash
 #
 # Features:
 #   - Cool ASCII logo + animations
@@ -161,7 +161,7 @@ elif [[ "$OSTYPE" == "darwin"* ]]; then
 else
     OS="windows"
     warn "Windows detected — please use install.ps1 instead"
-    fail "Use: irm https://raw.githubusercontent.com/neuralforgeio/nexa-agent/main/scripts/install.ps1 | iex"
+    fail "Use: irm https://raw.githubusercontent.com/neuralforgeio/nexa-agent/main/scripts/install/install.ps1 | iex"
 fi
 progress_bar 1 7 "OS detection"
 

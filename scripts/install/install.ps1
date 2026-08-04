@@ -3,10 +3,10 @@
 # ===========================================================
 #
 # One-line install (run in PowerShell — NOT Command Prompt):
-#   irm https://raw.githubusercontent.com/neuralforgeio/nexa-agent/main/scripts/install.ps1 | iex
+#   irm https://raw.githubusercontent.com/neuralforgeio/nexa-agent/main/scripts/install/install.ps1 | iex
 #
 # Or save and run:
-#   iwr https://raw.githubusercontent.com/neuralforgeio/nexa-agent/main/scripts/install.ps1 -OutFile install.ps1
+#   iwr https://raw.githubusercontent.com/neuralforgeio/nexa-agent/main/scripts/install/install.ps1 -OutFile install.ps1
 #   .\install.ps1
 #
 # Features:
