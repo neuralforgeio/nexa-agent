@@ -1,0 +1,47 @@
+name: diagram_generation
+version: 0.1.0
+description: Generate a flowchart, sequence, ERD, architecture, or class diagram from a natural-language description.
+  Returns the diagram source (Mermaid, PlantUML, or SVG) and optionally a rendered URL.
+category: creative_media
+author: nexa-agent
+permissions:
+- filesystem:workspace:write
+input_schema:
+  type: object
+  required:
+  - description
+  - diagram_type
+  - format
+  properties:
+    description: &id001
+      type: string
+    diagram_type:
+      type: string
+      enum:
+      - flowchart
+      - sequence
+      - erd
+      - architecture
+      - class
+    format:
+      type: string
+      enum:
+      - mermaid
+      - plantuml
+      - svg
+output_schema:
+  type: object
+  required:
+  - diagram_code
+  properties:
+    diagram_code: *id001
+    rendered_url: *id001
+examples:
+- input:
+    description: user submits a request, gateway authenticates, orchestrator routes to a skill
+    diagram_type: sequence
+    format: mermaid
+tags:
+- diagram
+- creative-media
+- mermaid

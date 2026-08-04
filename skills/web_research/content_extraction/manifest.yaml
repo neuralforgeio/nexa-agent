@@ -1,0 +1,39 @@
+name: content_extraction
+version: 0.1.0
+description: Fetch a URL and extract structured data matching a caller-supplied extraction schema. Returns the extracted
+  data object plus a confidence score for the extraction.
+category: web_research
+author: nexa-agent
+permissions:
+- network:*
+input_schema:
+  type: object
+  required:
+  - url
+  - extraction_schema
+  properties:
+    url:
+      type: string
+    extraction_schema: &id001
+      type: object
+output_schema:
+  type: object
+  required:
+  - extracted_data
+  properties:
+    extracted_data: *id001
+    confidence:
+      type: number
+      minimum: 0.0
+      maximum: 1.0
+examples:
+- input:
+    url: https://example.com/product/42
+    extraction_schema:
+      title: string
+      price: number
+      in_stock: boolean
+tags:
+- extraction
+- web
+- web-research

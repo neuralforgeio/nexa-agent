@@ -1,0 +1,58 @@
+name: trend_analysis
+version: 0.1.0
+description: Analyse a time series for trends and patterns and forecast future values. Returns detected trend segments,
+  textual patterns, and a forecast for the requested number of periods.
+category: web_research
+author: nexa-agent
+permissions:
+- memory:read
+input_schema:
+  type: object
+  required:
+  - data
+  - metric
+  properties:
+    data:
+      type: array
+      items:
+        type: object
+        properties:
+          timestamp: &id001
+            type: string
+          value:
+            type: number
+        required:
+        - timestamp
+        - value
+      minItems: 1
+    metric: *id001
+    forecast_periods:
+      type: integer
+      default: 7
+      minimum: 1
+output_schema:
+  type: object
+  required:
+  - trends
+  - patterns
+  - forecast
+  properties:
+    trends: &id002
+      type: array
+    patterns:
+      type: array
+      items: *id001
+    forecast: *id002
+examples:
+- input:
+    data:
+    - timestamp: '2026-07-01'
+      value: 120.5
+    - timestamp: '2026-07-08'
+      value: 131.0
+    metric: weekly_active_users
+    forecast_periods: 7
+tags:
+- trends
+- web-research
+- forecasting

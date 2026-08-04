@@ -1,0 +1,52 @@
+name: spreadsheet_operations
+version: 0.1.0
+description: Create, edit, or analyse a spreadsheet, applying data and optional formulas. Returns the spreadsheet
+  file path, a summary of the operation, and paths of any charts produced.
+category: data_analytics
+author: nexa-agent
+permissions:
+- filesystem:workspace:write
+input_schema:
+  type: object
+  required:
+  - operation
+  - file_path
+  properties:
+    operation:
+      type: string
+      enum:
+      - create
+      - edit
+      - analyze
+    file_path: &id001
+      type: string
+    data: &id002
+      type: object
+    formulas: &id003
+      type: array
+      items: *id001
+output_schema:
+  type: object
+  required:
+  - file_path
+  properties:
+    file_path: *id001
+    summary: *id002
+    charts: *id003
+examples:
+- input:
+    operation: create
+    file_path: reports/q3_budget.xlsx
+    data:
+      sheet: Budget
+      rows:
+      - - Item
+        - Cost
+      - - Infra
+        - 4200
+    formulas:
+    - =SUM(B2:B10)
+tags:
+- spreadsheet
+- data-analytics
+- excel

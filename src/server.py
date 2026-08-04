@@ -1300,6 +1300,92 @@ async def sandbox_build(req: SandboxBuildRequest) -> Dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
+# Skills API (Batch 8 — v4.4.0)
+# ---------------------------------------------------------------------------
+
+# Lazily resolved provider used for skills that call the LLM via the server.
+# Mirrors the pattern used by /api/provider/add: mutate the shared module-level
+# provider rather than re-constructing the agent.
+_provider_lock = False  # simple once-guard
+
+
+def _get_skill_provider():
+    """Return (and cache) a provider for skill execution, or None if unavailable."""
+    global _provider_lock
+    from nexa.provider import LLMProvider
+
+    if _provider_lock and hasattr(_get_skill_provider, "_cache"):
+        return _get_skill_provider._cache
+    try:
+        provider = LLMProvider()
+        _get_skill_provider._cache = provider
+        _provider_lock = True
+        return provider
+    except Exception:
+        return None
+
+
+@app.get("/api/skills")
+async def skills_list(category: str = "") -> Dict[str, Any]:
+    """
+    List all discovered skills; optionally filtered by category.
+
+    Returns a JSON-safe summary for each skill (name, version, description,
+    category, permissions, tags, examples, enabled flag). The full manifest is
+    available server-side at skills/<category>/<name>/manifest.yaml.
+    """
+    import skills
+
+    return {"skills": skills.list_skills(category=category or None)}
+
+
+@app.post("/api/skills/{name}/execute")
+async def skills_execute(name: str, req: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Execute a skill by name against the current active provider.
+
+    Body: ``{"input": {...}}`` — the skill's input payload (validated against
+    its manifest input_schema).
+
+    Returns the skill's structured output, or a 4xx/5xx with a clear error.
+    The skill handler runs via ``skills.execute_skill()`` — which enforces
+    input validation, permission gates (when set), and output validation.
+    """
+    import asyncio
+
+    import skills
+
+    try:
+        input_data = req.get("input") or {}
+        provider = _get_skill_provider()
+        if provider is None:
+            return JSONResponse(
+                status_code=503,
+                content={"error": "LLM provider unavailable — cannot execute skill"},
+            )
+        result = await asyncio.wait_for(
+            skills.execute_skill(name, input_data, provider),
+            timeout=600.0,  # skills may be slow on local LLMs
+        )
+        return {"ok": True, "skill": name, "result": result}
+    except skills.SkillNotFoundError:
+        return JSONResponse(status_code=404, content={"error": f"unknown skill {name!r}"})
+    except skills.SkillDisabledError as exc:
+        return JSONResponse(
+            status_code=403,
+            content={"error": f"skill {name!r} is disabled (env-gated)", "detail": str(exc)},
+        )
+    except skills.SkillInputError as exc:
+        return JSONResponse(status_code=400, content={"error": str(exc)})
+    except (skills.SkillOutputError, ValueError) as exc:
+        return JSONResponse(status_code=502, content={"error": f"invalid skill output: {exc}"})
+    except asyncio.TimeoutError:
+        return JSONResponse(status_code=504, content={"error": "skill execution timed out (600s)"})
+    except Exception as exc:  # noqa: BLE001 — provider/LLM unreachable, etc.
+        return JSONResponse(status_code=502, content={"error": str(exc)})
+
+
+# ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":

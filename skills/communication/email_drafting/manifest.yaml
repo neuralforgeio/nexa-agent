@@ -1,0 +1,55 @@
+name: email_drafting
+version: 0.1.0
+description: Draft an email from bullet points in a chosen tone for a named recipient. Returns a subject line, the
+  full body, and alternative phrasings.
+category: communication
+author: nexa-agent
+permissions:
+- memory:read
+input_schema:
+  type: object
+  required:
+  - bullet_points
+  - tone
+  - recipient
+  properties:
+    bullet_points:
+      type: array
+      items: &id001
+        type: string
+      minItems: 1
+    tone:
+      type: string
+      enum:
+      - formal
+      - casual
+      - persuasive
+      - apologetic
+    recipient: *id001
+    include_signature:
+      type: boolean
+output_schema:
+  type: object
+  required:
+  - email_subject
+  - email_body
+  - alternatives
+  properties:
+    email_subject: *id001
+    email_body: *id001
+    alternatives:
+      type: array
+      items: *id001
+examples:
+- input:
+    bullet_points:
+    - Q2 results attached
+    - need sign-off by Friday
+    - budget unchanged
+    tone: formal
+    recipient: Finance Team
+    include_signature: true
+tags:
+- email
+- communication
+- writing

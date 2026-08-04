@@ -1,0 +1,50 @@
+name: deployment_automation
+version: 0.1.0
+description: Deploy an application directory to a chosen hosting target with a deploy config. Returns the deployment
+  URL, the captured deploy logs, and the command to roll back.
+category: devops_operations
+author: nexa-agent
+permissions:
+- terminal:execute
+- network:*
+input_schema:
+  type: object
+  required:
+  - app_path
+  - target
+  - config
+  properties:
+    app_path: &id001
+      type: string
+    target:
+      type: string
+      enum:
+      - aws
+      - gcp
+      - azure
+      - vercel
+      - netlify
+      - heroku
+    config:
+      type: object
+output_schema:
+  type: object
+  required:
+  - deployment_url
+  - logs
+  - rollback_command
+  properties:
+    deployment_url: *id001
+    logs: *id001
+    rollback_command: *id001
+examples:
+- input:
+    app_path: apps/web-dashboard
+    target: vercel
+    config:
+      env: production
+      build_command: npm run build
+tags:
+- deployment
+- devops
+- automation

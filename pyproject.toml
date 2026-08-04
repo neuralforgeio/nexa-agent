@@ -1,6 +1,6 @@
 [project]
 name = "nexa-agent"
-version = "4.2.3"
+version = "4.5.0"
 description = "Nexa Agent — The advanced AI agent by Dearly Febriano Irwansyah"
 authors = [{ name = "Dearly Febriano Irwansyah" }]
 license = "MIT"
@@ -29,6 +29,7 @@ nexa = "nexa_cli.main:main"
 nexa-chat = "src.cli:main"
 nexa-agent = "src.run_agent:main"
 nexa-gateway = "src.server:main"
+nexa-tui = "ui_tui.app:main"
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0", "pytest-asyncio>=0.24", "pytest-timeout>=2.3", "pytest-xdist>=3.6"]
@@ -49,4 +50,4 @@ build-backend = "setuptools.build_meta"
 py-modules = []
 
 [tool.setuptools.packages.find]
-include = ["nexa*", "agent*", "tools*", "providers*", "nexa_cli*", "ui_tui*", "src*"]
+include = ["nexa*", "agent*", "tools*", "providers*", "nexa_cli*", "ui_tui*", "src*", "skills*"]

@@ -1,0 +1,65 @@
+name: security_audit
+version: 0.1.0
+description: Audit a file or directory for security vulnerabilities at a quick or deep scan depth. Returns findings
+  carrying a CWE id, severity, location, description, and remediation guidance.
+category: code_intelligence
+author: nexa-agent
+permissions:
+- filesystem:workspace
+- memory:read
+input_schema:
+  anyOf:
+  - type: object
+    required:
+    - file_path
+    - scan_depth
+    properties:
+      file_path: &id001
+        type: string
+      directory_path: *id001
+      scan_depth:
+        type: string
+        enum:
+        - quick
+        - deep
+  - type: object
+    required:
+    - directory_path
+    - scan_depth
+    properties:
+      file_path: *id001
+      directory_path: *id001
+      scan_depth:
+        type: string
+        enum:
+        - quick
+        - deep
+output_schema:
+  type: object
+  required:
+  - vulnerabilities
+  properties:
+    vulnerabilities:
+      type: array
+      items:
+        type: object
+        properties:
+          cwe_id: *id001
+          severity: *id001
+          location: *id001
+          description: *id001
+          remediation: *id001
+        required:
+        - cwe_id
+        - severity
+        - location
+        - description
+        - remediation
+examples:
+- input:
+    directory_path: agent
+    scan_depth: quick
+tags:
+- security
+- code-intelligence
+- audit

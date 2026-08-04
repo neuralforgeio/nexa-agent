@@ -1,0 +1,75 @@
+name: summarization
+version: 0.1.0
+description: Summarize inline content or a workspace file at a chosen length and style. Returns the summary, its
+  key points, and the summary word count.
+category: web_research
+author: nexa-agent
+permissions:
+- filesystem:workspace
+- memory:read
+input_schema:
+  anyOf:
+  - type: object
+    required:
+    - content
+    - length
+    - style
+    properties:
+      content: &id001
+        type: string
+      file_path: *id001
+      length:
+        type: string
+        enum:
+        - brief
+        - standard
+        - detailed
+      style:
+        type: string
+        enum:
+        - bullet
+        - paragraph
+        - executive
+  - type: object
+    required:
+    - file_path
+    - length
+    - style
+    properties:
+      content: *id001
+      file_path: *id001
+      length:
+        type: string
+        enum:
+        - brief
+        - standard
+        - detailed
+      style:
+        type: string
+        enum:
+        - bullet
+        - paragraph
+        - executive
+output_schema:
+  type: object
+  required:
+  - summary
+  - key_points
+  - word_count
+  properties:
+    summary: *id001
+    key_points:
+      type: array
+      items: *id001
+    word_count:
+      type: integer
+      minimum: 0
+examples:
+- input:
+    content: 'Quarterly planning notes: hiring paused, infra spend cut 20%, focus shifts to retention ...'
+    length: brief
+    style: bullet
+tags:
+- summarization
+- web-research
+- text

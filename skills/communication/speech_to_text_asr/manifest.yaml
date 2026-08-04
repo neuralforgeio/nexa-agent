@@ -1,0 +1,51 @@
+name: speech_to_text_asr
+version: 0.1.0
+description: Transcribe an audio file to text with optional language hint and speaker diarization. Returns the transcript,
+  timed segments with speaker labels, and the detected language.
+category: communication
+author: nexa-agent
+permissions:
+- filesystem:workspace
+- network:*
+input_schema:
+  type: object
+  required:
+  - audio_path
+  properties:
+    audio_path: &id001
+      type: string
+    language: *id001
+    diarize:
+      type: boolean
+      default: false
+output_schema:
+  type: object
+  required:
+  - transcript
+  - segments
+  properties:
+    transcript: *id001
+    segments:
+      type: array
+      items:
+        type: object
+        properties:
+          start: &id002
+            type: number
+          end: *id002
+          text: *id001
+          speaker: *id001
+        required:
+        - start
+        - end
+        - text
+    language: *id001
+examples:
+- input:
+    audio_path: media/standup.mp3
+    language: en
+    diarize: true
+tags:
+- speech
+- communication
+- transcription

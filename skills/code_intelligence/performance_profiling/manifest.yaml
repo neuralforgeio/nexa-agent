@@ -1,0 +1,47 @@
+name: performance_profiling
+version: 0.1.0
+description: Profile a workspace file under a described scenario and report performance bottlenecks. Each bottleneck
+  has a type, code location, impact assessment, and an optimisation suggestion.
+category: code_intelligence
+author: nexa-agent
+permissions:
+- filesystem:workspace
+- terminal:execute
+input_schema:
+  type: object
+  required:
+  - file_path
+  - scenario
+  properties:
+    file_path: &id001
+      type: string
+    scenario: *id001
+output_schema:
+  type: object
+  required:
+  - bottlenecks
+  - profile_summary
+  properties:
+    bottlenecks:
+      type: array
+      items:
+        type: object
+        properties:
+          type: *id001
+          location: *id001
+          impact: *id001
+          suggestion: *id001
+        required:
+        - type
+        - location
+        - impact
+        - suggestion
+    profile_summary: *id001
+examples:
+- input:
+    file_path: agent/reasoning/planner.py
+    scenario: plan 50 steps on a 4k-token budget
+tags:
+- performance
+- code-intelligence
+- profiling

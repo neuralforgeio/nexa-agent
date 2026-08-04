@@ -1,0 +1,55 @@
+name: migration_assistance
+version: 0.1.0
+description: Plan the migration of a source file from one framework or language version to another. Returns ordered
+  migration steps with code changes plus a list of breaking changes to watch for.
+category: code_intelligence
+author: nexa-agent
+permissions:
+- filesystem:workspace
+- memory:read
+input_schema:
+  type: object
+  required:
+  - file_path
+  - from
+  - to
+  properties:
+    file_path: &id001
+      type: string
+    from:
+      type: string
+      minLength: 1
+    to:
+      type: string
+      minLength: 1
+output_schema:
+  type: object
+  required:
+  - migration_steps
+  - breaking_changes
+  properties:
+    migration_steps:
+      type: array
+      items:
+        type: object
+        properties:
+          step:
+            type: integer
+          description: *id001
+          code_change: *id001
+        required:
+        - step
+        - description
+        - code_change
+    breaking_changes:
+      type: array
+      items: *id001
+examples:
+- input:
+    file_path: agent/core/config.py
+    from: pydantic 1.x
+    to: pydantic 2.x
+tags:
+- migration
+- code-intelligence
+- upgrade

@@ -1,0 +1,52 @@
+name: etl_pipeline
+version: 0.1.0
+description: Design an ETL pipeline from a source config to a destination config with transformation steps and an
+  optional schedule. Returns pipeline code, its config, and validation test results.
+category: data_analytics
+author: nexa-agent
+permissions:
+- filesystem:workspace:write
+- terminal:execute
+- network:*
+input_schema:
+  type: object
+  required:
+  - source
+  - destination
+  - transformations
+  properties:
+    source: &id001
+      type: object
+    destination: *id001
+    transformations:
+      type: array
+    schedule: &id002
+      type: string
+output_schema:
+  type: object
+  required:
+  - pipeline_code
+  - pipeline_config
+  properties:
+    pipeline_code: *id002
+    pipeline_config: *id001
+    test_results: *id001
+examples:
+- input:
+    source:
+      type: csv
+      path: data/raw_events.csv
+    destination:
+      type: postgres
+      table: events
+    transformations:
+    - op: dedupe
+      key: event_id
+    - op: cast
+      column: ts
+      to: timestamp
+    schedule: 0 * * * *
+tags:
+- etl
+- data-analytics
+- pipeline

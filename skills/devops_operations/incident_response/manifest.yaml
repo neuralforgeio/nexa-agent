@@ -1,0 +1,66 @@
+name: incident_response
+version: 0.1.0
+description: Triage an incident from its description, severity, and affected services. Returns a triage assessment,
+  safe-to-automate runbook steps, and an escalation plan.
+category: devops_operations
+author: nexa-agent
+permissions:
+- filesystem:workspace
+- terminal:execute
+- network:*
+- memory:read
+input_schema:
+  type: object
+  required:
+  - incident_description
+  - severity
+  - affected_services
+  properties:
+    incident_description: &id001
+      type: string
+    severity:
+      type: string
+      enum:
+      - P0
+      - P1
+      - P2
+      - P3
+    affected_services:
+      type: array
+      items: *id001
+      minItems: 1
+output_schema:
+  type: object
+  required:
+  - triage
+  - runbook_steps
+  - escalation
+  properties:
+    triage: &id002
+      type: object
+    runbook_steps:
+      type: array
+      items:
+        type: object
+        properties:
+          step:
+            type: integer
+          command: *id001
+          safe_to_auto_execute:
+            type: boolean
+        required:
+        - step
+        - command
+        - safe_to_auto_execute
+    escalation: *id002
+examples:
+- input:
+    incident_description: API 5xx rate spiked to 40% after the 14:20 deploy
+    severity: P1
+    affected_services:
+    - api-gateway
+    - billing
+tags:
+- incident
+- devops
+- sre

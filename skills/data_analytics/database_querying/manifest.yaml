@@ -1,0 +1,51 @@
+name: database_querying
+version: 0.1.0
+description: Execute, optimize, or design SQL against a database described by a connection config. Returns result
+  rows, the execution time in seconds, and optimization suggestions.
+category: data_analytics
+author: nexa-agent
+permissions:
+- network:*
+- terminal:execute
+input_schema:
+  type: object
+  required:
+  - query
+  - db_connection
+  - operation
+  properties:
+    query: &id002
+      type: string
+    db_connection: &id001
+      type: object
+    operation:
+      type: string
+      enum:
+      - execute
+      - optimize
+      - design
+output_schema:
+  type: object
+  required:
+  - results
+  properties:
+    results:
+      type: array
+      items: *id001
+    execution_time:
+      type: number
+      minimum: 0.0
+    optimization_suggestions:
+      type: array
+      items: *id002
+examples:
+- input:
+    query: SELECT plan, COUNT(*) FROM users GROUP BY plan
+    db_connection:
+      dialect: sqlite
+      path: data/app.db
+    operation: execute
+tags:
+- database
+- data-analytics
+- sql

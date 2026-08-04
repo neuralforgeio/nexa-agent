@@ -1,0 +1,42 @@
+name: bug_diagnosis
+version: 0.1.0
+description: Diagnose a bug from a stack trace plus optional context files. Returns the root cause, affected files,
+  a concrete fix suggestion, and a confidence score between 0 and 1.
+category: code_intelligence
+author: nexa-agent
+permissions:
+- filesystem:workspace
+- memory:read
+input_schema:
+  type: object
+  required:
+  - stack_trace
+  properties:
+    stack_trace: &id001
+      type: string
+    context_files: &id002
+      type: array
+      items: *id001
+output_schema:
+  type: object
+  required:
+  - root_cause
+  - fix_suggestion
+  - confidence
+  properties:
+    root_cause: *id001
+    affected_files: *id002
+    fix_suggestion: *id001
+    confidence:
+      type: number
+      minimum: 0.0
+      maximum: 1.0
+examples:
+- input:
+    stack_trace: 'Traceback (most recent call last):
+
+      ValueError: invalid literal'
+tags:
+- debugging
+- code-intelligence
+- diagnosis

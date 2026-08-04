@@ -1,0 +1,57 @@
+name: code_refactoring
+version: 0.1.0
+description: Propose and apply automated refactors (extract method, rename, simplify) to a workspace file. Reports
+  each candidate refactor with before/after snippets and whether changes were applied.
+category: code_intelligence
+author: nexa-agent
+permissions:
+- filesystem:workspace
+- filesystem:workspace:write
+input_schema:
+  type: object
+  required:
+  - file_path
+  - refactor_type
+  properties:
+    file_path: &id001
+      type: string
+    refactor_type:
+      type: string
+      enum:
+      - extract_method
+      - rename
+      - simplify
+      - all
+output_schema:
+  type: object
+  required:
+  - refactors
+  - applied
+  properties:
+    refactors:
+      type: array
+      items:
+        type: object
+        properties:
+          type: *id001
+          description: *id001
+          before: *id001
+          after: *id001
+          line:
+            type: integer
+        required:
+        - type
+        - description
+        - before
+        - after
+        - line
+    applied:
+      type: boolean
+examples:
+- input:
+    file_path: agent/memory/store.py
+    refactor_type: all
+tags:
+- refactoring
+- code-intelligence
+- code-quality

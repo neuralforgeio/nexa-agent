@@ -1,0 +1,59 @@
+name: sentiment_analysis
+version: 0.1.0
+description: Analyse the sentiment of a text at basic or detailed level. Returns an overall sentiment label, a numeric
+  score, detected emotions with intensities, and the inferred intent.
+category: web_research
+author: nexa-agent
+permissions:
+- memory:read
+input_schema:
+  type: object
+  required:
+  - text
+  - detail_level
+  properties:
+    text: &id001
+      type: string
+    detail_level:
+      type: string
+      enum:
+      - basic
+      - detailed
+output_schema:
+  type: object
+  required:
+  - sentiment
+  - score
+  properties:
+    sentiment:
+      type: string
+      enum:
+      - positive
+      - negative
+      - neutral
+    score:
+      type: number
+      minimum: -1.0
+      maximum: 1.0
+    emotions:
+      type: array
+      items:
+        type: object
+        properties:
+          emotion: *id001
+          intensity:
+            type: number
+            minimum: 0.0
+            maximum: 1.0
+        required:
+        - emotion
+        - intensity
+    intent: *id001
+examples:
+- input:
+    text: Honestly the new release broke our whole pipeline and support never replied.
+    detail_level: detailed
+tags:
+- sentiment
+- web-research
+- nlp

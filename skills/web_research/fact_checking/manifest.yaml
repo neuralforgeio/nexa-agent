@@ -1,0 +1,45 @@
+name: fact_checking
+version: 0.1.0
+description: Check the truth of a claim against supplied or discovered sources. Returns a verdict (true, false,
+  partial, or unverified) with supporting evidence and a confidence score.
+category: web_research
+author: nexa-agent
+permissions:
+- network:*
+- memory:read
+input_schema:
+  type: object
+  required:
+  - claim
+  properties:
+    claim: &id001
+      type: string
+    sources: &id002
+      type: array
+      items: *id001
+output_schema:
+  type: object
+  required:
+  - verdict
+  - evidence
+  - confidence
+  properties:
+    verdict:
+      type: string
+      enum:
+      - 'true'
+      - 'false'
+      - partial
+      - unverified
+    evidence: *id002
+    confidence:
+      type: number
+      minimum: 0.0
+      maximum: 1.0
+examples:
+- input:
+    claim: The Python GIL was removed in CPython 3.13.
+tags:
+- fact-checking
+- verification
+- web-research
