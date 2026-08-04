@@ -106,8 +106,19 @@ class SemanticDocument:
     metadata: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
-        """Serialize to a plain dict (JSON-safe)."""
-        return {"doc_id": self.doc_id, "content": self.content, "kind": self.kind, "metadata": self.metadata}
+        """Serialize to a plain dict (JSON-safe).
+
+        The ``id`` key is present for consumers that expect a generic document
+        shape (``doc_id`` is the canonical key; ``id`` is an alias for the same
+        value so callers don't need to know which attribute to use).
+        """
+        return {
+            "doc_id": self.doc_id,
+            "id": self.doc_id,  # alias for generic doc consumers
+            "content": self.content,
+            "kind": self.kind,
+            "metadata": self.metadata,
+        }
 
 
 class SemanticMemory:

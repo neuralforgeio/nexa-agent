@@ -168,6 +168,60 @@ def append_to_memory(entry: str, kind: str = "insight") -> None:
     write_memory_file("\n".join(lines))
 
 
+class FileBasedMemory:
+    """
+    Object-oriented facade over the module-level file/memory functions.
+
+    All methods are thin wrappers — no new logic. This exists so callers who
+    prefer ``mem.add_note(...)`` over ``append_to_memory(...)`` have a stable
+    interface, and so tests can inject a fake NEXA_HOME without touching the
+    module-level ``MEMORY_DIR``.
+    """
+
+    # Expose the paths for introspection (readers; writer is internal).
+    dir: Path = MEMORY_DIR
+    memory_file: Path = MEMORY_FILE
+    user_file: Path = USER_FILE
+    user_file_root: Path = USER_FILE_ROOT
+    procedures_file: Path = PROCEDURES_FILE
+
+    # -- module proxies -------------------------------------------------------
+
+    def ensure_dir(self) -> Path:
+        return ensure_memory_dir()
+
+    def read_memory(self) -> str:
+        return read_memory_file()
+
+    def read_user(self) -> str:
+        return read_user_file()
+
+    def read_procedures(self) -> str:
+        return read_procedures_file()
+
+    def write_memory(self, content: str) -> None:
+        write_memory_file(content)
+
+    def write_user(self, content: str) -> None:
+        write_user_file(content)
+
+    def add_note(self, entry: str, kind: str = "insight") -> None:
+        """Append an entry to MEMORY.md under a section."""
+        append_to_memory(entry, kind=kind)
+
+    def add_user(self, entry: str, kind: str = "preference") -> None:
+        """Append an entry to USER.md under a section."""
+        append_to_user(entry, kind=kind)
+
+    def digest(self) -> str:
+        """MEMORY.md + USER.md + PROCEDURES.md combined for system prompts."""
+        return build_memory_file_digest()
+
+    def sync_from_db(self, memories: List[Dict[str, Any]]) -> None:
+        """Rebuild MEMORY.md from the DB memories list."""
+        sync_db_to_files(memories)
+
+
 def append_to_user(entry: str, kind: str = "preference") -> None:
     """
     Append a single entry to ``USER.md`` under the appropriate section.
