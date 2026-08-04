@@ -271,6 +271,24 @@ fi
 ok "Dependencies installed ✓"
 progress_bar 6 7 "Dependencies"
 
+# --- Step 6b: Frontend dependencies (v4.6.1) ---
+# GLM QA v4.6.0 BUG-03: previously the installer only PRINTED the instruction
+# to run `npm install` — fresh clones failed `npm run build` with six "Module
+# not found" errors (xterm, remark-gfm, etc.). Now we auto-install when npm is
+# available, and skip gracefully (with a clear note) when it isn't.
+if [ -d "$INSTALL_DIR/nexa_web" ]; then
+    if command -v npm >/dev/null 2>&1; then
+        step "Installing frontend dependencies (nexa_web)..."
+        if (cd "$INSTALL_DIR/nexa_web" && npm install --no-audit --no-fund 2>&1 | tail -1); then
+            ok "Frontend dependencies installed ✓"
+        else
+            warn "npm install failed — run manually: cd $INSTALL_DIR/nexa_web && npm install"
+        fi
+    else
+        info "npm not found — frontend deps skipped. Later: cd nexa_web && npm install"
+    fi
+fi
+
 # --- Step 7: Initialize ---
 step "Initializing ~/.nexa/ home directory..."
 "$INSTALL_DIR/.venv/bin/nexa" setup 2>/dev/null || \
