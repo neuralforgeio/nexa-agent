@@ -73,7 +73,7 @@ class TestCatalogHasNewProviders:
         assert "koboldcpp" in names
         assert "litellm" in names
         assert "helicone" in names
-        assert len(providers) == 24
+        assert len(providers) == 25
 
 
 class TestResolveProviderTokenRouter:

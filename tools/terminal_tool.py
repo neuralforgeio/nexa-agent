@@ -168,7 +168,8 @@ async def run_terminal_command(
     lower = command.lower()
     for bad in BLOCKED_PATTERNS:
         if bad in lower:
-            raise ValueError(f"blocked command pattern: '{bad}'")
+            # Raise so the registry sets ToolResult(ok=False)
+            raise ValueError(f"blocked command pattern: '{bad}' — terminal rejects")
 
     # Validate and clamp timeout.
     if timeout is None:

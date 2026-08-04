@@ -158,7 +158,22 @@ PROVIDER_CATALOG: Dict[str, ProviderConfig] = {
         base_url="https://generativelanguage.googleapis.com/v1beta/openai",
         default_model="gemini-2.0-flash",
         api_key_hint="Requires GOOGLE_API_KEY or GEMINI_API_KEY",
-        description="Google Gemini — largest context window (1M tokens), multimodal.",
+        description="Google Gemini AI Studio endpoint (OpenAI-compatible).",
+        api_key_env="GEMINI_API_KEY",
+        category="cloud",
+        icon="🔷",
+        free_tier=True,
+        capabilities="streaming,tool_use,vision,audio,video,code_execution",
+        docs_url="https://ai.google.dev/gemini-api/docs",
+    ),
+    # v4.6.3+: alias for "gemini" so callers that ask for "google" resolve
+    # to the same Gemini provider (GOOGLE_API_KEY == GEMINI_API_KEY).
+    "google": ProviderConfig(
+        name="gemini",
+        base_url="https://generativelanguage.googleapis.com/v1beta/openai",
+        default_model="gemini-2.0-flash",
+        api_key_hint="Alias of gemini: Requires GOOGLE_API_KEY or GEMINI_API_KEY",
+        description="Google Gemini — alias for the gemini provider",
         api_key_env="GEMINI_API_KEY",
         category="cloud",
         icon="🔷",

@@ -1,8 +1,10 @@
 /**
  * Nexa Agent — Composer Component
  *
- * Pill-shaped input with auto-grow textarea, send button,
+ * Pill-shaped input with auto-grow textarea, send/stop button,
  * and suggestion chips for empty state.
+ *
+ * v4.7.0 (F-01): Stop button added — aborts active SSE stream via onStop.
  *
  * Copyright (c) 2026 Dearly Febriano Irwansyah
  */
@@ -10,10 +12,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowUp, Loader2 } from "lucide-react";
+import { ArrowUp, Loader2, Square } from "lucide-react";
 
 interface ComposerProps {
   onSend: (text: string) => void;
+  onStop: () => void;           // v4.7.0
   disabled: boolean;
   thinking: boolean;
   showSuggestions: boolean;
@@ -26,7 +29,14 @@ const SUGGESTIONS: Array<{ label: string; prompt: string }> = [
   { label: "📄 Analyze File",     prompt: "Read README.md in this repository and summarize what this project does." },
 ];
 
-export function Composer({ onSend, disabled, thinking, showSuggestions }: ComposerProps) {
+const SUGGESTIONS: Array<{ label: string; prompt: string }> = [
+  { label: "💻 Write Code",       prompt: "Write a Python function that computes the nth Fibonacci number using constant space." },
+  { label: "🖥 Run Terminal",     prompt: "Show me the contents of the current workspace using the terminal." },
+  { label: "🔍 Search Web",       prompt: "Search the web for the latest AI news and summarize the top 3 stories." },
+  { label: "📄 Analyze File",     prompt: "Read README.md in this repository and summarize what this project does." },
+];
+
+export function Composer({ onSend, onStop, disabled, thinking, showSuggestions }: ComposerProps) {
   const [value, setValue] = useState("");
   const ref = useRef<HTMLTextAreaElement>(null);
 
