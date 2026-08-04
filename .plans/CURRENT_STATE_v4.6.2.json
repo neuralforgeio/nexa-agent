@@ -1,0 +1,11 @@
+{
+  "as_of": "2026-08-04",
+  "version": "4.6.2",
+  "main_head": "2684e01",
+  "test_count": 1003,
+  "total_skills": 40,
+  "tool_count": 33,
+  "provider_count": 24,
+  "release": "https://github.com/neuralforgeio/nexa-agent/releases/tag/v4.6.2",
+  "org": "neuralforgeio/nexa-agent"
+}
