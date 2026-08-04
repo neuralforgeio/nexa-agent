@@ -1,25 +1,40 @@
 # Nexa Agent
 
 > **The Ultimate Local AI Agent Enterprise — by Dearly Febriano Irwansyah**
-> **Version 4.2.2** · Extended MIT License · [SYSTEMPROMPT.md](./SYSTEMPROMPT.md)
+> **Version 4.5.0** · Extended MIT License · [SYSTEMPROMPT.md](./SYSTEMPROMPT.md)
 
 A terminal-first local AI agent with iterative tool-calling, multi-provider
 support (24 providers + custom endpoints), a self-improvement memory system,
-an interactive TUI built with prompt_toolkit + rich, and a full Web UI
-(Next.js + React) with sidebar/toolstreams.
+an interactive TUI (Textual-style multi-pane, built with prompt_toolkit + rich),
+and a full Web UI (Next.js + React).
 
-**v4.2.2 highlights**
+**v4.5.0 highlights**
 
-- **Latest hardening**: installer scripts now recover from Ctrl+C — they
-  write `~/.nexa/.partial_install` on SIGINT/SIGTERM/SIGHUP, and on the
-  next run offer to resume without redoing completed steps.
-- **Integrity**: 12 new static tests in `tests/test_installer_spec.py`
-  pin the installer's signal-resume contract.
-- **Version banner**: installer now picks the version string straight from
-  this repository's `pyproject.toml`, so release announcements on GitHub
-  and the install banner never drift.
-- **24 providers + 33 tools + 36 agent modules + virtual multi-agent FSM** —
-  the same set added across the v4.1/v4.2 arcs.
+- **40 AI Skills system** (`skills/`): 6 categories × 40 = 240 files
+  (40 handlers + 40 manifest.yaml + 40 __init__.py × 6) covering
+  Code Intelligence, Web & Research, Creative & Media, Communication,
+  Data & Analytics, DevOps & Operations. Real implementations where possible
+  (SQLite code_search index, real DB queries, real stats), honest stubs where
+  not (no external service = clearly marked "not configured").
+- **TUI redesign**: 4-panel live terminal UI; `/skills` browser with search;
+  `/tools` lists all 40 skills; `/sessions` manager; `/memory` editor;
+  `/doctor` + `/export` + `/persona`/`/config`/`/history` — all 18 slash commands.
+- **Server API**: `GET /api/skills` + `POST /api/skills/{name}/execute` for
+  the web UI or scripts to call skills directly.
+- **Tests**: **980 passed** (957 pre-skills with 24 skill programs + 33 TUI checks).
+
+**v4.4.0 highlights** (Batch 8 — Skills System)
+
+- 40 skills across 6 categories — mest all specs: manifest + handler +
+  handler.py + tests (input validation, happy path, executor, prompt
+  fidelity, failure propagation).
+- **llama.cpp**: Real-LLM E2E tests against Ornith (local 9B model) via
+  `NEXA_E2E_LLAMACPP=1`; tested 10 skills end-to-end.
+- **Frontend**: SettingsPanel now has a Skills tab w/ category filter + search
+  + execute button + result viewer.
+- **code_search**: Real SQLite FTS5 index (not a stub).
+- **database_querying**: Real SQLite row execution (list of dicts).
+- **data_analysis**: Real CSV stats; spreadsheet uses openpyxl if installed.
 
 **v4.1.0 highlights** (for context)
 
@@ -30,7 +45,7 @@ an interactive TUI built with prompt_toolkit + rich, and a full Web UI
 - **Working Process dropdown** — every reasoning step + tool call is shown
   in a collapsible trace that auto-collapses once the answer lands (with a
   one-line summary).
-- **30+ built-in tools** — the new planning toolkit (task_plan, todo_write,
+- **30+ built-in tools** — the planning toolkit (task_plan, todo_write,
   scratchpad, think, project_scaffold, git_checkpoint, list_ports,
   process_snapshot, memory_search, session_search, web_fetch, create_tool,
   plan_and_delegate, …) on top of the 13 core tools.

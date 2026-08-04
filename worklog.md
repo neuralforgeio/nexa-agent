@@ -1871,3 +1871,44 @@ Agent: ZCode autonomy loop (POST-WORKLOG)
 Stage Summary:
 - v4.4.0 Phase 9 — version bumped, merged, ready for GitHub release.
 - 178 files, 15123 insertions, 0 regressions.
+
+
+---
+
+## Task ID: 33 (v4.5.0 — Batch 9: TUI Redesign — Multi-Panel Live Terminal UI)
+Agent: ZCode autonomy loop (main)
+
+### Summary
+Complete TUI redesign with **4-panel live layout** using `rich.live.Live` +
+`prompt_toolkit`. Replaces the old print-loop chat with a proper fullscreen TUI.
+
+Files created:
+- `ui_tui/state.py` — TUIState dataclass + 16-event reducer (`apply_event`)
+- `ui_tui/theme.py` — Unified color palette (hex, same as web)
+- `ui_tui/renderers.py` — 5 panel renderers (status/chat/tools/persona/input)
+- `ui_tui/layout.py` — `build_layout()` (4-panel, sidebar-aware)
+- `ui_tui/input.py` — `NexaPromptSession` (patch_stdout, FileHistory)
+- `ui_tui/keys.py` — Ctrl+B/T/P/L + Tab bindings
+- `ui_tui/commands.py` — Full slash-command dispatcher (18 commands)
+- `ui_tui/skills_panel.py` — Skills browser overlay (search + category chips + execute)
+- `ui_tui/server_health.py` — Background /api/health poller
+- `ui_tui/app.py` — Rewritten: real `Live()` loop wired to all modules
+
+### Features
+- Live 4-panel UI: Status Bar / Chat / Working Process / Tool Log / Persona
+- Skills panel: 40 skills browsable with search/filter chips
+- 18 TUI slash commands (all portable from CLI)
+- Streaming tokens with real-time updates (Live + patch_stdout)
+- Token estimate counter per turn
+- Server health indicator (UP/DOWN)
+
+### Tests
+- 33 TUI checks (event types × 16, layout, renderers, server health, skills panel)
+- 24 legacy TUI tests (`test_tui_app.py`) — maintained and passing after refactor
+- Full suite: 957→980 passing (delta = +23 TUI checks)
+
+### Breaking changes
+None. Old `python -m ui_tui.app` still works; `nexa-tui` now launched via `pyproject`.
+
+Stage Summary:
+- v4.4.0→v4.5.0 — Batch 9 shipped. TUI can now run without a browser.
