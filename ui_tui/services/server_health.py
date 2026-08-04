@@ -15,7 +15,7 @@ import threading
 import time
 from typing import Callable, Optional
 
-from ui_tui.state import TUIState
+from ui_tui.core.state import TUIState
 
 #: How often to poll (seconds).
 POLL_INTERVAL = 5.0

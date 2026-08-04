@@ -1,18 +1,24 @@
 """
-Nexa Agent — TUI Application (v4.6.0)
+Nexa Agent — TUI Application (v4.5.0)
+======================================
 
-Main entry point.  Most of the logic lives in the sub-packages:
+Interactive multi-pane Terminal UI for Nexa Agent, built with ``rich.live`` +
+``rich.layout.Layout`` + ``prompt_toolkit``.
 
-  ui_tui.core       — state, theme, event reducer (apply_event), helpers
-  ui_tui.render     — layout + panel renderers + snapshot builder
-  ui_tui.input      — prompt session (NexaPromptSession) + key bindings
-  ui_tui.panels     — overlay builders (skills browser)
-  ui_tui.services   — background services (health poller, etc.)
-  ui_tui.commands   — full slash-command dispatcher (18 commands)
+Architecture (all modules are import-separated so tests can exercise them
+individually):
 
-This module re-exports everything as a convenience facade so both
-``from ui_tui.app import ...`` (legacy) and ``from ui_tui.core.app import ...``
-(new) keep working.
+  - ``ui_tui/state.py``          — state dataclasses + event reducer (apply_event)
+  - ``ui_tui/renderers.py``      — rich Panel renderers for each pane
+  - ``ui_tui/layout.py``         — :func:`build_layout` (4-panel, sidebar-aware)
+  - ``ui_tui/input.py``          — :class:`NexaPromptSession` (patch_stdout)
+  - ``ui_tui/keys.py``           — keyboard bindings (Ctrl+T/P/L/B/Tab)
+  - ``ui_tui/server_health.py``  — background /api/health poller
+  - ``ui_tui/skills_panel.py``   — skills browser overlay
+  - ``ui_tui/commands.py``       — full slash-command dispatcher (17 commands)
+
+Entry point: ``nexa-tui`` (defined in pyproject.toml) or
+``python -m ui_tui.app``.
 
 Copyright (c) 2026 Dearly Febriano Irwansyah
 SPDX-License-Identifier: MIT
@@ -31,61 +37,44 @@ from rich.text import Text
 
 from nexa.constants import NEXA_NAME, NEXA_VERSION
 
-# ── Sub-package imports ────────────────────────────────────────────────────
-from ui_tui.core.state import (
-    ChatMessage,
-    PersonaBadge,
-    TUIState,
-    ToolCallEntry,
-    WorkingProcessStep,
-    apply_event,
-)
-from ui_tui.core.theme import PALETTE, ACCENT, MUTED, SUCCESS, WARNING
-from ui_tui.core.app import (
-    add_user_message,
-    add_assistant_token,
-    add_tool_call,
-    finalize_assistant_message,
-)
+from ui_tui.input.keys import bind_state, kb
 from ui_tui.render.layout import build_layout
 from ui_tui.render.panels import (
     render_chat_area,
     render_input_box,
-    render_persona,
-    render_status_bar,
     render_tool_log,
     render_working_process,
+    render_persona,
+    render_status_bar,
 )
-from ui_tui.input.keys import bind_state, kb
-from ui_tui.input.session import NexaPromptSession
 from ui_tui.panels.skills_panel import build_skills_overlay
-from ui_tui.services.server_health import ServerHealthPoller
+from ui_tui.core.theme import PALETTE, ACCENT, TEXT, MUTED, SUCCESS, WARNING
+from ui_tui.core.state import ChatMessage, TUIState, ToolCallEntry, WorkingProcessStep, apply_event
+from ui_tui.input.session import NexaPromptSession
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Backward-compat re-exports (for tests + callers that use `ui_tui.app`)
-# ─────────────────────────────────────────────────────────────────────────────
-
+# Exports used by tests and the REPL loop.
 __all__ = [
-    # Data
-    "TUIState", "ChatMessage", "ToolCallEntry", "WorkingProcessStep", "PersonaBadge",
+    "TUIState",
+    "ChatMessage",
+    "ToolCallEntry",
+    "WorkingProcessStep",
     "apply_event",
-    # Helpers
-    "add_user_message", "add_assistant_token", "add_tool_call",
-    "finalize_assistant_message", "main",
-    # Rendering
+    "add_user_message",
+    "add_assistant_token",
+    "add_tool_call",
+    "finalize_assistant_message",
+    "render_snapshot",
     "build_layout",
-    "render_snapshot",  # defined below (needs Panel composition)
+    "run_tui",
+    "main",
 ]
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Snapshot renderer (kept here because it composes across sub-packages)
+# Backward-compat re-exports
 # ─────────────────────────────────────────────────────────────────────────────
-
-from rich.console import Group  # noqa: E402 — re-export for test consumers
-
-
+# ``render_snapshot`` composes all renderers into a single Group — lives here
 def render_snapshot(state: TUIState, current_input: str = "") -> Group:
-    """Render a non-Live snapshot of the TUI (for tests/headless contexts)."""
+    """Render a non-Live snapshot of the TUI (for tests and headless contexts)."""
     return Group(
         render_status_bar(state),
         render_persona(state) if state.persona else Text(""),
@@ -97,9 +86,39 @@ def render_snapshot(state: TUIState, current_input: str = "") -> Group:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Module-level state bootstrap (set once per process)
+# Public state helpers (used by app.py and tests)
 # ─────────────────────────────────────────────────────────────────────────────
 
+def add_user_message(state: TUIState, text: str) -> None:
+    """Record a user message and update the rough token estimate."""
+    state.messages.append(ChatMessage(role="user", content=text))
+    state.token_estimate += max(1, len(text) // 4)
+
+
+def add_assistant_token(state: TUIState, token: str) -> None:
+    """Append a streaming token to the current assistant message."""
+    if not state.messages or state.messages[-1].role != "assistant":
+        state.messages.append(ChatMessage(role="assistant", content=""))
+    state.messages[-1].content += token
+    state.token_estimate += max(1, len(token) // 4)
+
+
+def finalize_assistant_message(state: TUIState, full_text: str) -> None:
+    """Replace the streaming assistant message with the final text."""
+    if state.messages and state.messages[-1].role == "assistant":
+        state.messages[-1].content = full_text
+    else:
+        state.messages.append(ChatMessage(role="assistant", content=full_text))
+
+
+def add_tool_call(state: TUIState, entry: ToolCallEntry) -> None:
+    """Append a tool-call entry to the log."""
+    state.tool_calls.append(entry)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Module-level state bootstrap (set once per process)
+# ─────────────────────────────────────────────────────────────────────────────
 _state: TUIState | None = None
 
 
@@ -150,10 +169,10 @@ async def run_tui(agent, conv_id: str, history: Optional[List[Dict[str, Any]]] =
     Run the full interactive TUI.
 
     This wires together:
-      - ``Live(build_layout(state))`` — the painted 4-panel UI
+      - ``Live(build_layout(state))``   — the painted 4-panel UI
       - ``NexaPromptSession``           — multi-line input with history + patch_stdout
-      - ``apply_event``                 — state reducer for 16 event types
-      - ``ui_tui.commands.dispatch``   — the full slash-command set
+      - ``apply_event``                 — state reducer for all 16 event types
+      - ``commands.dispatch``           — the full slash-command set
       - ``ServerHealthPoller``          — background /api/health updates
 
     Args:
@@ -168,11 +187,12 @@ async def run_tui(agent, conv_id: str, history: Optional[List[Dict[str, Any]]] =
     poller = None
     try:
         import os
+        from ui_tui.server_health import ServerHealthPoller
         backend = os.environ.get("NEXA_BACKEND", "http://localhost:8000")
         poller = ServerHealthPoller(state, backend_url=backend)
         poller.start()
     except Exception:
-        poller = None
+        poller = None  # never let health polling break the TUI
 
     # ── Pre-load conversation history ─────────────────────────────────────────
     if history:
@@ -182,17 +202,17 @@ async def run_tui(agent, conv_id: str, history: Optional[List[Dict[str, Any]]] =
                 content=msg.get("content", ""),
             ))
 
-    # ── Load skills list lazily (used by /skills overlay and /skills tool) ──
+    # ── Load skills list lazily (used by /skills overlay and /tools) ──────────
     await _refresh_skills(state)
 
-    # ── Create the prompt session ─────────────────────────────────────────────
+    # ── Create prompt session ──────────────────────────────────────────────────
     session = NexaPromptSession()
     prompt_session = session.raw_session
 
     with Live(
         build_layout(state),
         console=None,
-        refresh_per_second=8,
+        refresh_per_second=8,   # enough for smooth streaming without jitter
         vertical_overflow="visible",
     ) as live:
         while True:
@@ -226,7 +246,7 @@ async def run_tui(agent, conv_id: str, history: Optional[List[Dict[str, Any]]] =
                 try:
                     from ui_tui.commands import dispatch as _dispatch_cmd
                 except ImportError:
-                    from ui_tui import commands as _cmd_mod
+                    from ui_tui import commands as _cmd_mod  # type: ignore[import]
                     _dispatch_cmd = _cmd_mod.dispatch
                 result = await _dispatch_cmd(state, agent, raw)
                 if result:
@@ -234,7 +254,7 @@ async def run_tui(agent, conv_id: str, history: Optional[List[Dict[str, Any]]] =
                 live.update(build_layout(state))
                 continue
 
-            # ── Normal chat turn ─────────────────────────────────────────────
+            # ── Normal chat turn ──────────────────────────────────────────────
             add_user_message(state, raw)
             state.streaming = True
             state.turn_started_at = time.time()
@@ -248,7 +268,7 @@ async def run_tui(agent, conv_id: str, history: Optional[List[Dict[str, Any]]] =
                 apply_event(state, event)
                 live.update(build_layout(state))
 
-            # Final paint once everything is settled.
+            # Final paint with everything settled.
             state.streaming = False
             state.turn_started_at = None
             live.update(build_layout(state))
@@ -263,7 +283,7 @@ async def run_tui(agent, conv_id: str, history: Optional[List[Dict[str, Any]]] =
 # ─────────────────────────────────────────────────────────────────────────────
 
 def main() -> int:
-    """TUI entry point (``nexa-tui``) — delegates to :func:`run_tui`."""
+    """TUI entry point (``nexa-tui`` or ``python -m ui_tui.app``)."""
     from src.run_agent import NexaAgent, set_active_agent
 
     agent = NexaAgent()
@@ -282,11 +302,7 @@ def main() -> int:
     return 0
 
 
-def main_app() -> int:
-    """Alias for ``main`` (some callers use this name)."""
-    return main()
-
-
 if __name__ == "__main__":
     import sys
+
     sys.exit(main())

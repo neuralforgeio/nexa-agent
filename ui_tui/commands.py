@@ -18,7 +18,7 @@ import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from ui_tui.state import TUIState, ChatMessage
+from ui_tui.core.state import TUIState, ChatMessage
 
 
 # ---------------------------------------------------------------------------

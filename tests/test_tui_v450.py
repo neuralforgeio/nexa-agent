@@ -19,10 +19,10 @@ import time
 from pathlib import Path
 
 import skills
-from ui_tui.state import ChatMessage, TUIState, apply_event
-from ui_tui.skills_panel import build_skills_overlay, _CATEGORY_LABELS
+from ui_tui.core.state import ChatMessage, TUIState, apply_event
+from ui_tui.panels.skills_panel import build_skills_overlay, _CATEGORY_LABELS
 from ui_tui.commands import dispatch
-from ui_tui.server_health import ServerHealthPoller
+from ui_tui.services.server_health import ServerHealthPoller
 
 
 # ---------------------------------------------------------------------------

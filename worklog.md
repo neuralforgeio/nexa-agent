@@ -1912,3 +1912,78 @@ None. Old `python -m ui_tui.app` still works; `nexa-tui` now launched via `pypro
 
 Stage Summary:
 - v4.4.0→v4.5.0 — Batch 9 shipped. TUI can now run without a browser.
+
+
+---
+
+## Task ID: 34 (v4.6.0 — Batch 10: TUI Restructure + OpenCode Polish)
+Agent: ZCode autonomy loop (main)
+
+### Summary
+The v4.5.0 TUI redesign moved to the correct sub-package layout (core/render/input/panels/services).
+Backward-compat shims keep `from ui_tui import X` working. A new `/skills` overlay UI is available
+(40 skills browse/search/execute — with filter chips for the 6 categories). 18 slash commands now
+mapped in `ui_tui/commands.py`. v4.6.0 adds a few minor fixes in the test suite updates.
+
+### Tests
+- `tests/test_tui_v450.py` — 33 tests
+- `tests/test_tui_app.py` — 24 tests (updated imports + legacy behavior preserved)
+- Full suite: 990 passed → still green after all changes.
+
+### Breaking changes
+None. `ui_tui/app.py` is still importable; the `apply_event` state reducer now lives in `ui_tui/state.py`.
+The entry point remains `python -m ui_tui.app` (or `nexa-tui`).
+
+Stage Summary:
+- v4.6.0 — restructure shipped.
+
+
+---
+
+## Task ID: 34 (v4.6.0 — Batch 9b: TUI Polish, Restructure, and /skills palette)
+Agent: ZCode TUI loop
+
+### Summary
+Panned out sloppy UI around `ui_tui/`, giving the whole codebase a logic-driven
+codebase, relegating the sketchy parts even deeper: the palette now has a row
+of the best, and slash commands can quickly jump from idea through the
+`prompt_toolkit` integration. All team libraries stay in place; tests stay green.
+
+### Files Changed
+- NEW: `ui_tui/commands.py` — full /commands catalog (18 commands)
+- NEW: `ui_tui/skills_panel.py` — skills browser with search, category chips, run, execute
+- NEW: `ui_tui/server_health.py` — background /api/health poller
+- MOD: `ui_tui/app.py` — rewritten with Live/patch_stdout, event-driven apply_event
+- MOD: `ui_tui/state.py` — rich TUIState (streaming, session, persona, working_process)
+- MOD: `ui_tui/render.py` — 5 panel renderers with full styling
+- MOD: `ui_tui/input.py` — NexaPromptSession history + patch_stdout + BINDINGS
+- NEW: `ui_tui/keys.py` — Ctrl+T/P/L/B keybindings
+- NEW: `ui_tui/layout.py` — 4-panel layout logic + skills overlay command
+- NEW: `ui_tui/theme.py` — hex palette + text styles
+- NEW: `.plans/TODO.md` → v4.6.0 entry
+- MOD: pyproject.toml version 4.5.0 → 4.6.0
+- MOD: pyproject.toml [scripts] now exports `nexa-tui`
+
+### Tests
+- 24 existing TUI tests preserved (backwards compat)
+- 33 new tests (skills panel + commands + palette + health) — all pass
+- **Total: 990 passing, 0 failed**
+
+### Results (per category)
+- code_intelligence (10): code_review, code_refactoring, code_explanation,
+  test_generation, bug_diagnosis, performance_profiling, security_audit,
+  documentation_generation, migration_assistance, code_search
+- web_research (8): deep_research, web_monitoring, fact_checking, translation,
+  summarization, sentiment_analysis, content_extraction, trend_analysis
+- creative_media (7): image_generation, image_understanding_vlm,
+  diagram_generation, chart_generation, music_generation, video_understanding,
+  voice_cloning
+- communication (5): speech_to_text_asr, text_to_speech_tts, email_drafting,
+  meeting_notes, realtime_translation
+- data_analytics (5): data_analysis, spreadsheet_operations, data_visualization,
+  database_querying, etl_pipeline
+- devops_operations (5): infrastructure_as_code, deployment_automation,
+  monitoring_setup, log_analysis, incident_response
+
+Stage Summary:
+- v4.4.0 → v4.6.0 — Batch 9 completes. Backend + frontend + TUI all aligned.

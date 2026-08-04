@@ -21,16 +21,17 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
-from ui_tui.theme import PALETTE, ACCENT, ACCENT_DIM, BG, BORDER, ERROR
-from ui_tui.theme import TEXT, MUTED, SUCCESS, SURFACE, SURFACE_HI, WARNING
-from ui_tui.state import (
+from nexa.constants import NEXA_NAME, NEXA_VERSION, NEXA_AUTHOR
+
+from ui_tui.core.theme import PALETTE, ACCENT, ACCENT_DIM, BG, BORDER, ERROR
+from ui_tui.core.theme import TEXT, MUTED, SUCCESS, SURFACE, SURFACE_HI, WARNING
+from ui_tui.core.state import (
     ChatMessage,
     PersonaBadge,
     TUIState,
     ToolCallEntry,
     WorkingProcessStep,
 )
-from nexa.constants import NEXA_NAME, NEXA_VERSION, NEXA_AUTHOR
 
 
 # ---------------------------------------------------------------------------
@@ -151,8 +152,9 @@ def render_working_process(state: TUIState) -> Panel:
     else:
         rows: List[RenderableType] = []
         for step in state.working_process[-_MAX_WP_VISIBLE:]:
+            icon = _step_icon(step.kind, step.ok)
             rows.append(Group(
-                _step_icon(step.kind, step.ok),
+                icon,
                 Text(f" {step.label}", style=TEXT),
             ))
             if step.detail:
@@ -163,6 +165,7 @@ def render_working_process(state: TUIState) -> Panel:
         title="[dim]Working Process[/dim]",
         border_style=BORDER,
         padding=(0, 1),
+        height=min(len(state.working_process) + 4, 12),
     )
 
 
@@ -180,18 +183,20 @@ def render_tool_log(state: TUIState) -> Panel:
     else:
         rows: List[RenderableType] = []
         for tc in state.tool_calls[-_MAX_TOOL_VISIBLE:]:
+            # ── One-liner: icon + name + latency
             icon = Text.from_markup("[green]✓[/green]" if tc.ok else "[red]✗[/red]")
             name = Text(tc.name, style=f"bold {WARNING}")
             dur = Text(f" ({tc.duration_ms:.0f}ms)", style=MUTED)
             header = Text.assemble(icon, name, dur)
             rows.append(header)
-            if tc.args:
-                rows.append(Text(f"   args: {tc.args[:80]}", style=MUTED))
-            if tc.output:
-                preview = tc.output[:120]
-                if len(tc.output) > 120:
+
+            # ── Expanded details (dropdown)
+            if state.persona and state.persona.detail_open:
+                rows.append(Text(f"   args: {tc.args[:200]}"))
+                preview = tc.output[:300]
+                if len(tc.output) > 300:
                     preview += "…"
-                rows.append(Text(f"   {preview}", style=MUTED))
+                rows.append(Text(f"   {preview}", style="dim"))
         body = Group(*rows)
     return Panel(
         body,
@@ -237,10 +242,12 @@ def render_input_box(state: TUIState, current_input: str = "") -> Panel:
         prompt_txt.append("⣿ ", style=f"bold {WARNING}")
     prompt_txt.append(f"{NEXA_NAME} > ", style=f"bold {SUCCESS}")
     prompt_txt.append(current_input, style=TEXT)
+    prompt_txt.append(" ", style=MUTED)
+    prompt_txt.append("(Ctrl+T tools · Ctrl+P persona · Tab cycle panels)", style=MUTED)
     return Panel(
         prompt_txt,
         height=3,
         border_style=SUCCESS,
         padding=(0, 1),
-        title="[dim]Input — Enter to send · Shift+Enter for newline[/dim]",
+        title="[dim]Input[/dim]",
     )

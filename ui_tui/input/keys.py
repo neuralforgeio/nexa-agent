@@ -14,7 +14,7 @@ from typing import Callable, Dict, Optional
 
 from prompt_toolkit.key_binding import KeyBindings
 
-from ui_tui.state import TUIState
+from ui_tui.core.state import TUIState
 
 kb = KeyBindings()
 

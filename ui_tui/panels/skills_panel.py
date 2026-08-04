@@ -19,8 +19,8 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
-from ui_tui.theme import ACCENT, BORDER, MUTED, SUCCESS, TEXT, WARNING
-from ui_tui.state import TUIState
+from ui_tui.core.theme import ACCENT, BORDER, MUTED, SUCCESS, TEXT, WARNING
+from ui_tui.core.state import TUIState
 
 
 # Category display labels (same as frontend). Order matters — this is the

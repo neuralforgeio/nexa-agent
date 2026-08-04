@@ -20,7 +20,7 @@ from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.styles import Style
 
-from ui_tui.theme import ACCENT, SUCCESS
+from ui_tui.core.theme import ACCENT, SUCCESS
 
 
 _PROMPT_HTML = "<nexa>nexa</nexa> <b>&gt;</b> "
