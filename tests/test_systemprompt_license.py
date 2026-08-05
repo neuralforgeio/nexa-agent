@@ -1,14 +1,13 @@
 """
-Tests for SYSTEMPROMPT.md and the extended LICENSE.
+Tests for SYSTEMPROMPT.md and the standard MIT LICENSE.
 
 Verifies:
     - SYSTEMPROMPT.md exists and has all required sections.
     - The creator "Dearly Febriano Irwansyah" is mentioned (with Indonesian origin).
     - No "Hermes" attribution (research-only reference).
-    - LICENSE has the standard MIT core + extended terms (attribution, trademark,
-      patent disclaimer, contribution license, AI acknowledgment, Indonesian
-      copyright law).
-    - LICENSE mentions the creator and Indonesia.
+    - LICENSE is the standard MIT License text recognized by GitHub's licensee
+      detection (changed from "Extended MIT" in v4.6.4 because GitHub labeled
+      the repo license as "Other").
 
 Copyright (c) 2026 Dearly Febriano Irwansyah
 SPDX-License-Identifier: MIT
@@ -61,7 +60,6 @@ class TestSystemPrompt:
     def test_has_tools_catalog(self) -> None:
         """The prompt lists the available tools."""
         content = _read("SYSTEMPROMPT.md")
-        # At least 3 tools must be mentioned.
         tool_mentions = sum(1 for t in ("read_file", "write_file", "run_terminal_command",
                                          "web_search", "code_execution", "delegate")
                             if t in content)
@@ -85,8 +83,6 @@ class TestSystemPrompt:
     def test_no_hermes_attribution(self) -> None:
         """The prompt must NOT mention 'Hermes' as an attribution (research only)."""
         content = _read("SYSTEMPROMPT.md")
-        # The only acceptable mention is "research references only" or similar.
-        # A bare "Built on Hermes" or "Based on Hermes" is forbidden.
         lower = content.lower()
         assert "based on hermes" not in lower
         assert "built on hermes" not in lower
@@ -103,18 +99,28 @@ class TestSystemPrompt:
         assert "AI" in content.upper() or "artificial intelligence" in content.lower()
 
 
-class TestLicenseExtended:
-    """Tests for the extended MIT LICENSE."""
+class TestLicenseStandardMIT:
+    """
+    Tests for the standard MIT LICENSE.
+
+    v4.6.4: replaced "Extended MIT" with the canonical MIT text so GitHub's
+    licensee detector displays "MIT License" instead of "Other" on the repo
+    page. The test contract is now exact-standard (not extended-terms).
+    """
 
     def test_file_exists(self) -> None:
         """LICENSE must exist."""
         assert (REPO_ROOT / "LICENSE").exists()
 
+    def test_has_standard_mit_header(self) -> None:
+        """The LICENSE starts with the literal 'MIT License' header."""
+        content = _read("LICENSE")
+        assert content.startswith("MIT License\n")
+
     def test_has_standard_mit_core(self) -> None:
         """The LICENSE has the standard MIT permission grant."""
         content = _read("LICENSE")
         assert "Permission is hereby granted, free of charge" in content
-        # Normalize whitespace for the multi-line phrase.
         normalized = " ".join(content.split())
         assert "all copies or substantial portions of the Software" in normalized
 
@@ -124,62 +130,65 @@ class TestLicenseExtended:
         assert "THE SOFTWARE IS PROVIDED \"AS IS\"" in content
         assert "WITHOUT WARRANTY OF ANY KIND" in content
 
-    def test_mentions_creator(self) -> None:
-        """The LICENSE mentions the creator's name."""
+    def test_no_liability_clause(self) -> None:
+        """The LICENSE has the standard no-liability clause."""
         content = _read("LICENSE")
-        assert "Dearly Febriano Irwansyah" in content
+        # The standard text splits "AUTHORS OR COPYRIGHT HOLDERS" across lines;
+        # normalize whitespace before matching.
+        normalized = " ".join(content.split())
+        assert "AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM" in normalized
+        assert "LIABILITY" in content
 
-    def test_mentions_indonesia(self) -> None:
-        """The LICENSE mentions Indonesia."""
+    def test_mentions_creator_copyright(self) -> None:
+        """The LICENSE names the creator and year."""
         content = _read("LICENSE")
-        assert "Indonesia" in content or "Indonesian" in content
+        assert "Copyright (c) 2026 Dearly Febriano Irwansyah" in content
 
-    def test_has_extended_terms_section(self) -> None:
-        """The LICENSE has an EXTENDED TERMS section."""
+    def test_license_length_within_standard_bounds(self) -> None:
+        """
+        GitHub's licensee fuzzy-matching fails when the LICENSE is much longer
+        than upstream MIT. Standard MIT is ~21 lines; the repo license must be
+        close to that (not 117 lines of extended terms).
+        """
         content = _read("LICENSE")
-        assert "EXTENDED TERMS" in content.upper()
+        lines = [ln for ln in content.splitlines() if ln.strip()]
+        # Upstream MIT has ~19 non-empty lines; tolerance for OSI/exact-match.
+        assert len(lines) <= 25, (
+            f"LICENSE too long ({len(lines)} non-empty lines) for GitHub "
+            "MIT detection; must match the near-exact-standard template."
+        )
 
-    def test_has_attribution_requirement(self) -> None:
-        """The LICENSE has an attribution requirement clause."""
+    def test_no_extended_terms_markers(self) -> None:
+        """
+        The previous 'Extended MIT' used an EXTENDED TERMS section, trademark
+        notice, contribution license, moral-rights clause, AI acknowledgment,
+        high-risk disclaimer, etc. All must be ABSENT in the standard version
+        so GitHub's licensee matcher scores MIT at >= 95% confidence.
+        """
         content = _read("LICENSE")
-        assert "ATTRIBUTION" in content.upper()
+        upper = content.upper()
+        for marker in (
+            "EXTENDED TERMS",
+            "ATTRIBUTION REQUIREMENT",
+            "TRADEMARK NOTICE",
+            "NO ENDORSEMENT",
+            "PATENT DISCLAIMER",
+            "CONTRIBUTION LICENSE",
+            "AI-ASSISTED",
+            "MORAL RIGHTS",
+            "HIGH-RISK APPLICATIONS",
+            "SECURITY DISCLOSURE",
+            "UU NO. 28",
+        ):
+            assert marker not in upper, f"extended-terms remnant found: {marker}"
 
-    def test_has_trademark_notice(self) -> None:
-        """The LICENSE has a trademark notice."""
+    def test_no_extended_mit_header(self) -> None:
+        """The previous 'Extended MIT License (Version 3.0.0)' header is gone."""
         content = _read("LICENSE")
-        assert "TRADEMARK" in content.upper()
+        assert "Extended MIT" not in content
+        assert "Version 3.0.0" not in content
 
-    def test_has_patent_disclaimer(self) -> None:
-        """The LICENSE has a patent disclaimer."""
+    def test_no_contact_block(self) -> None:
+        """The previous file had a contact block — must be removed."""
         content = _read("LICENSE")
-        assert "PATENT" in content.upper()
-
-    def test_has_contribution_license(self) -> None:
-        """The LICENSE has a contribution license clause."""
-        content = _read("LICENSE")
-        assert "CONTRIBUTION" in content.upper() or "pull request" in content.lower()
-
-    def test_has_ai_acknowledgment(self) -> None:
-        """The LICENSE acknowledges AI-assisted development."""
-        content = _read("LICENSE")
-        assert "AI-ASSISTED" in content.upper() or "AI-powered" in content.lower()
-
-    def test_has_indonesian_copyright_law(self) -> None:
-        """The LICENSE acknowledges Indonesian copyright law."""
-        content = _read("LICENSE")
-        assert "UU No. 28" in content or "Hak Cipta" in content or "moral rights" in content.lower()
-
-    def test_has_security_disclosure_clause(self) -> None:
-        """The LICENSE has a security disclosure clause."""
-        content = _read("LICENSE")
-        assert "SECURITY" in content.upper() and "vulnerability" in content.lower()
-
-    def test_has_high_risk_disclaimer(self) -> None:
-        """The LICENSE disclaims fitness for high-risk applications."""
-        content = _read("LICENSE")
-        assert "HIGH-RISK" in content.upper() or "high-risk" in content.lower()
-
-    def test_version_in_license(self) -> None:
-        """The LICENSE version (3.0.0) is mentioned."""
-        content = _read("LICENSE")
-        assert "3.0.0" in content
+        assert "dearlyfebrianoi@gmail.com" not in content
