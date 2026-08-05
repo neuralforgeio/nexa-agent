@@ -15,7 +15,7 @@
 
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { WifiOff, RefreshCw } from "lucide-react";
 
 export type HealthState = "loading" | "ok" | "reconnecting" | "down";
@@ -40,14 +40,7 @@ export function useConnectionHealth({ pollMs = 5000, onStateChange }: Options = 
   const onStateChangeRef = useRef(onStateChange);
   onStateChangeRef.current = onStateChange;
 
-  const apply = (s: HealthState) => {
-    if (stateRef.current === s) return;
-    stateRef.current = s;
-    setState(s);
-    onStateChangeRef.current?.(s);
-  };
-
-  const probe = async () => {
+  const probe = useCallback(async () => {
     let ok = false;
     try {
       const res = await fetch("/api/health", { cache: "no-store" });
@@ -59,26 +52,26 @@ export function useConnectionHealth({ pollMs = 5000, onStateChange }: Options = 
     const prev = stateRef.current;
     if (ok) {
       failuresRef.current = 0;
-      apply("ok");
+      if (prev !== "ok") {
+        stateRef.current = "ok";
+        setState("ok");
+        onStateChangeRef.current?.("ok");
+      }
       return;
     }
 
     failuresRef.current += 1;
-    if (prev === "loading") {
-      // Initial probe failed — surface immediately as red so the user knows.
-      apply("down");
-    } else if (prev === "ok") {
-      // We were healthy; one failure transitions to "reconnecting" (yellow)
-      // rather than straight to red so a single packet loss isn't alarming.
-      apply("reconnecting");
-    } else if (prev === "reconnecting" || prev === "down") {
-      // Keep escalating: second consecutive failure → red.
-      if (failuresRef.current >= 2) apply("down");
-      else apply("reconnecting");
-    } else {
-      apply("reconnecting");
+    let next: HealthState;
+    if (prev === "loading") next = "down";
+    else if (prev === "ok") next = "reconnecting";
+    else next = failuresRef.current >= 2 ? "down" : "reconnecting";
+
+    if (next !== prev) {
+      stateRef.current = next;
+      setState(next);
+      onStateChangeRef.current?.(next);
     }
-  };
+  }, []);
 
   useEffect(() => {
     void probe();
@@ -87,8 +80,7 @@ export function useConnectionHealth({ pollMs = 5000, onStateChange }: Options = 
       void probe();
     }, pollMs);
     return () => clearInterval(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pollMs]);
+  }, [pollMs, probe]);
 
   return { state, probe };
 }
