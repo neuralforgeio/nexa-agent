@@ -155,7 +155,7 @@ export function Sidebar({ activeSessionId, onSelect, onNew, refreshKey }: Sideba
           position: "relative",
         }}
         onMouseEnter={(e) => {
-          if (!isActive && !isRenaming) e.currentTarget.style.background = "#1A1B1E";
+          if (!isActive && !isRenaming) e.currentTarget.style.background = "var(--nexa-panel-2, #1A1B1E)";
         }}
         onMouseLeave={(e) => {
           if (!isActive && !isRenaming) e.currentTarget.style.background = "transparent";

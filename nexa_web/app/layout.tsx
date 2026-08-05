@@ -9,6 +9,7 @@
 
 import type { Metadata } from "next";
 import "./globals.css";
+import { ThemeProvider } from "../components/ThemeProvider";
 
 export const metadata: Metadata = {
   title: "Nexa Agent — Advanced AI Agent",
@@ -23,15 +24,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         style={{
           margin: 0,
           padding: 0,
-          background: "#141618",
-          color: "#ECECEC",
+          // Background/color come from --nexa-* tokens in globals.css so the
+          // F-06 theme toggle recolors the whole app without a reload.
+          background: "var(--nexa-bg, #141618)",
+          color: "var(--nexa-text, #ECECEC)",
           fontFamily:
             "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
           WebkitFontSmoothing: "antialiased",
           MozOsxFontSmoothing: "grayscale",
         }}
       >
-        {children}
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   );
