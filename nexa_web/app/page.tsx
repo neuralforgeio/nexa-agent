@@ -68,9 +68,7 @@ export default function Page() {
   const health = useConnectionHealth();
   const scrollRef = useRef<HTMLDivElement>(null);
   const inFlightRef = useRef(false);
-  // F-01: AbortController for the in-flight chat stream so the Composer
-  // "Stop" button cancels it deterministically.
-  const abortRef = useRef<AbortController | null>(null);
+  // (abortRef already declared at line 50 — reused across onSend/onStop/finally.)
 
   // Hydrate panel state from localStorage. Default to AUTO (open with
   // sidebar, closed with sandbox) when no preference is stored yet.
@@ -270,24 +268,13 @@ export default function Page() {
         abortRef.current = null;
         setThinking(false);
         inFlightRef.current = false;
-        // F-01: clear the abort controller once the request settles.
-        abortRef.current = null;
       }
     },
     [sessionId, thinking, messages]
   );
 
-  // F-01: stop button — abort the active SSE stream.
-  const onStop = useCallback(() => {
-    abortRef.current?.abort();
-    abortRef.current = null;
-    // Reflect stop in the UI immediately rather than waiting for the
-    // aborted fetch to reject and unwind.
-    setThinking(false);
-    setMessages((m) =>
-      m.map((msg) => (msg.thinking ? { ...msg, thinking: false } : msg))
-    );
-  }, []);
+  // (OnStop callback moved up before onSend to avoid duplicate-declaration
+  // with the F-01 abort handler — only ONE onStop exists in this module.)
 
   const onNew = useCallback(() => {
     setSessionId(null);
