@@ -26,6 +26,7 @@ import { MessageBubble } from "../components/MessageBubble";
 import { Composer } from "../components/Composer";
 import { ThemeToggle } from "../components/ThemeToggle";
 import { ModelPicker } from "../components/ModelPicker";
+import { ShortcutsHelp, useShortcutsHelp } from "../components/ShortcutsHelp";
 import { WorkingProcess, type ThinkingStep } from "../components/WorkingProcess";
 import { SandboxPanel } from "../components/SandboxPanel";
 import { sendChatMessage, persistTurn } from "../lib/stream";
@@ -55,6 +56,8 @@ export default function Page() {
   // model changes we want a fresh conversation against the new persona).
   const [chatKey, setChatKey] = useState(0);
   const [activeProvider, setActiveProvider] = useState<string | null>(null);
+  // F-07: keyboard shortcuts overlay, toggled by pressing "?".
+  const { open: showShortcuts, setOpen: setShowShortcuts } = useShortcutsHelp();
   const scrollRef = useRef<HTMLDivElement>(null);
   const inFlightRef = useRef(false);
   // F-01: AbortController for the in-flight chat stream so the Composer
@@ -401,6 +404,9 @@ export default function Page() {
 
       {/* Sandbox panel */}
       {sandboxOpen && <SandboxPanel onClose={toggleSandbox} width={480} />}
+
+      {/* F-07: keyboard shortcuts overlay ("?") */}
+      {showShortcuts && <ShortcutsHelp onClose={() => setShowShortcuts(false)} />}
     </div>
   );
 }
