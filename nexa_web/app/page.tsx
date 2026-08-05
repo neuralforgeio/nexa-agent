@@ -25,6 +25,7 @@ import { Sidebar, CollapsedSidebar } from "../components/Sidebar";
 import { MessageBubble } from "../components/MessageBubble";
 import { Composer } from "../components/Composer";
 import { ThemeToggle } from "../components/ThemeToggle";
+import { ModelPicker } from "../components/ModelPicker";
 import { WorkingProcess, type ThinkingStep } from "../components/WorkingProcess";
 import { SandboxPanel } from "../components/SandboxPanel";
 import { sendChatMessage, persistTurn } from "../lib/stream";
@@ -50,6 +51,10 @@ export default function Page() {
   // the Nexa UI itself on first paint.
   const [sandboxOpen, setSandboxOpen] = useState(false);
   const [appVersion, setAppVersion] = useState<string>("4.1.0");
+  // Bumping this key re-mounts the chat column (F-05: when the provider /
+  // model changes we want a fresh conversation against the new persona).
+  const [chatKey, setChatKey] = useState(0);
+  const [activeProvider, setActiveProvider] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inFlightRef = useRef(false);
   // F-01: AbortController for the in-flight chat stream so the Composer
@@ -331,6 +336,18 @@ export default function Page() {
           <span style={{ fontSize: 14, fontWeight: 700, color: "var(--nexa-text, #ECECEC)" }}>Nexa Agent</span>
           <span style={{ fontSize: 11, color: "var(--nexa-mute, #6A6A6A)" }}>v{appVersion}</span>
           <div style={{ marginLeft: "auto", display: "flex", gap: 4, alignItems: "center" }}>
+            <ModelPicker
+              onProviderChange={(name) => {
+                // F-05: re-mount the chat on provider change so the new
+                // conversation starts against the newly-selected model.
+                setActiveProvider(name);
+                setSessionId(null);
+                setMessages([]);
+                setSteps([]);
+                setSummary("");
+                setChatKey((k) => k + 1);
+              }}
+            />
             <button
               onClick={toggleSandbox}
               title="Toggle sandbox (Ctrl+J)"
@@ -350,7 +367,7 @@ export default function Page() {
         </header>
 
         {/* Messages / empty state */}
-        <div style={{ flex: 1, overflowY: "auto" }}>
+        <div key={chatKey} style={{ flex: 1, overflowY: "auto" }} data-provider={activeProvider ?? undefined}>
           {isEmpty ? (
             <EmptyState version={appVersion} onPick={(t) => onSend(t)} />
           ) : (
