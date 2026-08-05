@@ -27,6 +27,10 @@ import { Composer } from "../components/Composer";
 import { ThemeToggle } from "../components/ThemeToggle";
 import { ModelPicker } from "../components/ModelPicker";
 import { ShortcutsHelp, useShortcutsHelp } from "../components/ShortcutsHelp";
+import {
+  ConnectionStatusBanner,
+  useConnectionHealth,
+} from "../components/ConnectionStatusBanner";
 import { WorkingProcess, type ThinkingStep } from "../components/WorkingProcess";
 import { SandboxPanel } from "../components/SandboxPanel";
 import { sendChatMessage, persistTurn } from "../lib/stream";
@@ -58,6 +62,8 @@ export default function Page() {
   const [activeProvider, setActiveProvider] = useState<string | null>(null);
   // F-07: keyboard shortcuts overlay, toggled by pressing "?".
   const { open: showShortcuts, setOpen: setShowShortcuts } = useShortcutsHelp();
+  // F-08: top banner that tracks GET /api/health.
+  const health = useConnectionHealth();
   const scrollRef = useRef<HTMLDivElement>(null);
   const inFlightRef = useRef(false);
   // F-01: AbortController for the in-flight chat stream so the Composer
@@ -318,6 +324,8 @@ export default function Page() {
 
       {/* Main area */}
       <main style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
+        {/* F-08: connection status banner — red/yellow while unhealthy. */}
+        <ConnectionStatusBanner state={health.state} onRetry={health.probe} />
         {/* Header */}
         <header
           style={{

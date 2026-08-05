@@ -57,6 +57,11 @@ body {
   50% { opacity: 0.3; }
 }
 
+@keyframes nexa-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--nexa-scroll); border-radius: 999px; }
