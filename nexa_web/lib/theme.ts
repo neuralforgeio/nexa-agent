@@ -42,6 +42,76 @@ export const spacing = {
   cardRadius: "8px",
 } as const;
 
+// ---------------------------------------------------------------------------
+// F-06 — light/dark CSS variable design tokens.
+// <ThemeProvider> applies these to <html> as inline `--nexa-*` custom
+// properties; globals.css + components read them via var(--nexa-*).
+// ---------------------------------------------------------------------------
+
+export type ThemeMode = "light" | "dark" | "system";
+
+export const THEME_STORAGE_KEY = "nexa-theme";
+
+export interface ThemeTokens {
+  "--nexa-bg": string;
+  "--nexa-surface": string;
+  "--nexa-panel": string;
+  "--nexa-panel-2": string;
+  "--nexa-elev": string;
+  "--nexa-border": string;
+  "--nexa-border-2": string;
+  "--nexa-text": string;
+  "--nexa-dim": string;
+  "--nexa-mute": string;
+  "--nexa-accent": string;
+  "--nexa-accent-soft": string;
+  "--nexa-accent-ring": string;
+  "--nexa-success": string;
+  "--nexa-error": string;
+  "--nexa-warning": string;
+  "--nexa-scroll": string;
+}
+
+export const darkTokens: ThemeTokens = {
+  "--nexa-bg": "#0D0E10",
+  "--nexa-surface": "#141618",
+  "--nexa-panel": "#111214",
+  "--nexa-panel-2": "#191B1E",
+  "--nexa-elev": "#222327",
+  "--nexa-border": "#24262B",
+  "--nexa-border-2": "#2E2F34",
+  "--nexa-text": "#ECECEC",
+  "--nexa-dim": "#9A9A9A",
+  "--nexa-mute": "#6A6A6A",
+  "--nexa-accent": "#4A9EFF",
+  "--nexa-accent-soft": "rgba(74, 158, 255, 0.12)",
+  "--nexa-accent-ring": "rgba(74, 158, 255, 0.4)",
+  "--nexa-success": "#4ADE80",
+  "--nexa-error": "#F87171",
+  "--nexa-warning": "#FBBF24",
+  "--nexa-scroll": "#2E2F34",
+};
+
+export const lightTokens: ThemeTokens = {
+  "--nexa-bg": "#F4F5F7",
+  "--nexa-surface": "#FFFFFF",
+  "--nexa-panel": "#FAFAFB",
+  "--nexa-panel-2": "#F2F3F5",
+  "--nexa-elev": "#EBECF0",
+  "--nexa-border": "#E3E5EA",
+  "--nexa-border-2": "#CFD3DB",
+  "--nexa-text": "#1B1D21",
+  "--nexa-dim": "#5C6270",
+  "--nexa-mute": "#8A91A0",
+  "--nexa-accent": "#2B7CD3",
+  "--nexa-accent-soft": "rgba(43, 124, 211, 0.10)",
+  "--nexa-accent-ring": "rgba(43, 124, 211, 0.4)",
+  "--nexa-success": "#15803D",
+  "--nexa-error": "#DC2626",
+  "--nexa-warning": "#B45309",
+  "--nexa-scroll": "#C6CAD2",
+};
+
 export type EventType =
   | "session"
   | "thinking"
@@ -107,6 +177,9 @@ export interface Session {
   createdAt: string;
   updatedAt: string;
   messageCount: number;
+  /** F-04: pin/archive flags. Optional because older backends don't return them. */
+  pinned?: boolean;
+  archived?: boolean;
 }
 
 /**

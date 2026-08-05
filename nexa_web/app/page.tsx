@@ -24,6 +24,7 @@ import { Menu, X, Zap, PanelRight, PanelLeft } from "lucide-react";
 import { Sidebar, CollapsedSidebar } from "../components/Sidebar";
 import { MessageBubble } from "../components/MessageBubble";
 import { Composer } from "../components/Composer";
+import { ThemeToggle } from "../components/ThemeToggle";
 import { WorkingProcess, type ThinkingStep } from "../components/WorkingProcess";
 import { SandboxPanel } from "../components/SandboxPanel";
 import { sendChatMessage, persistTurn } from "../lib/stream";
@@ -51,6 +52,9 @@ export default function Page() {
   const [appVersion, setAppVersion] = useState<string>("4.1.0");
   const scrollRef = useRef<HTMLDivElement>(null);
   const inFlightRef = useRef(false);
+  // F-01: AbortController for the in-flight chat stream so the Composer
+  // "Stop" button cancels it deterministically.
+  const abortRef = useRef<AbortController | null>(null);
 
   // Hydrate panel state from localStorage. Default to AUTO (open with
   // sidebar, closed with sandbox) when no preference is stored yet.
@@ -118,6 +122,10 @@ export default function Page() {
       if (thinking || inFlightRef.current) return;
       inFlightRef.current = true;
 
+      // F-01: prepare an AbortController so a Stop click cancels this fetch.
+      const controller = new AbortController();
+      abortRef.current = controller;
+
       const userMsg: Message = {
         id: `u-${Date.now()}`,
         role: "user",
@@ -146,7 +154,10 @@ export default function Page() {
       };
 
       try {
-        const boundSession = await sendChatMessage(text, sessionId, (event: ChatEvent) => {
+        const boundSession = await sendChatMessage(
+          text,
+          sessionId,
+          (event: ChatEvent) => {
           if (event.type === "session" && event.sessionId) {
             setSessionId(event.sessionId);
             setRefreshKey((k) => k + 1);
@@ -200,7 +211,12 @@ export default function Page() {
               m.map((msg) => (msg.id === asstId ? { ...msg, content: `⚠️ ${event.message}`, thinking: false } : msg))
             );
           }
-        });
+        },
+          // onStatus — no UI banner wired yet, so pass undefined.
+          undefined,
+          // F-01: pass the abort signal so Stop actually aborts the fetch.
+          controller.signal
+        );
 
         if (boundSession) {
           const finalContent = accText || messages.find((m) => m.id === asstId)?.content || "";
@@ -229,10 +245,24 @@ export default function Page() {
       } finally {
         setThinking(false);
         inFlightRef.current = false;
+        // F-01: clear the abort controller once the request settles.
+        abortRef.current = null;
       }
     },
     [sessionId, thinking, messages]
   );
+
+  // F-01: stop button — abort the active SSE stream.
+  const onStop = useCallback(() => {
+    abortRef.current?.abort();
+    abortRef.current = null;
+    // Reflect stop in the UI immediately rather than waiting for the
+    // aborted fetch to reject and unwind.
+    setThinking(false);
+    setMessages((m) =>
+      m.map((msg) => (msg.thinking ? { ...msg, thinking: false } : msg))
+    );
+  }, []);
 
   const onNew = useCallback(() => {
     setSessionId(null);
@@ -269,7 +299,7 @@ export default function Page() {
   const lastAsstId = lastMsg?.role === "assistant" ? lastMsg.id : null;
 
   return (
-    <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "#0D0E10" }}>
+    <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "var(--nexa-bg, #0D0E10)", color: "var(--nexa-text, #ECECEC)" }}>
       {/* Sidebar (full / mini icon-only / closed) */}
       {sidebarMode === "open" && (
         <Sidebar activeSessionId={sessionId} onSelect={onSelect} onNew={onNew} refreshKey={refreshKey} />
@@ -287,34 +317,35 @@ export default function Page() {
             alignItems: "center",
             gap: 8,
             padding: "8px 14px",
-            borderBottom: "1px solid #24262B",
-            background: "#111214",
+            borderBottom: "1px solid var(--nexa-border, #24262B)",
+            background: "var(--nexa-panel, #111214)",
           }}
         >
           <button
             onClick={toggleSidebar}
             title="Toggle sidebar (Ctrl+B)"
-            style={{ background: "none", border: "none", color: "#9A9A9A", cursor: "pointer", padding: 4, borderRadius: 6 }}
+            style={{ background: "none", border: "none", color: "var(--nexa-dim, #9A9A9A)", cursor: "pointer", padding: 4, borderRadius: 6 }}
           >
             {sidebarMode === "open" ? <X size={18} /> : <Menu size={18} />}
           </button>
-          <span style={{ fontSize: 14, fontWeight: 700, color: "#ECECEC" }}>Nexa Agent</span>
-          <span style={{ fontSize: 11, color: "#6A6A6A" }}>v{appVersion}</span>
-          <div style={{ marginLeft: "auto", display: "flex", gap: 4 }}>
+          <span style={{ fontSize: 14, fontWeight: 700, color: "var(--nexa-text, #ECECEC)" }}>Nexa Agent</span>
+          <span style={{ fontSize: 11, color: "var(--nexa-mute, #6A6A6A)" }}>v{appVersion}</span>
+          <div style={{ marginLeft: "auto", display: "flex", gap: 4, alignItems: "center" }}>
             <button
               onClick={toggleSandbox}
               title="Toggle sandbox (Ctrl+J)"
-              style={{ background: "none", border: "none", color: sandboxOpen ? "#4A9EFF" : "#9A9A9A", cursor: "pointer", padding: 4, borderRadius: 6 }}
+              style={{ background: "none", border: "none", color: sandboxOpen ? "var(--nexa-accent, #4A9EFF)" : "var(--nexa-dim, #9A9A9A)", cursor: "pointer", padding: 4, borderRadius: 6 }}
             >
               <PanelRight size={17} />
             </button>
             <button
               onClick={toggleSidebar}
               title="Toggle sidebar (Ctrl+B)"
-              style={{ background: "none", border: "none", color: sidebarMode === "open" ? "#4A9EFF" : "#9A9A9A", cursor: "pointer", padding: 4, borderRadius: 6 }}
+              style={{ background: "none", border: "none", color: sidebarMode === "open" ? "var(--nexa-accent, #4A9EFF)" : "var(--nexa-dim, #9A9A9A)", cursor: "pointer", padding: 4, borderRadius: 6 }}
             >
               <PanelLeft size={17} />
             </button>
+            <ThemeToggle />
           </div>
         </header>
 
@@ -348,7 +379,7 @@ export default function Page() {
         </div>
 
         {/* Composer */}
-        <Composer onSend={onSend} disabled={thinking} thinking={thinking} showSuggestions={isEmpty} />
+        <Composer onSend={onSend} onStop={onStop} disabled={thinking} thinking={thinking} showSuggestions={isEmpty} />
       </main>
 
       {/* Sandbox panel */}
