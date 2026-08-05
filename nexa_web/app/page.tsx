@@ -39,6 +39,8 @@ export default function Page() {
   const [steps, setSteps] = useState<ThinkingStep[]>([]);
   const [summary, setSummary] = useState<string>("");
   const [refreshKey, setRefreshKey] = useState(0);
+  // F-01: AbortController for the in-flight chat request.
+  const abortRef = useRef<AbortController | null>(null);
   // Three sidebar modes (v4.1.0): ``open`` (264px, full history),
   // ``mini`` (52px, icon-only), ``closed`` (hidden). Ctrl+B cycles
   // open ↔ mini.
@@ -112,11 +114,21 @@ export default function Page() {
     scrollRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages, steps, thinking]);
 
+  // F-01: user clicked the Stop button — abort the in-flight SSE stream.
+  const onStop = useCallback(() => {
+    abortRef.current?.abort();
+    abortRef.current = null;
+  }, []);
+
   const onSend = useCallback(
     async (text: string) => {
       // Duplicate-request guard: block while a request is in flight.
       if (thinking || inFlightRef.current) return;
       inFlightRef.current = true;
+
+      // F-01: arm a fresh AbortController; callers can cancel via onStop.
+      const ac = new AbortController();
+      abortRef.current = ac;
 
       const userMsg: Message = {
         id: `u-${Date.now()}`,
@@ -146,7 +158,10 @@ export default function Page() {
       };
 
       try {
-        const boundSession = await sendChatMessage(text, sessionId, (event: ChatEvent) => {
+        const boundSession = await sendChatMessage(
+          text,
+          sessionId,
+          (event: ChatEvent) => {
           if (event.type === "session" && event.sessionId) {
             setSessionId(event.sessionId);
             setRefreshKey((k) => k + 1);
@@ -200,7 +215,10 @@ export default function Page() {
               m.map((msg) => (msg.id === asstId ? { ...msg, content: `⚠️ ${event.message}`, thinking: false } : msg))
             );
           }
-        });
+        },
+          undefined,
+          ac.signal
+        );
 
         if (boundSession) {
           const finalContent = accText || messages.find((m) => m.id === asstId)?.content || "";
@@ -227,6 +245,9 @@ export default function Page() {
           } catch { /* keep optimistic state */ }
         }
       } finally {
+        // F-01: on abort, keep the partial assistant content. Set thinking(false)
+        // so the Composer switches back to the send-button state.
+        abortRef.current = null;
         setThinking(false);
         inFlightRef.current = false;
       }
@@ -348,7 +369,7 @@ export default function Page() {
         </div>
 
         {/* Composer */}
-        <Composer onSend={onSend} disabled={thinking} thinking={thinking} showSuggestions={isEmpty} />
+        <Composer onSend={onSend} onStop={onStop} disabled={thinking} thinking={thinking} showSuggestions={isEmpty} />
       </main>
 
       {/* Sandbox panel */}

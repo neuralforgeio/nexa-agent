@@ -5,6 +5,9 @@
  * and suggestion chips for empty state.
  *
  * v4.7.0 (F-01): Stop button added — aborts active SSE stream via onStop.
+ * When ``thinking`` is true the send button is replaced by a prominent red
+ * square Stop button. Click → calls ``onStop`` which the parent wires to
+ * ``AbortController.abort()`` on the in-flight chat stream.
  *
  * Copyright (c) 2026 Dearly Febriano Irwansyah
  */
@@ -16,18 +19,13 @@ import { ArrowUp, Loader2, Square } from "lucide-react";
 
 interface ComposerProps {
   onSend: (text: string) => void;
-  onStop: () => void;           // v4.7.0
+  /** F-01: invoked when the user clicks the Stop button during streaming. */
+  onStop: () => void;
   disabled: boolean;
+  /** True while a chat request is in flight (streaming). */
   thinking: boolean;
   showSuggestions: boolean;
 }
-
-const SUGGESTIONS: Array<{ label: string; prompt: string }> = [
-  { label: "💻 Write Code",       prompt: "Write a Python function that computes the nth Fibonacci number using constant space." },
-  { label: "🖥 Run Terminal",     prompt: "Show me the contents of the current workspace using the terminal." },
-  { label: "🔍 Search Web",       prompt: "Search the web for the latest AI news and summarize the top 3 stories." },
-  { label: "📄 Analyze File",     prompt: "Read README.md in this repository and summarize what this project does." },
-];
 
 const SUGGESTIONS: Array<{ label: string; prompt: string }> = [
   { label: "💻 Write Code",       prompt: "Write a Python function that computes the nth Fibonacci number using constant space." },
@@ -54,8 +52,12 @@ export function Composer({ onSend, onStop, disabled, thinking, showSuggestions }
     setValue("");
   };
 
+  const streaming = thinking;
+  const sendDisabled = disabled || !value.trim();
+  const buttonDisabled = streaming ? false : sendDisabled;
+
   return (
-    <div style={{ background: "linear-gradient(to top, #141618, transparent)", padding: "0 16px 16px" }}>
+    <div style={{ background: "linear-gradient(to top, var(--nexa-surface, #141618), transparent)", padding: "0 16px 16px" }}>
       <div style={{ maxWidth: 768, margin: "0 auto" }}>
         {/* Suggestions — Z.ai-style quick action chips */}
         {showSuggestions && (
@@ -102,17 +104,39 @@ export function Composer({ onSend, onStop, disabled, thinking, showSuggestions }
             }}
           />
           <button
-            onClick={submit}
-            disabled={disabled || !value.trim()}
-            style={{
-              width: 32, height: 32, flexShrink: 0, borderRadius: "50%",
-              border: "1px solid rgba(74, 158, 255, 0.4)", background: "rgba(74, 158, 255, 0.15)",
-              color: "#4A9EFF", cursor: "pointer", display: "flex",
-              alignItems: "center", justifyContent: "center",
-              opacity: disabled || !value.trim() ? 0.3 : 1, transition: "opacity 0.15s",
-            }}
+            type="button"
+            data-testid={streaming ? "stop-button" : "send-button"}
+            aria-label={streaming ? "Stop generating" : "Send message"}
+            onClick={() => (streaming ? onStop() : submit())}
+            disabled={buttonDisabled}
+            style={
+              streaming
+                ? {
+                    // F-01 prominent Stop button — red from the shared error token.
+                    width: 32, height: 32, flexShrink: 0, borderRadius: "50%",
+                    border: "1px solid rgba(248, 113, 113, 0.55)",
+                    background: "rgba(248, 113, 113, 0.18)",
+                    color: "#F87171", cursor: "pointer", display: "flex",
+                    alignItems: "center", justifyContent: "center",
+                    transition: "background 0.15s, opacity 0.15s",
+                  }
+                : {
+                    width: 32, height: 32, flexShrink: 0, borderRadius: "50%",
+                    border: "1px solid rgba(74, 158, 255, 0.4)",
+                    background: "rgba(74, 158, 255, 0.15)",
+                    color: "#4A9EFF", cursor: "pointer", display: "flex",
+                    alignItems: "center", justifyContent: "center",
+                    opacity: buttonDisabled ? 0.3 : 1, transition: "opacity 0.15s",
+                  }
+            }
           >
-            {thinking ? <Loader2 size={18} className="animate-spin" /> : <ArrowUp size={18} />}
+            {streaming ? (
+              <Square size={14} fill="currentColor" data-testid="stop-icon" />
+            ) : thinking ? (
+              <Loader2 size={18} className="animate-spin" />
+            ) : (
+              <ArrowUp size={18} />
+            )}
           </button>
         </div>
         <div style={{ textAlign: "center", fontSize: 11, color: "#6A6A6A", marginTop: 8 }}>

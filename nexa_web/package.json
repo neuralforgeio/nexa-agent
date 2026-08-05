@@ -1,6 +1,6 @@
 {
   "name": "nexa-agent-ui",
-  "version": "4.2.3",
+  "version": "4.6.4",
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000",

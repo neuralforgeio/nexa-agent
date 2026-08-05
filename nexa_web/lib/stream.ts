@@ -1,32 +1,20 @@
 /**
- * Nexa Agent — SSE Stream Parser (Hardened v2.1.0)
+ * Nexa Agent — streaming helpers for the Web UI.
  *
- * Parses Server-Sent Events from the Python agent backend.
- * Handles all event types: session, thinking, token, tool_call,
- * tool_result, done, error, end, compressing, memory.
- *
- * v2.1.0 additions:
- * - Exponential-backoff reconnect on dropped connections (1s→2s→4s→8s).
- * - Connection-status callback (`onStatus`) so the UI can surface a
- *   "Connection lost. Reconnecting…" banner.
- * - No more forever-blinking cursor: if reconnect gives up, an `error`
- *   event is emitted so the UI clears the thinking state.
+ * Wraps fetch+SSE parsing, exposes chat + persistence calls used by page.tsx.
  *
  * Copyright (c) 2026 Dearly Febriano Irwansyah
  */
 
-import type { ChatEvent } from "./theme";
+import type { ChatEvent, SessionMessage } from "./theme";
 
+/** v4.7.0: pub-sub status for UI banners (F-01 stop button UI + F-08 banner). */
 export type ConnectionStatus = "connected" | "reconnecting" | "lost" | "idle";
 
 const RECONNECT_DELAYS_MS = [1000, 2000, 4000, 8000];
 
 /**
- * Parse an SSE stream from the agent backend.
- *
- * @param reader - ReadableStream reader from fetch()
- * @param onEvent - Callback for each parsed event
- * @returns Promise that resolves when the stream ends cleanly.
+ * Parse a ReadableStream of SSE text into discrete {@link ChatEvent}s.
  */
 export async function parseSSEStream(
   reader: ReadableStreamDefaultReader<Uint8Array>,
@@ -35,23 +23,25 @@ export async function parseSSEStream(
   const decoder = new TextDecoder();
   let buffer = "";
 
-  while (true) {
+  for (;;) {
     const { done, value } = await reader.read();
-    if (done) break;
-
+    if (done) return;
     buffer += decoder.decode(value, { stream: true });
-    const parts = buffer.split("\n\n");
-    buffer = parts.pop() ?? "";
 
-    for (const part of parts) {
-      const line = part.trim();
-      if (!line.startsWith("data: ")) continue;
-      const json = line.slice(6);
+    let idx: number;
+    while ((idx = buffer.indexOf("\n\n")) !== -1) {
+      const raw = buffer.slice(0, idx);
+      buffer = buffer.slice(idx + 2);
+      // SSE payload may include multiple "data:" lines per event frame.
+      const dataLines = raw
+        .split("\n")
+        .filter((line) => line.startsWith("data:"))
+        .map((line) => line.slice(5).trimStart());
+      if (dataLines.length === 0) continue;
       try {
-        const event = JSON.parse(json) as ChatEvent;
-        onEvent(event);
+        onEvent(JSON.parse(dataLines.join("")) as ChatEvent);
       } catch {
-        // Skip malformed events.
+        // Malformed payload — skip to next event.
       }
     }
   }
@@ -64,23 +54,31 @@ export async function parseSSEStream(
  * @param sessionId - Optional session ID.
  * @param onEvent - Callback for each parsed event.
  * @param onStatus - Optional connection-status callback (for UI banners).
+ * @param signal - Optional AbortSignal (F-01 stop button aborts the stream).
  * @returns The session ID bound during the stream, or null on failure.
  */
 export async function sendChatMessage(
   message: string,
   sessionId: string | null,
   onEvent: (event: ChatEvent) => void,
-  onStatus?: (status: ConnectionStatus) => void
+  onStatus?: (status: ConnectionStatus) => void,
+  signal?: AbortSignal
 ): Promise<string | null> {
   let boundSessionId: string | null = null;
+  const isAborted = () => signal?.aborted === true;
 
   for (let attempt = 0; attempt <= RECONNECT_DELAYS_MS.length; attempt++) {
+    if (isAborted()) {
+      onStatus?.("idle");
+      return boundSessionId;
+    }
     try {
       onStatus?.(attempt === 0 ? "connected" : "reconnecting");
       const res = await fetch("/api/chat/stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message, sessionId }),
+        signal,
       });
 
       if (!res.ok || !res.body) {
@@ -103,6 +101,10 @@ export async function sendChatMessage(
       onStatus?.("idle");
       return boundSessionId;
     } catch (err) {
+      if (isAborted()) {
+        onStatus?.("idle");
+        return boundSessionId;
+      }
       // Network error — try to reconnect with backoff.
       if (attempt >= RECONNECT_DELAYS_MS.length) {
         onStatus?.("lost");
@@ -125,11 +127,6 @@ export async function sendChatMessage(
 
 /**
  * Persist a completed chat turn.
- *
- * @param sessionId - Session ID.
- * @param userMessage - User's message.
- * @param assistantAnswer - Agent's answer.
- * @param toolResults - Tool results from the turn.
  */
 export async function persistTurn(
   sessionId: string,
