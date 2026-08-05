@@ -64,23 +64,31 @@ export async function parseSSEStream(
  * @param sessionId - Optional session ID.
  * @param onEvent - Callback for each parsed event.
  * @param onStatus - Optional connection-status callback (for UI banners).
+ * @param signal - Optional AbortSignal (F-01 stop button aborts the stream).
  * @returns The session ID bound during the stream, or null on failure.
  */
 export async function sendChatMessage(
   message: string,
   sessionId: string | null,
   onEvent: (event: ChatEvent) => void,
-  onStatus?: (status: ConnectionStatus) => void
+  onStatus?: (status: ConnectionStatus) => void,
+  signal?: AbortSignal
 ): Promise<string | null> {
   let boundSessionId: string | null = null;
+  const isAborted = () => signal?.aborted === true;
 
   for (let attempt = 0; attempt <= RECONNECT_DELAYS_MS.length; attempt++) {
+    if (isAborted()) {
+      onStatus?.("idle");
+      return boundSessionId;
+    }
     try {
       onStatus?.(attempt === 0 ? "connected" : "reconnecting");
       const res = await fetch("/api/chat/stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message, sessionId }),
+        signal,
       });
 
       if (!res.ok || !res.body) {
@@ -103,6 +111,10 @@ export async function sendChatMessage(
       onStatus?.("idle");
       return boundSessionId;
     } catch (err) {
+      if (isAborted()) {
+        onStatus?.("idle");
+        return boundSessionId;
+      }
       // Network error — try to reconnect with backoff.
       if (attempt >= RECONNECT_DELAYS_MS.length) {
         onStatus?.("lost");
