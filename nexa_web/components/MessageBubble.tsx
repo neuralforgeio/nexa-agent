@@ -19,12 +19,29 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ChevronRight, User, Wrench } from "lucide-react";
+import { ChevronDown, ChevronRight, User, Wrench, Copy, RefreshCw, Pencil, GitBranch, Check, X } from "lucide-react";
 import type { Message } from "../lib/theme";
 import { Markdown } from "./Markdown";
 
+/**
+ * F-02 message actions.
+ *
+ * All callbacks are optional: callers may wire only the actions they
+ * need. ``index`` is the message position within the current transcript
+ * (used by regenerate/edit to find the preceding user prompt).
+ */
+export interface MessageActions {
+  onRegenerate?: (index: number) => void;
+  onEditSubmit?: (index: number, newText: string) => void;
+  onBranch?: (index: number) => void;
+}
+
 interface MessageBubbleProps {
   message: Message;
+  /** F-02: index of this message in the messages array (-1 = unknown). */
+  index?: number;
+  /** F-02: action callbacks (copy is handled internally). */
+  actions?: MessageActions;
 }
 
 interface ToolCall {
@@ -36,8 +53,10 @@ interface ToolCall {
   args?: string;
 }
 
-export function MessageBubble({ message }: MessageBubbleProps) {
+export function MessageBubble({ message, index = -1, actions }: MessageBubbleProps) {
   const toolCalls: ToolCall[] = message.toolCalls ?? [];
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(message.content);
 
   // ── USER ────────────────────────────────────────────────────────────────
   if (message.role === "user") {
@@ -57,21 +76,76 @@ export function MessageBubble({ message }: MessageBubbleProps) {
             alignItems: "flex-start",
           }}
         >
-          <div
-            style={{
-              minWidth: 0,
-              fontSize: 15,
-              lineHeight: 1.7,
-              color: "#ECECEC",
-              whiteSpace: "pre-wrap",
-              wordBreak: "break-word",
-              // A subtle accent bar, mirroring modern chat UIs.
-              borderRight: "3px solid rgba(74, 158, 255, 0.35)",
-              paddingRight: 12,
-              textAlign: "left",
-            }}
-          >
-            <Markdown>{message.content}</Markdown>
+          <div style={{ minWidth: 0 }}>
+            {editing ? (
+              <div>
+                <textarea
+                  aria-label="edit-message"
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  rows={Math.max(2, draft.split("\n").length)}
+                  style={{
+                    width: "100%",
+                    minWidth: 280,
+                    background: "#191B1E",
+                    color: "#ECECEC",
+                    border: "1px solid rgba(74,158,255,0.4)",
+                    borderRadius: 8,
+                    padding: "8px 10px",
+                    fontSize: 15,
+                    lineHeight: 1.6,
+                    fontFamily: "inherit",
+                    resize: "vertical",
+                  }}
+                />
+                <div style={{ display: "flex", gap: 6, marginTop: 6, justifyContent: "flex-end" }}>
+                  <button
+                    aria-label="submit-edit"
+                    style={{ ...BTN, color: "#4A9EFF", borderColor: "rgba(74,158,255,0.4)" }}
+                    onClick={() => {
+                      const t = draft.trim();
+                      if (!t || t === message.content.trim()) {
+                        setDraft(message.content);
+                        setEditing(false);
+                        return;
+                      }
+                      if (actions?.onEditSubmit) actions.onEditSubmit(index, t);
+                      setEditing(false);
+                    }}
+                  >
+                    <Check size={12} /> Save & resubmit
+                  </button>
+                  <button aria-label="cancel-edit" style={BTN} onClick={() => { setDraft(message.content); setEditing(false); }}>
+                    <X size={12} /> Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div
+                style={{
+                  minWidth: 0,
+                  fontSize: 15,
+                  lineHeight: 1.7,
+                  color: "#ECECEC",
+                  whiteSpace: "pre-wrap",
+                  wordBreak: "break-word",
+                  // A subtle accent bar, mirroring modern chat UIs.
+                  borderRight: "3px solid rgba(74, 158, 255, 0.35)",
+                  paddingRight: 12,
+                  textAlign: "left",
+                }}
+              >
+                <Markdown>{message.content}</Markdown>
+              </div>
+            )}
+            <ActionBar
+              message={message}
+              index={index}
+              actions={actions}
+              editing={editing}
+              onStartEdit={() => { setDraft(message.content); setEditing(true); }}
+              onStopEdit={() => { setDraft(message.content); setEditing(false); }}
+            />
           </div>
           <div
             style={{
@@ -153,6 +227,14 @@ export function MessageBubble({ message }: MessageBubbleProps) {
             />
           )}
         </div>
+        <ActionBar
+          message={message}
+          index={index}
+          actions={actions}
+          editing={false}
+          onStartEdit={() => {}}
+          onStopEdit={() => {}}
+        />
 
         {/* Tool calls — inline under the answer */}
         {toolCalls.length > 0 && (
@@ -170,6 +252,105 @@ export function MessageBubble({ message }: MessageBubbleProps) {
 function ToolCard({ call }: { call: ToolCall }) {
   return <ToolCallCard call={call} />;
 }
+
+/* ── F-02: message action toolbar ─────────────────────────────────────── */
+
+const BTN = {
+  background: "transparent",
+  border: "1px solid #2E2F34",
+  color: "#9A9A9A",
+  borderRadius: 6,
+  padding: "3px 6px",
+  cursor: "pointer",
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 4,
+  fontSize: 11,
+} as const;
+
+function ActionBar({
+  message,
+  index,
+  actions,
+  editing,
+  onStartEdit,
+  onStopEdit,
+}: {
+  message: Message;
+  index: number;
+  actions?: MessageActions;
+  editing: boolean;
+  onStartEdit: () => void;
+  onStopEdit: () => void;
+}) {
+  const [copied, setCopied] = useState(false);
+  const [branching, setBranching] = useState(false);
+
+  const doCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(message.content);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      /* clipboard unavailable — ignore */
+    }
+  };
+  const doBranch = async () => {
+    if (!actions?.onBranch || branching) return;
+    setBranching(true);
+    try {
+      actions.onBranch(index);
+    } finally {
+      setBranching(false);
+    }
+  };
+
+  return (
+    <div
+      data-testid="msg-actions"
+      style={{ display: "flex", gap: 6, marginTop: 6, opacity: 0.9 }}
+    >
+      <button aria-label="copy" title="Copy" style={BTN} onClick={doCopy} disabled={editing}>
+        {copied ? <Check size={12} /> : <Copy size={12} />}
+        {copied ? "Copied" : "Copy"}
+      </button>
+      {message.role === "assistant" && actions?.onRegenerate && index > 0 && (
+        <button
+          aria-label="regenerate"
+          title="Regenerate"
+          style={BTN}
+          onClick={() => actions.onRegenerate!(index)}
+          disabled={editing}
+        >
+          <RefreshCw size={12} /> Regenerate
+        </button>
+      )}
+      {message.role === "user" && actions?.onEditSubmit && (
+        <button
+          aria-label="edit"
+          title="Edit & resubmit"
+          style={BTN}
+          onClick={() => (editing ? onStopEdit() : onStartEdit())}
+        >
+          {editing ? <X size={12} /> : <Pencil size={12} />} {editing ? "Cancel" : "Edit"}
+        </button>
+      )}
+      {actions?.onBranch && (
+        <button
+          aria-label="branch"
+          title="Branch from here"
+          style={BTN}
+          onClick={doBranch}
+          disabled={branching || editing}
+        >
+          <GitBranch size={12} /> {branching ? "…" : "Branch"}
+        </button>
+      )}
+    </div>
+  );
+}
+
+/* ── end F-02 toolbar ─────────────────────────────────────────────────── */
 
 function ToolCallCard({ call }: { call: ToolCall }) {
   const [expanded, setExpanded] = useState(false);

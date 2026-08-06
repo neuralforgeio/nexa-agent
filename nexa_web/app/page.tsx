@@ -19,7 +19,7 @@
 
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Menu, X, Zap, PanelRight, PanelLeft } from "lucide-react";
 import { Sidebar, CollapsedSidebar } from "../components/Sidebar";
 import { MessageBubble } from "../components/MessageBubble";
@@ -34,6 +34,7 @@ import {
 import { WorkingProcess, type ThinkingStep } from "../components/WorkingProcess";
 import { SandboxPanel } from "../components/SandboxPanel";
 import { sendChatMessage, persistTurn } from "../lib/stream";
+import { branchSession } from "../lib/sessions";
 import type { Message, ChatEvent, SessionMessage } from "../lib/theme";
 
 const LS_SIDEBAR = "nexa-sidebar-open";
@@ -137,7 +138,15 @@ export default function Page() {
   }, []);
 
   const onSend = useCallback(
-    async (text: string) => {
+    /**
+     * Send a user message through the streaming pipeline.
+     *
+     * F-02: ``fromIndex`` (optional) — truncate the transcript so that the
+     * message at ``fromIndex`` and everything after it is replaced by this
+     * new user turn. Used by regenerating (from the triggering user prompt)
+     * and edit-&-resubmit (from the edited user bubble).
+     */
+    async (text: string, fromIndex?: number) => {
       // Duplicate-request guard: block while a request is in flight.
       if (thinking || inFlightRef.current) return;
       inFlightRef.current = true;
@@ -152,7 +161,11 @@ export default function Page() {
         content: text,
         createdAt: new Date().toISOString(),
       };
-      setMessages((m) => [...m, userMsg]);
+      // F-02: when fromIndex is set, drop that message and everything after.
+      setMessages((m) => {
+        const base = typeof fromIndex === "number" ? m.slice(0, fromIndex) : m;
+        return [...base, userMsg];
+      });
       setThinking(true);
       setSteps([]);
       setSummary("");
@@ -162,10 +175,13 @@ export default function Page() {
       const collectedTools: Array<{ name: string; result: string; ok: boolean; duration: number; args?: string }> = [];
       const asstId = `a-${Date.now()}`;
 
-      setMessages((m) => [
-        ...m,
-        { id: asstId, role: "assistant", content: "", thinking: true, createdAt: new Date().toISOString() },
-      ]);
+      setMessages((m) => {
+        const base = typeof fromIndex === "number" ? m.slice(0, fromIndex + 1) : m;
+        return [
+          ...base,
+          { id: asstId, role: "assistant", content: "", thinking: true, createdAt: new Date().toISOString() },
+        ];
+      });
 
       const pushStep = (s: Omit<ThinkingStep, "id">) => {
         const step: ThinkingStep = { ...s, id: `s-${Date.now()}-${Math.random().toString(36).slice(2, 7)}` };
@@ -310,6 +326,23 @@ export default function Page() {
   const lastMsg = messages[messages.length - 1];
   const lastAsstId = lastMsg?.role === "assistant" ? lastMsg.id : null;
 
+  // F-02: message actions (regenerate / edit-resubmit / branch).
+  const messageActions = useMemo(() => ({
+    onRegenerate: (idx: number) => {
+      // Find the nearest preceding user prompt for this assistant reply.
+      for (let j = idx - 1; j >= 0; j--) {
+        if (messages[j]?.role === "user") { void onSend(messages[j].content, j); return; }
+      }
+    },
+    onEditSubmit: (idx: number, text: string) => { void onSend(text, idx); },
+    onBranch: async (idx: number) => {
+      const m = messages[idx];
+      if (!m || !sessionId) return;
+      const newId = await branchSession({ sessionId, messageId: m.id });
+      if (newId) onSelect(newId);
+    },
+  }), [messages, sessionId, onSend, onSelect]);
+
   return (
     <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "var(--nexa-bg, #0D0E10)", color: "var(--nexa-text, #ECECEC)" }}>
       {/* Sidebar (full / mini icon-only / closed) */}
@@ -381,9 +414,13 @@ export default function Page() {
             <EmptyState version={appVersion} onPick={(t) => onSend(t)} />
           ) : (
             <div style={{ maxWidth: 820, margin: "0 auto", padding: "24px 16px 120px" }}>
-              {messages.map((m) => (
+              {messages.map((m, i) => (
                 <div key={m.id}>
-                  <MessageBubble message={m} />
+                  <MessageBubble
+                    message={m}
+                    index={i}
+                    actions={messageActions}
+                  />
                   {m.id === lastAsstId && steps.length > 0 && (
                     <WorkingProcess steps={steps} isActive={thinking} summary={summary} />
                   )}
