@@ -256,6 +256,87 @@ class ConversationDB:
             await db.commit()
             return cursor.rowcount > 0
 
+    async def branch_conversation(
+        self, source_conversation_id: str, up_to_message_id: str, stop_after: bool = True
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Fork a conversation: create a new conversation containing the source
+        conversation's messages up to (and including) ``up_to_message_id``.
+
+        v4.6.5 (F-02): used by the "Branch" action in the Web UI to spawn an
+        alternative conversation thread from any point in history.
+
+        Args:
+            source_conversation_id: The conversation to copy messages from.
+            up_to_message_id:       Inclusive upper bound of the copied prefix.
+            stop_after:             If True (default) the message with the
+                                    given id is INCLUDED in the branch; if
+                                    False it is EXCLUDED (useful for "edit &
+                                    resubmit" where the user message is the
+                                    branching point but will be replaced).
+
+        Returns:
+            A dict with the new conversation's ``id``, ``title``,
+            ``created_at`` and ``updated_at``, or ``None`` if the source
+            conversation or message id does not exist.
+        """
+        async with aiosqlite.connect(str(NEXA_DB_PATH)) as db:
+            db.row_factory = aiosqlite.Row
+            # 1. Source conversation must exist.
+            cur = await db.execute(
+                "SELECT id, title FROM conversations WHERE id = ?",
+                (source_conversation_id,),
+            )
+            src = await cur.fetchone()
+            if src is None:
+                return None
+
+            # 2. Source messages in chronological order.
+            cur = await db.execute(
+                "SELECT id, role, content, tool_name, token_count, created_at "
+                "FROM messages WHERE conversation_id = ? ORDER BY created_at ASC",
+                (source_conversation_id,),
+            )
+            messages = [dict(r) for r in await cur.fetchall()]
+            if not messages:
+                return None
+
+            # 3. Locate the cut-off index.
+            idx = -1
+            for i, m in enumerate(messages):
+                if m["id"] == up_to_message_id:
+                    idx = i
+                    break
+            if idx == -1:
+                return None
+            end = idx + (1 if stop_after else 0)
+            prefix = messages[:end]
+            if not prefix:
+                return None
+
+            # 4. Create the new conversation and copy messages (fresh ids, fresh timestamps).
+            new_id = _uid("conv")
+            now = _now_iso()
+            title = f"{src['title']} (branch)" if src["title"] else "new branch"
+            await db.execute(
+                "INSERT INTO conversations (id, title, parent_session_id, created_at, updated_at) "
+                "VALUES (?, ?, ?, ?, ?)",
+                (new_id, title, source_conversation_id, now, now),
+            )
+            for m in prefix:
+                await db.execute(
+                    "INSERT INTO messages (id, conversation_id, role, content, tool_name, token_count, created_at) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    (_uid("msg"), new_id, m["role"], m["content"], m["tool_name"], m["token_count"], now),
+                )
+            await db.commit()
+            return {
+                "id": new_id,
+                "title": title,
+                "created_at": now,
+                "updated_at": now,
+            }
+
     async def search_messages(self, query: str, limit: int = 20) -> List[Dict[str, Any]]:
         """
         Full-text search across all messages via FTS5.

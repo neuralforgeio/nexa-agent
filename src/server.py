@@ -506,6 +506,28 @@ async def rename_session(session_id: str, req: RenameSessionRequest) -> Dict[str
     return {"ok": True, "id": session_id, "title": title}
 
 
+class BranchSessionRequest(BaseModel):
+    """Request body for POST /api/sessions/branch."""
+
+    sessionId: str
+    messageId: str
+
+
+@app.post("/api/sessions/branch")
+async def branch_session(req: BranchSessionRequest) -> Dict[str, Any]:
+    """
+    Fork a conversation at ``messageId`` into a new session.
+
+    v4.6.5 (F-02): used by the "Branch" action on any message bubble. The
+    new session contains the source conversation's history up to and
+    including the given message.
+    """
+    result = await _db.branch_conversation(req.sessionId, req.messageId)
+    if result is None:
+        return JSONResponse({"error": "session or message not found"}, status_code=404)
+    return {"ok": True, "id": result["id"], "title": result["title"]}
+
+
 # ---------------------------------------------------------------------------
 # Memory endpoints
 # ---------------------------------------------------------------------------

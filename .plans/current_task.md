@@ -1,49 +1,40 @@
-# Task 0: Fix Critical Bugs — Plan
-## Bug A: Version Sync to 4.6.4 | Bug B: Frontend build verification + close-out
+# F-02 Message Actions — Plan (Direct-to-main, v4.6.5 → then tag v4.6.5)
 
-**Approved Protocol State** (verified 2026-08-05 via actual filesystem inspection):
-| File | Claimed | Actual (main) | Action |
-|---|---|---|---|
-| pyproject.toml | 4.6.2 | 4.6.2 | → 4.6.4 |
-| nexa_web/package.json | 4.2.3 | 4.2.3 | → 4.6.4 |
-| config.yaml (version.current) | 4.6.3 | 4.6.3 | → 4.6.4 |
-| Duplicate SUGGESTIONS in Composer.tsx | had dup | single declaration (line 30) | already fixed in branch |
-| onStop in page.tsx | missing | present (line 270, wired line 410) | already fixed in branch |
-| Base pytest | — | 1000 pass / 3 fail / 17 skip | failures pre-existing (main-only, log 4.1.0) |
-| nexa --version | 4.6.2 wrong | prints v4.6.2 | → 4.6.4 |
-| nexa doctor | — | ALL HEALTHY | confirm pre+post |
+## Goal
+Give every message in `nexa_web/components/MessageBubble.tsx` a hover toolbar with four actions:
+- Copy: `navigator.clipboard.writeText(message.content)`
+- Regenerate (assistant messages only): re-send the preceding user prompt through `onSend`
+- Edit & Resubmit (user messages only): inline textarea pre-filled with the message content; submitting calls `onSend(newText)`
+- Branch: POST `/api/sessions/branch` with `{ sessionId, messageId }` and navigate to the new branch
 
-Baseline bugs (3 terminal/tool timeouts) are from commit v4.1.0, not within Task 0 scope. Will re-validate post-merge, only gate on `0 NEW failures`.
+## Why
+Spec Category-1 F-02. Currently MessageBubble is render-only; users have no way to act on turns.
 
-## Files to touch
-1. `pyproject.toml` — bump version 4.6.2 → 4.6.4
-2. `nexa_web/package.json` — bump version 4.2.3 → 4.6.4
-3. `config.yaml` — bump version 4.6.3 → 4.6.4 + released date
-4. `.plans/current_task.md` — this file
+## Files touched
+1. `nexa_web/components/MessageBubble.tsx` — add toolbar UI + `actions` prop (optional callbacks). Local state: `hovered`, `copyOk`, `editing`, `editDraft`, `branching`.
+2. `nexa_web/app/page.tsx` — map messages with index and message.id, wire callbacks: `onCopy` native in bubble; `onRegenerate(idx)` → find nearest preceding user message → `onSend`; `onEditSubmit(idx, text)` → `onSend(text)`; `onBranch(idx)` → POST branch → setSessionId(new).
+3. `nexa_web/lib/sessions.ts` — already has `branchSession`; reuse it.
+4. `nexa_web/tests/message-actions.test.tsx` — 3 tests.
 
-## Diffs expected
-- 3 lines changed total (version fields)
-- zero code logic change
-- zero structural change
+## Impact
+- Backward compatible: actions prop optional, existing render unchanged when omitted.
+- No backend change needed for F-02 minimal: branch endpoint already claimed in sessions.ts helpers — need to verify backend supports `POST /api/sessions/branch`; if missing, add alias in server.py (deferred to F-02 backend if needed).
 
-## Step 6 risk assessment
-- Breaking change: none (patch version)
-- Backward compat: full
-- Tests: no new tests needed (metadata-only patch)
+## Backend check
+- `grep "sessions/branch" src/server.py` → if missing, add small endpoint:
+  - GET source session messages up to (and including) messageId; create new session; insert copies; return new id. (new DB helper `branch_conversation(from_id, up_to_message_id)` in nexa/state.py)
 
-## Step 5 QA gate
-- [ ] `pytest tests/ -q` → ≥1003 pass, 0 new failures vs baseline, 3 pre-existing @ terminal tool
-- [ ] `npm run lint` (nexa_web) → 0 errors
-- [ ] `npm run build` (nexa_web) → success
-- [ ] `python -m nexa_cli.main --version` → prints "4.6.4"
-- [ ] `python -m nexa_cli.main doctor` → ALL HEALTHY
+## Tests (3 required)
+1. toolbar appears on hover, has 4 buttons for assistant / subset (copy|edit|branch) for user.
+2. copy button → navigator.clipboard mock called with content, shows copied state, recovers.
+3. regenerate → calls onRegenerate → parent onSend fired with original prompt text.
+4. edit-submit → inline edit replaces content and calls onEditSubmit.
+5. branch → POST called, parent navigates to returned id.
 
-## Step 7 git flow
-1. `git checkout main && git pull origin main`
-2. `git checkout -b nexa-demo-task0-v464`
-3. commit only Task 0 metadata (not F-* branch files)
-4. push branch → merge --no-ff to main → push main → tag v4.6.4 → push tag
+At least the 3 core scenarios above guaranteed; extra cases if trivial.
 
-## Downstream gates
-- Task 0 complete ONLY when: QA pass + merge+push+tag remote-visible.
-- F-01 implementation resumes after this tag, per your instruction.
+## QA
+npm run lint (0 err), npm test (new tests + regression), npm run build OK, pytest full no new fails, version sync 4.6.5 in 3 files, doctor healthy.
+
+## Bump plan
+PATCH 4.6.4 → 4.6.5 (feature-in-scope-of-patch per user: per-tool patch bumps, MINOR at category close).
