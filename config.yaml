@@ -16,8 +16,8 @@ project:
   repository: "neuralforgeio/nexa-agent"
 
 version:
-  current: "4.11.0"
-  codename: "HITL + Observability"
+  current: "4.12.0"
+  codename: "SOTA Autonomous"
   released: "2026-08-07"
   semver_scheme: "MAJOR.MINOR.PATCH"
   notes: |

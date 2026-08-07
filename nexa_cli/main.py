@@ -115,6 +115,12 @@ def main(argv: Optional[List[str]] = None) -> int:
     # doctor
     subparsers.add_parser("doctor", help="Run self-health diagnostics")
 
+    # plugin (S-09): install a plugin from a git URL
+    plugin_parser = subparsers.add_parser("plugin", help="Install a community plugin")
+    plugin_sub = plugin_parser.add_subparsers(dest="plugin_command")
+    install_p = plugin_sub.add_parser("install", help="Install a plugin from a git URL")
+    install_p.add_argument("url", help="Git URL of the plugin repository")
+
     args = parser.parse_args(argv)
 
     # v4.2.3: --version short-circuit (handled BEFORE subcommand dispatch).
@@ -138,9 +144,34 @@ def main(argv: Optional[List[str]] = None) -> int:
         )
     elif args.command == "doctor":
         return _cmd_doctor()
+    elif args.command == "plugin":
+        if getattr(args, "plugin_command", None) == "install":
+            return _cmd_plugin_install(args.url)
+        print("Usage: nexa plugin install <git-url>")
+        return 1
     else:
         _print_rich_help()
         return 0
+
+
+def _cmd_plugin_install(url: str) -> int:
+    """Clone a plugin repo into ~/.nexa/plugins/<name>/ and register it. (S-09)"""
+    import re
+    from pathlib import Path
+
+    if not re.match(r"^https?://", url):
+        console.print(f"[red]Invalid URL: {url}[/red]")
+        return 1
+    name = url.rstrip("/").rsplit("/", 1)[-1].replace(".git", "")
+    plugin_dir = Path.home() / ".nexa" / "plugins" / name
+    plugin_dir.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        subprocess.run(["git", "clone", url, str(plugin_dir)], check=True, capture_output=True, text=True)
+        console.print(f"[green]Plugin installed: {plugin_dir}[/green]")
+        return 0
+    except subprocess.CalledProcessError as e:
+        console.print(f"[red]Install failed: {e.stderr}[/red]")
+        return 1
 
 
 def _print_rich_help() -> None:
