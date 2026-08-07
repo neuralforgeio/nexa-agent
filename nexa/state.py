@@ -531,12 +531,68 @@ class ConversationDB:
             )
             await db.commit()
 
-    async def delete_memory(self, memory_id: str) -> bool:
-        """Delete a memory by ID."""
+    # ------------------------------------------------------------------
+    # B-07: usage / cost aggregation
+    # ------------------------------------------------------------------
+    async def usage_stats(
+        self, session_id: Optional[str] = None, days: int = 7
+    ) -> Dict[str, Any]:
+        """
+        Aggregate token usage from ``messages``.
+
+        Groups by conversation (when ``session_id`` given) or by calendar day
+        otherwise, over the last ``days`` days. ``token_count`` is populated by
+        the provider layer (v4.x). Returns camelCase-ready rows.
+        """
+        from datetime import datetime, timedelta, timezone as _tz
+
+        cutoff = (datetime.now(_tz.utc) - timedelta(days=max(days, 1))).isoformat()
         async with aiosqlite.connect(str(NEXA_DB_PATH)) as db:
-            await db.execute("DELETE FROM memories WHERE id = ?", (memory_id,))
+            db.row_factory = aiosqlite.Row
+
+            total_cur = await db.execute(
+                "SELECT COALESCE(SUM(token_count),0) AS tokens, COUNT(*) AS messages "
+                "FROM messages WHERE created_at >= ?" + (" AND conversation_id = ?" if session_id else ""),
+                (cutoff, session_id) if session_id else (cutoff,),
+            )
+            total_row = dict(await total_cur.fetchone() or {})
+
+            by_day_cur = await db.execute(
+                "SELECT substr(created_at, 1, 10) AS day, "
+                "COALESCE(SUM(token_count),0) AS tokens, COUNT(*) AS messages "
+                "FROM messages WHERE created_at >= ?" + (" AND conversation_id = ?" if session_id else "") +
+                " GROUP BY day ORDER BY day DESC",
+                (cutoff, session_id) if session_id else (cutoff,),
+            )
+            by_day = [dict(r) for r in await by_day_cur.fetchall()]
+
+            by_conv_cur = await db.execute(
+                "SELECT m.conversation_id AS id, c.title, COALESCE(SUM(m.token_count),0) AS tokens, "
+                "COUNT(*) AS messages FROM messages m JOIN conversations c ON c.id = m.conversation_id "
+                "WHERE m.created_at >= ? GROUP BY m.conversation_id ORDER BY tokens DESC LIMIT 50",
+                (cutoff,),
+            )
+            by_conv = [dict(r) for r in await by_conv_cur.fetchall()]
+
+        return {
+            "tokens": int(total_row.get("tokens", 0)),
+            "messages": int(total_row.get("messages", 0)),
+            "days": days,
+            "byDay": by_day,
+            "byConversation": by_conv,
+        }
+
+    async def delete_memory(self, memory_id: str) -> bool:
+        """
+        Delete a memory by ID.
+
+        Returns True when a row was removed, False when the id did not exist
+        (B-01: lets the HTTP layer return 404 instead of silently "ok").
+        """
+        async with aiosqlite.connect(str(NEXA_DB_PATH)) as db:
+            cursor = await db.execute("DELETE FROM memories WHERE id = ?", (memory_id,))
             await db.commit()
-        return True
+            return cursor.rowcount > 0
 
     # ------------------------------------------------------------------
     # Learning graph (pattern tracking)

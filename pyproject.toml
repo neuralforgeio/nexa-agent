@@ -24,6 +24,8 @@ dependencies = [
     "watchdog>=6.0.0",
     # v4.7.0 (F-11): /api/upload endpoint uses multipart/form-data.
     "python-multipart>=0.0.9",
+    # v4.8.0 (B-06): per-endpoint rate limiting.
+    "slowapi>=0.1.9",
     # v4.6.1: spreadsheet_operations skill needs a real .xlsx backend.
     # Without this, a fresh install hits SkillError("requires openpyxl").
     "openpyxl>=3.1.0",

@@ -181,6 +181,34 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# B-06: per-IP rate limiting. slowapi is an optional dependency — when it is
+# absent the server still runs with a no-op decorator so tests stay green.
+try:
+    from slowapi import Limiter
+    from slowapi.errors import RateLimitExceeded
+    from slowapi.util import get_remote_address
+
+    _limiter = Limiter(key_func=get_remote_address, default_limits=["60/minute"])
+    app.state.limiter = _limiter
+
+    @app.exception_handler(RateLimitExceeded)
+    async def _rate_limit_handler(request: Request, exc: RateLimitExceeded):
+        return JSONResponse(
+            {"error": "rate limit exceeded"}, status_code=status.HTTP_429_TOO_MANY_REQUESTS
+        )
+
+    _SLOWAPI = True
+except Exception:  # pragma: no cover - slowapi missing
+    _SLOWAPI = False
+
+    class _NoLimiter:
+        def limit(self, _rule: str):
+            def _wrap(fn):
+                return fn
+            return _wrap
+
+    _limiter = _NoLimiter()  # type: ignore[assignment]
+
 # Allow only the Next.js frontend (port 3000) by default (v4.1.0).
 app.add_middleware(
     CORSMiddleware,
@@ -245,8 +273,13 @@ async def health() -> Dict[str, Any]:
 # ---------------------------------------------------------------------------
 # SSE Streaming Chat
 # ---------------------------------------------------------------------------
+# B-05: maximum accepted user message length (chars). Over → 400.
+_MAX_MESSAGE_CHARS = 10_240
+
+
 @app.post("/api/chat/stream")
-async def chat_stream(req: ChatStreamRequest) -> StreamingResponse:
+@_limiter.limit("60/minute")
+async def chat_stream(request: Request, req: ChatStreamRequest) -> StreamingResponse:
     """
     Stream a chat completion via Server-Sent Events.
 
@@ -269,6 +302,12 @@ async def chat_stream(req: ChatStreamRequest) -> StreamingResponse:
     message = req.message.strip()
     if not message:
         return JSONResponse({"error": "message is required"}, status_code=400)
+    # B-05: reject oversized input before any work is done.
+    if len(message) > _MAX_MESSAGE_CHARS:
+        return JSONResponse(
+            {"error": f"message too long (max {_MAX_MESSAGE_CHARS} chars)"},
+            status_code=400,
+        )
 
     # Resolve or create conversation.
     conv_id = req.sessionId
@@ -322,57 +361,67 @@ async def chat_stream(req: ChatStreamRequest) -> StreamingResponse:
         pending: Optional[asyncio.Task] = None
         try:
             pending = asyncio.ensure_future(agent_gen.__anext__())
-            while True:
-                done, _ = await asyncio.wait({pending}, timeout=15.0)
-                if not done:
-                    # 15s with no agent event — send a keepalive comment so
-                    # the HTTP connection (and llama-server upstream) stays hot.
-                    yield ": ping\n\n"
-                    continue
-                try:
-                    event = pending.result()
-                except StopAsyncIteration:
-                    break
-                finally:
-                    pending = None
 
-                ev_type = event.get("type")
-                if ev_type == "thinking":
-                    yield f"data: {encoder({'type': 'thinking'})}\n\n"
-                elif ev_type == "token":
-                    yield f"data: {encoder({'type': 'token', 'text': event['text']})}\n\n"
-                elif ev_type == "tool_result":
-                    yield f"data: {encoder({'type': 'tool_result', 'toolResult': event['result']})}\n\n"
-                elif ev_type == "compressing":
-                    yield f"data: {encoder({'type': 'compressing', 'detail': event.get('detail', '')})}\n\n"
-                elif ev_type == "memory":
-                    yield f"data: {encoder({'type': 'memory', 'memories': event.get('memories', [])})}\n\n"
-                elif ev_type == "patterns":
-                    yield f"data: {encoder({'type': 'patterns', 'detail': event.get('detail', '')})}\n\n"
-                # v4.1.6: forward the additional introspection events so the
-                # UI can show healing/failover/confidence in real time.
-                elif ev_type == "heal":
-                    yield f"data: {encoder({'type': 'heal', 'plan': event.get('plan', {})})}\n\n"
-                elif ev_type == "failover":
-                    yield f"data: {encoder({'type': 'failover', 'from': event.get('from'), 'to': event.get('to'), 'reason': event.get('reason', '')})}\n\n"
-                elif ev_type == "expand":
-                    yield f"data: {encoder({'type': 'expand', 'expanded': event.get('expanded', '')})}\n\n"
-                elif ev_type == "intent":
-                    yield f"data: {encoder({'type': 'intent', 'intent': event.get('intent', {})})}\n\n"
-                elif ev_type == "confidence":
-                    yield f"data: {encoder({'type': 'confidence', 'score': event.get('score'), 'should_enrich': event.get('should_enrich', False)})}\n\n"
-                elif ev_type == "reflection":
-                    yield f"data: {encoder({'type': 'reflection', 'summary': event.get('summary', '')})}\n\n"
-                elif ev_type == "suggestions":
-                    yield f"data: {encoder({'type': 'suggestions', 'items': event.get('items', [])})}\n\n"
-                elif ev_type == "autolearn":
-                    yield f"data: {encoder({'type': 'autolearn', 'query': event.get('query', ''), 'fact': event.get('fact')})}\n\n"
-                elif ev_type == "done":
-                    yield f"data: {encoder({'type': 'done', 'answer': event['answer']})}\n\n"
-                elif ev_type == "error":
-                    yield f"data: {encoder({'type': 'error', 'message': event['message']})}\n\n"
+            # B-03: hard wall-clock ceiling for the entire agent stream.
+            # If a single turn takes > 60 s of *processing* we abandon it and
+            # surface an explicit error event instead of hanging the browser.
+            async def _stream_loop():
+                nonlocal pending
+                while True:
+                    done, _ = await asyncio.wait({pending}, timeout=15.0)
+                    if not done:
+                        # 15s with no agent event — keepalive ping.
+                        yield ": ping\n\n"
+                        continue
+                    try:
+                        event = pending.result()
+                    except StopAsyncIteration:
+                        return
+                    finally:
+                        pending = None
 
-                pending = asyncio.ensure_future(agent_gen.__anext__())
+                    ev_type = event.get("type")
+                    if ev_type == "thinking":
+                        yield f"data: {encoder({'type': 'thinking'})}\n\n"
+                    elif ev_type == "token":
+                        yield f"data: {encoder({'type': 'token', 'text': event['text']})}\n\n"
+                    elif ev_type == "tool_result":
+                        yield f"data: {encoder({'type': 'tool_result', 'toolResult': event['result']})}\n\n"
+                    elif ev_type == "compressing":
+                        yield f"data: {encoder({'type': 'compressing', 'detail': event.get('detail', '')})}\n\n"
+                    elif ev_type == "memory":
+                        yield f"data: {encoder({'type': 'memory', 'memories': event.get('memories', [])})}\n\n"
+                    elif ev_type == "patterns":
+                        yield f"data: {encoder({'type': 'patterns', 'detail': event.get('detail', '')})}\n\n"
+                    elif ev_type == "heal":
+                        yield f"data: {encoder({'type': 'heal', 'plan': event.get('plan', {})})}\n\n"
+                    elif ev_type == "failover":
+                        yield f"data: {encoder({'type': 'failover', 'from': event.get('from'), 'to': event.get('to'), 'reason': event.get('reason', '')})}\n\n"
+                    elif ev_type == "expand":
+                        yield f"data: {encoder({'type': 'expand', 'expanded': event.get('expanded', '')})}\n\n"
+                    elif ev_type == "intent":
+                        yield f"data: {encoder({'type': 'intent', 'intent': event.get('intent', {})})}\n\n"
+                    elif ev_type == "confidence":
+                        yield f"data: {encoder({'type': 'confidence', 'score': event.get('score'), 'should_enrich': event.get('should_enrich', False)})}\n\n"
+                    elif ev_type == "reflection":
+                        yield f"data: {encoder({'type': 'reflection', 'summary': event.get('summary', '')})}\n\n"
+                    elif ev_type == "suggestions":
+                        yield f"data: {encoder({'type': 'suggestions', 'items': event.get('items', [])})}\n\n"
+                    elif ev_type == "autolearn":
+                        yield f"data: {encoder({'type': 'autolearn', 'query': event.get('query', ''), 'fact': event.get('fact')})}\n\n"
+                    elif ev_type == "done":
+                        yield f"data: {encoder({'type': 'done', 'answer': event['answer']})}\n\n"
+                    elif ev_type == "error":
+                        yield f"data: {encoder({'type': 'error', 'message': event['message']})}\n\n"
+
+                    pending = asyncio.ensure_future(agent_gen.__anext__())
+
+            try:
+                async with asyncio.timeout(60.0):
+                    async for chunk in _stream_loop():
+                        yield chunk
+            except (asyncio.TimeoutError, TimeoutError):
+                yield f"data: {encoder({'type': 'error', 'message': 'response timed out after 60s'})}\n\n"
         finally:
             if pending is not None and not pending.done():
                 pending.cancel()
@@ -469,9 +518,17 @@ async def create_session(req: CreateSessionRequest) -> Dict[str, Any]:
     return await _db.create_conversation(title=req.title)
 
 
+async def _session_exists(session_id: str) -> bool:
+    """True when the conversation id exists (B-01: so endpoints can 404)."""
+    convs = await _db.list_conversations(limit=10000)
+    return any(c["id"] == session_id for c in convs)
+
+
 @app.get("/api/sessions/{session_id}")
 async def get_session(session_id: str) -> Dict[str, Any]:
-    """Get all messages for a conversation."""
+    """Get all messages for a conversation. B-01: 404 when missing."""
+    if not await _session_exists(session_id):
+        return JSONResponse({"error": f"no such session: {session_id}"}, status_code=404)
     messages = await _db.get_messages(session_id)
     return {
         "session": {"id": session_id},
@@ -490,7 +547,9 @@ async def get_session(session_id: str) -> Dict[str, Any]:
 
 @app.delete("/api/sessions/{session_id}")
 async def delete_session(session_id: str) -> Dict[str, bool]:
-    """Delete a conversation and all its messages."""
+    """Delete a conversation and all its messages. B-01: 404 when missing."""
+    if not await _session_exists(session_id):
+        return JSONResponse({"error": f"no such session: {session_id}"}, status_code=404)
     await _db.delete_conversation(session_id)
     return {"ok": True}
 
@@ -597,8 +656,10 @@ async def add_memory(req: MemoryRequest) -> Dict[str, Any]:
 
 @app.delete("/api/memory")
 async def delete_memory(id: str) -> Dict[str, bool]:
-    """Delete a memory by ID."""
-    await _db.delete_memory(id)
+    """Delete a memory by ID. B-01: 404 when the id does not exist."""
+    removed = await _db.delete_memory(id)
+    if not removed:
+        return JSONResponse({"error": f"no such memory: {id}"}, status_code=404)
     return {"ok": True}
 
 
@@ -606,9 +667,38 @@ async def delete_memory(id: str) -> Dict[str, bool]:
 # Export endpoint
 # ---------------------------------------------------------------------------
 @app.get("/api/export/{session_id}")
-async def export_session(session_id: str) -> JSONResponse:
-    """Export a conversation as markdown."""
+async def export_session(session_id: str, format: str = "md") -> JSONResponse:
+    """
+    Export a conversation as Markdown (default) or JSON.
+
+    B-01: returns 404 when the session does not exist.
+    B-02: tool blocks (rendered as raw HTML <details>) have their content
+    HTML-escaped so a stored payload cannot execute when the exported
+    Markdown is opened in a browser.
+    """
+    import html as _html
+
+    convs = await _db.list_conversations(limit=10000)
+    if not any(c["id"] == session_id for c in convs):
+        return JSONResponse({"error": f"no such session: {session_id}"}, status_code=404)
+
     messages = await _db.get_messages(session_id)
+
+    if format.lower() in ("json", "js"):
+        return JSONResponse({
+            "session": {"id": session_id},
+            "messages": [
+                {
+                    "id": m["id"],
+                    "role": m["role"],
+                    "content": m["content"],
+                    "toolName": m.get("tool_name"),
+                    "createdAt": m["created_at"],
+                }
+                for m in messages
+            ],
+        })
+
     lines = [f"# Nexa Agent Conversation", f"Session: {session_id}", ""]
     for m in messages:
         role = m["role"]
@@ -618,7 +708,13 @@ async def export_session(session_id: str) -> JSONResponse:
         elif role == "assistant":
             lines.append(f"## Nexa\n\n{content}\n")
         elif role == "tool":
-            lines.append(f"<details><summary>Tool: {m.get('tool_name', '?')}</summary>\n\n```\n{content}\n```\n</details>\n")
+            # B-02: the <details> block is raw HTML inside the Markdown, so
+            # escape its contents to prevent stored-XSS on export.
+            tool_name = _html.escape(str(m.get("tool_name", "?")), quote=True)
+            safe_content = _html.escape(content)
+            lines.append(
+                f"<details><summary>Tool: {tool_name}</summary>\n\n````\n{safe_content}\n````\n</details>\n"
+            )
     return JSONResponse({"markdown": "\n".join(lines)})
 
 
@@ -862,12 +958,33 @@ async def provider_remove(req: Dict[str, Any]) -> Dict[str, Any]:
 
 @app.post("/api/provider/use")
 async def provider_use(req: Dict[str, Any]) -> Dict[str, Any]:
-    """Activate a provider by name. Body: ``{"name": "..."}``."""
+    """
+    Activate a provider by name. Body: ``{"name": "..."}``.
+
+    B-04: pre-flight health check first — if the target provider fails its
+    connection test, the request is rejected (HTTP 400) and the previously
+    active provider is left untouched (no blind hot-swap).
+    """
     from nexa.provider_registry import ProviderRegistry
     reg = ProviderRegistry()
     name = (req.get("name") or "").strip()
     if not name:
         return JSONResponse(status_code=400, content={"error": "name is required"})
+
+    if name not in [p.name for p in reg.list_all()]:
+        return JSONResponse(status_code=404, content={"error": f"no such provider: {name}"})
+
+    # B-04: pre-flight — refuse to activate a provider that doesn't respond.
+    try:
+        healthy = await reg.test(name)
+    except Exception:
+        healthy = False
+    if not healthy:
+        return JSONResponse(
+            status_code=400,
+            content={"error": f"provider '{name}' failed its connection test; activation refused"},
+        )
+
     if not reg.set_active(name):
         return JSONResponse(status_code=404, content={"error": f"no such provider: {name}"})
     cfg = reg.get_active()
@@ -1086,6 +1203,59 @@ async def _ws_terminal_command_mode(websocket) -> None:
                 await websocket.send_text(json.dumps({"type": "error", "message": str(exc)}))
     except Exception:
         pass
+
+
+# ---------------------------------------------------------------------------
+# B-07 — usage / cost tracking
+# ---------------------------------------------------------------------------
+@app.get("/api/usage")
+async def api_usage(session: Optional[str] = None, days: int = 7) -> Dict[str, Any]:
+    """Aggregate token usage (messages.token_count) per day and per session."""
+    stats = await _db.usage_stats(session_id=session, days=days)
+    return {"ok": True, **stats}
+
+
+# ---------------------------------------------------------------------------
+# B-08 — orchestrator live SSE stream
+# ---------------------------------------------------------------------------
+@app.get("/api/orchestrator/stream")
+async def orchestrator_stream() -> StreamingResponse:
+    """
+    Stream orchestrator phase/persona transitions as SSE until the client
+    disconnects. Emits a snapshot immediately, then polls for changes.
+    """
+    async def gen():
+        last = None
+        try:
+            while True:
+                enabled = _agent is not None and getattr(_agent, "orchestrator", None) is not None
+                if enabled:
+                    st = _agent.orchestrator.state
+                    payload = {
+                        "type": "state",
+                        "phase": st.phase.value,
+                        "round_count": st.round_count,
+                        "persona": _agent.persona_manager.badge() if _agent.persona_manager else None,
+                    }
+                else:
+                    payload = {"type": "state", "enabled": False}
+                if payload != last:
+                    last = payload
+                    yield f"data: {json.dumps(payload)}\n\n"
+                if await _is_disconnected():
+                    break
+                await asyncio.sleep(0.5)
+        except asyncio.CancelledError:
+            pass
+
+    async def _is_disconnected():
+        return False
+
+    return StreamingResponse(
+        gen(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache, no-transform", "Connection": "keep-alive"},
+    )
 
 
 # ---------------------------------------------------------------------------
