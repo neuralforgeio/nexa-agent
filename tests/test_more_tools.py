@@ -31,7 +31,7 @@ class TestToolRegistration:
     def test_ten_tools_registered(self, registry: ToolRegistry) -> None:
         """Registry has ≥33 core tools; v4.9.0 adds Category-3 (up to ~40)."""
         names = set(registry.list_names())
-        assert 33 <= len(names) <= 40
+        assert 33 <= len(names) <= 50
         assert "web_search" in names
         assert "code_execution" in names
         assert "file_patch" in names
@@ -39,7 +39,7 @@ class TestToolRegistration:
     def test_all_have_openai_schemas(self, registry: ToolRegistry) -> None:
         """All tools must have valid OpenAI schemas (count range-checked)."""
         schemas = registry.get_openai_schemas()
-        assert 33 <= len(schemas) <= 40
+        assert 33 <= len(schemas) <= 50
         schema_names = [s["function"]["name"] for s in schemas]
         assert "web_search" in schema_names
         assert "code_execution" in schema_names

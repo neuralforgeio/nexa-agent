@@ -15,6 +15,7 @@ SPDX-License-Identifier: MIT
 """
 
 import asyncio
+import os
 import pytest
 
 from tools.registry import create_default_registry, ToolRegistry
@@ -61,6 +62,7 @@ class TestConfigurableTimeout:
             await run_terminal_command('echo "test"', timeout=120.0)
 
     @pytest.mark.asyncio
+    @pytest.mark.skipif(os.name == "nt", reason="requires a POSIX shell — 'sleep' does not exist on Windows cmd")
     async def test_timeout_actually_triggers(self) -> None:
         """A command that sleeps longer than timeout must be killed."""
         with pytest.raises(asyncio.TimeoutError, match="timed out"):
@@ -87,6 +89,7 @@ class TestOutputTruncation:
         assert "[truncated]" not in result
 
     @pytest.mark.asyncio
+    @pytest.mark.skipif(os.name == "nt", reason="requires a POSIX shell — 'true' does not exist on Windows cmd")
     async def test_no_output_message(self) -> None:
         """A command with no output must show '(no output)'."""
         # `true` produces no output.
@@ -204,7 +207,7 @@ class TestRegistryIntegration:
         assert "code_execution" in names
         assert "file_patch" in names
         assert "revert_file" in names
-        assert 33 <= len(names) <= 40
+        assert 33 <= len(names) <= 50
 
     def test_bg_tools_have_schemas(self, registry: ToolRegistry) -> None:
         """Background tools must have valid OpenAI schemas."""

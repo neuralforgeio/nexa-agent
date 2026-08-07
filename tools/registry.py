@@ -549,6 +549,21 @@ def create_default_registry() -> ToolRegistry:
     except Exception:
         # Category-3 optional deps missing — the agent still runs.
         pass
+
+    # v4.10.0 (Category 4): browser automation + creative/VLM tools.
+    try:
+        from tools.core.browser import browser, BROWSER_SCHEMA
+        from tools.core.image_generation import image_generation, IMAGE_GEN_SCHEMA
+        from tools.core.image_understanding import image_understanding, IMAGE_UNDERSTANDING_SCHEMA
+        for name, fn, desc, schema in [
+            ("browser", browser, "Browser automation (Playwright — stub until installed).", BROWSER_SCHEMA),
+            ("image_generation", image_generation, "AI image generation (stub).", IMAGE_GEN_SCHEMA),
+            ("image_understanding", image_understanding, "Describe an image via the active VLM provider.", IMAGE_UNDERSTANDING_SCHEMA),
+        ]:
+            if not registry.has(name):
+                registry.register(name=name, fn=fn, description=desc, parameters=schema)
+    except Exception:
+        pass
     return registry
 
 

@@ -58,6 +58,31 @@ export function Composer({ onSend, onStop, disabled, thinking, showSuggestions }
   }, [value]);
 
   // F-11: upload one File to the backend, add to the attachment list.
+  // C-04: Web Speech API (browser speech recognition → composer text).
+  const [listening, setListening] = useState(false);
+  const recognitionRef = useRef<any>(null);
+
+  const toggleListening = () => {
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) return;
+    if (listening) {
+      try { recognitionRef.current?.stop(); } catch {}
+      return;
+    }
+    const rec = new SR();
+    recognitionRef.current = rec;
+    rec.lang = "id-ID,en-US";
+    rec.interimResults = false;
+    rec.onstart = () => setListening(true);
+    rec.onend = () => setListening(false);
+    rec.onerror = () => setListening(false);
+    rec.onresult = (e: any) => {
+      const transcript = Array.from(e.results).map((r: any) => r[0].transcript).join(" ");
+      setValue((v) => (v ? v + " " : "") + transcript);
+    };
+    try { rec.start(); } catch { /* already started */ }
+  };
+
   const uploadFile = async (file: File) => {
     if (!file || uploading) return;
     setUploading(true);
@@ -238,6 +263,22 @@ export function Composer({ onSend, onStop, disabled, thinking, showSuggestions }
             <Paperclip size={16} />
           </button>
 
+          {/* C-04: voice input (Web Speech API) */}
+          <button
+            type="button"
+            aria-label="voice-input"
+            title={listening ? "Stop listening" : "Voice input"}
+            onClick={toggleListening}
+            disabled={disabled}
+            style={{
+              width: 30, height: 30, flexShrink: 0, borderRadius: "50%",
+              border: "1px solid transparent", background: listening ? "rgba(248,113,113,0.15)" : "transparent",
+              color: listening ? "#F87171" : "#9A9A9A", cursor: disabled ? "not-allowed" : "pointer", display: "flex",
+              alignItems: "center", justifyContent: "center",
+            }}
+          >
+            <span role="img" aria-label="mic" style={{ fontSize: 14 }}>🎤</span>
+          </button>
           <textarea
             ref={ref}
             value={value}

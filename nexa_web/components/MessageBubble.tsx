@@ -19,7 +19,9 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ChevronRight, User, Wrench, Copy, RefreshCw, Pencil, GitBranch, Check, X } from "lucide-react";
+import {
+  ChevronDown, ChevronRight, User, Wrench, Copy, RefreshCw, Pencil, GitBranch, Check, X, Volume2,
+} from "lucide-react";
 import type { Message } from "../lib/theme";
 import { Markdown } from "./Markdown";
 
@@ -285,6 +287,8 @@ function ActionBar({
 }) {
   const [copied, setCopied] = useState(false);
   const [branching, setBranching] = useState(false);
+  // C-05: speech for this bubble.
+  const [speaking, setSpeaking] = useState(false);
 
   const doCopy = async () => {
     try {
@@ -305,6 +309,20 @@ function ActionBar({
     }
   };
 
+  const toggleSpeak = () => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    if (speaking) {
+      window.speechSynthesis.cancel();
+      setSpeaking(false);
+      return;
+    }
+    const u = new SpeechSynthesisUtterance(message.content);
+    u.onend = () => setSpeaking(false);
+    u.onerror = () => setSpeaking(false);
+    setSpeaking(true);
+    window.speechSynthesis.speak(u);
+  };
+
   return (
     <div
       data-testid="msg-actions"
@@ -314,6 +332,16 @@ function ActionBar({
         {copied ? <Check size={12} /> : <Copy size={12} />}
         {copied ? "Copied" : "Copy"}
       </button>
+      {typeof window !== "undefined" && "speechSynthesis" in window && (
+        <button
+          aria-label="speak"
+          title={speaking ? "Stop speaking" : "Read aloud"}
+          style={BTN}
+          onClick={toggleSpeak}
+        >
+          <Volume2 size={12} /> {speaking ? "Stop" : "Listen"}
+        </button>
+      )}
       {message.role === "assistant" && actions?.onRegenerate && index > 0 && (
         <button
           aria-label="regenerate"

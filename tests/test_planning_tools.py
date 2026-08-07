@@ -55,7 +55,7 @@ class TestPlanningToolsRegistered:
         from tools.registry import create_default_registry
         r = create_default_registry()
         # v4.1.0 = 33 (13 core + 20 planning); v4.9.0 may add up to 7 (33..40).
-        assert 33 <= len(r.list_names()) <= 40
+        assert 33 <= len(r.list_names()) <= 50
 
     def test_all_have_openai_schemas(self):
         from tools.registry import create_default_registry
