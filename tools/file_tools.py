@@ -32,6 +32,10 @@ async def read_file(path: str, **_: Any) -> str:
     """
     Read a text file from the workspace.
 
+    M-10: auto-detect file type by extension and dispatch to the dedicated
+    reader — .pdf → read_pdf, .docx → read_docx, .xlsx → read_xlsx,
+    .pptx → read_pptx; everything else falls back to plain text.
+
     Args:
         path: Relative path to the file inside the workspace.
 
@@ -51,6 +55,25 @@ async def read_file(path: str, **_: Any) -> str:
         full = resolve_in_workspace(path)
     except ValueError:
         raise
+
+    # Extension-based multimodal dispatch (M-10).
+    suffix = full.suffix.lower()
+    if suffix == ".pdf":
+        from tools.core.read_pdf import read_pdf
+
+        return await read_pdf(path)
+    if suffix == ".docx":
+        from tools.core.read_docx import read_docx
+
+        return await read_docx(path)
+    if suffix == ".xlsx":
+        from tools.core.read_xlsx import read_xlsx
+
+        return await read_xlsx(path)
+    if suffix == ".pptx":
+        from tools.core.read_pptx import read_pptx
+
+        return await read_pptx(path)
 
     # Specific checks for clearer error messages.
     if not full.exists():

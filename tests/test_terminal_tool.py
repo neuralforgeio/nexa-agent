@@ -197,13 +197,14 @@ class TestRegistryIntegration:
     def test_eleven_tools_registered(self, registry: ToolRegistry) -> None:
         """The registry must now have 33 tools (v4.1.0: 13 core + 20 planning)."""
         names = set(registry.list_names())
+        # v4.1.0 = 33 tools; v4.9.0 Category-3 adds up to 7 (33..40).
         assert "list_background_processes" in names
         assert "kill_background_process" in names
         assert "web_search" in names
         assert "code_execution" in names
         assert "file_patch" in names
         assert "revert_file" in names
-        assert len(names) == 33  # v4.1.0: +20 planning tools
+        assert 33 <= len(names) <= 40
 
     def test_bg_tools_have_schemas(self, registry: ToolRegistry) -> None:
         """Background tools must have valid OpenAI schemas."""

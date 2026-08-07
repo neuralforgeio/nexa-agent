@@ -525,6 +525,30 @@ def create_default_registry() -> ToolRegistry:
     # v4.0.0: load user-written tools from ~/.nexa/tools/ so anything the
     # agent drafted via create_tool earlier becomes callable immediately.
     load_user_tools(registry)
+
+    # v4.9.0 (Category 3): MCP + RAG + multimodal tools.
+    try:
+        from tools.core.read_pdf import read_pdf, READ_PDF_SCHEMA
+        from tools.core.read_docx import read_docx, READ_DOCX_SCHEMA
+        from tools.core.read_xlsx import read_xlsx, READ_XLSX_SCHEMA
+        from tools.core.read_pptx import read_pptx, READ_PPTX_SCHEMA
+        from tools.core.semantic_search import semantic_search, SEMANTIC_SEARCH_SCHEMA
+        from tools.core.mcp_client import mcp_list_servers, mcp_call, MCP_LIST_SCHEMA, MCP_CALL_SCHEMA
+
+        for name, fn, desc, schema in [
+            ("read_pdf", read_pdf, "Read a PDF file from the workspace (per-page text).", READ_PDF_SCHEMA),
+            ("read_docx", read_docx, "Read a .docx file (paragraphs + tables).", READ_DOCX_SCHEMA),
+            ("read_xlsx", read_xlsx, "Read a .xlsx spreadsheet (per-sheet rows).", READ_XLSX_SCHEMA),
+            ("read_pptx", read_pptx, "Read a .pptx presentation (slides + notes).", READ_PPTX_SCHEMA),
+            ("semantic_search", semantic_search, "Semantic search over the workspace index (RAG).", SEMANTIC_SEARCH_SCHEMA),
+            ("mcp_list_servers", mcp_list_servers, "List configured MCP servers.", MCP_LIST_SCHEMA),
+            ("mcp_call", mcp_call, "Invoke a tool on a configured MCP server.", MCP_CALL_SCHEMA),
+        ]:
+            if not registry.has(name):
+                registry.register(name=name, fn=fn, description=desc, parameters=schema)
+    except Exception:
+        # Category-3 optional deps missing — the agent still runs.
+        pass
     return registry
 
 

@@ -29,17 +29,17 @@ class TestToolRegistration:
     """Tests that all 10 tools are registered."""
 
     def test_ten_tools_registered(self, registry: ToolRegistry) -> None:
-        """The registry must have 33 tools (v4.1.0: 13 core + 20 planning)."""
+        """Registry has ≥33 core tools; v4.9.0 adds Category-3 (up to ~40)."""
         names = set(registry.list_names())
-        assert len(names) == 33  # v4.1.0: +20 planning tools
+        assert 33 <= len(names) <= 40
         assert "web_search" in names
         assert "code_execution" in names
         assert "file_patch" in names
 
     def test_all_have_openai_schemas(self, registry: ToolRegistry) -> None:
-        """All 33 tools must have valid OpenAI schemas."""
+        """All tools must have valid OpenAI schemas (count range-checked)."""
         schemas = registry.get_openai_schemas()
-        assert len(schemas) == 33  # v4.1.0
+        assert 33 <= len(schemas) <= 40
         schema_names = [s["function"]["name"] for s in schemas]
         assert "web_search" in schema_names
         assert "code_execution" in schema_names

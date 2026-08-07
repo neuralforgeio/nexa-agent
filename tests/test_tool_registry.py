@@ -29,7 +29,8 @@ def registry() -> ToolRegistry:
 
 def test_registry_has_default_tools(registry: ToolRegistry) -> None:
     """The default registry must contain the 13 v3.2 core tools plus the
-    20 planning tools (33 total)."""
+    20 planning tools. v4.9.0 adds Category-3 (MCP/RAG) tools, so the total
+    is asserted as a range, never below the 33-tool baseline."""
     names = set(registry.list_names())
     # Core tools (pre-v4.1). Planning tools are covered in test_planning_tools.py.
     core = {
@@ -39,13 +40,15 @@ def test_registry_has_default_tools(registry: ToolRegistry) -> None:
         "deep_research", "terminal_exec",
     }
     assert core.issubset(names), f"missing: {core - names}"
-    assert len(names) == 33  # v4.1.0: +20 planning tools
+    # v4.1.0 = 33 (13 core + 20 planning). v4.9.0 may register up to 7 more.
+    assert len(names) >= 33 and len(names) <= 40
 
 
 def test_registry_has_openai_schemas(registry: ToolRegistry) -> None:
     """get_openai_schemas() must return valid OpenAI function-calling format."""
     schemas = registry.get_openai_schemas()
-    assert len(schemas) == 33  # v4.1.0
+    # v4.1.0 = 33 tools; v4.9.0 may add Category-3 tools, so range-checked.
+    assert 33 <= len(schemas) <= 40
     for schema in schemas:
         assert schema["type"] == "function"
         fn = schema["function"]
