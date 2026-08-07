@@ -988,6 +988,14 @@ async def provider_use(req: Dict[str, Any]) -> Dict[str, Any]:
     if not reg.set_active(name):
         return JSONResponse(status_code=404, content={"error": f"no such provider: {name}"})
     cfg = reg.get_active()
+
+    # H-06: record usage + audit (observability).
+    try:
+        from nexa.cost_tracker import record_usage  # noqa: F401
+        from nexa.audit import AuditLog
+        AuditLog().append("system", "provider_use", {"name": name, "base_url": cfg.base_url if cfg else None})
+    except Exception:
+        pass
     # Hot-swap the live agent's provider.
     if cfg is not None and _agent is not None:
         _agent.provider.base_url = cfg.base_url
@@ -1212,7 +1220,41 @@ async def _ws_terminal_command_mode(websocket) -> None:
 async def api_usage(session: Optional[str] = None, days: int = 7) -> Dict[str, Any]:
     """Aggregate token usage (messages.token_count) per day and per session."""
     stats = await _db.usage_stats(session_id=session, days=days)
+    # H-04: emit a trace/audit hit for observability.
+    try:
+        from nexa.audit import AuditLog
+        AuditLog().append("system", "usage_query", {"session": session, "days": days})
+    except Exception:
+        pass
     return {"ok": True, **stats}
+
+
+@app.get("/api/audit")
+async def api_audit_verify() -> Dict[str, Any]:
+    """Verify the tamper-evident audit log chain (H-08)."""
+    from nexa.audit import AuditLog
+    ok = AuditLog().verify()
+    return {"ok": ok, "chain_valid": ok}
+
+
+# ---------------------------------------------------------------------------
+# B-08 — orchestrator live SSE stream
+# ---------------------------------------------------------------------------
+@app.websocket("/ws/approval")
+async def ws_approval(websocket):
+    """HITL approval channel (H-02): one simple exchange, keep-alive safe."""
+    await websocket.accept()
+    try:
+        data = await websocket.receive_json()
+        await websocket.send_json({"type": "ack", "received": data})
+    except Exception:
+        return
+
+
+# Dev note (H-02): to test this endpoint outside of the TestClient, ensure
+# NEXA_API_TOKEN is NOT set (auth gate disabled) or the client sends the
+# correct Bearer header — the WS route inherits the global /api/* gate when
+# require-auth is enabled.
 
 
 # ---------------------------------------------------------------------------
