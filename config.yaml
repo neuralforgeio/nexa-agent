@@ -16,9 +16,9 @@ project:
   repository: "neuralforgeio/nexa-agent"
 
 version:
-  current: "4.6.4"
-  codename: "Security-Hardened + Virtual Multi-Agent"
-  released: "2026-08-05"
+  current: "4.7.0"
+  codename: "Frontend Critical UX"
+  released: "2026-08-07"
   semver_scheme: "MAJOR.MINOR.PATCH"
   notes: |
     PATCH (v4.1.X) = N bug fixes.
