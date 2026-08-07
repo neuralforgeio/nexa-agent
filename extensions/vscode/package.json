@@ -1,0 +1,14 @@
+{
+  "name": "nexa-agent",
+  "displayName": "Nexa Agent",
+  "version": "4.12.0",
+  "publisher": "neuralforgeio",
+  "description": "Nexa Agent integration for VS Code (stub).",
+  "engines": { "vscode": "^1.85.0" },
+  "categories": ["Other"],
+  "activationEvents": ["onCommand:nexa.hello"],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [{ "command": "nexa.hello", "title": "Nexa: Hello" }]
+  }
+}

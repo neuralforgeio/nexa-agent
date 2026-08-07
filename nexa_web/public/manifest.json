@@ -1,0 +1,9 @@
+{
+  "name": "Nexa Agent",
+  "short_name": "Nexa",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0D0E10",
+  "theme_color": "#4A9EFF",
+  "icons": [{ "src": "/nexa-agent.png", "sizes": "512x512", "type": "image/png" }]
+}

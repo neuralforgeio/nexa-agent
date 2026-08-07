@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- D-06: WiX installer descriptor (STUB, XML valid). -->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package Name="Nexa Agent" Version="4.12.0" Manufacturer="neuralforgeio" UpgradeCode="11111111-2222-3333-4444-555555555555">
+    <MajorUpgrade DowngradeErrorMessage="Newer version installed." />
+  </Package>
+</Wix>

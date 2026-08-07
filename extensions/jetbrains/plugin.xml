@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- D-08: JetBrains plugin descriptor (STUB, XML valid). -->
+<idea-plugin>
+  <id>io.neuralforge.nexa-agent</id>
+  <name>Nexa Agent</name>
+  <version>4.12.0</version>
+  <vendor>neuralforgeio</vendor>
+  <description><![CDATA[Nexa Agent integration (stub).]]></description>
+</idea-plugin>

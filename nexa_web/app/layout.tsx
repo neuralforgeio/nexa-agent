@@ -14,6 +14,7 @@ import { ThemeProvider } from "../components/ThemeProvider";
 export const metadata: Metadata = {
   title: "Nexa Agent — Advanced AI Agent",
   description: "Local AI agent with tool-calling, memory, and streaming responses.",
+  manifest: "/manifest.json",
   icons: { icon: "/nexa-agent.png", apple: "/nexa-agent.png" },
 };
 
