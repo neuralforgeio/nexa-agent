@@ -33,6 +33,7 @@ import {
 } from "../components/ConnectionStatusBanner";
 import { WorkingProcess, type ThinkingStep } from "../components/WorkingProcess";
 import { SandboxPanel } from "../components/SandboxPanel";
+import { useIsMobile } from "../lib/useMediaQuery";
 import { sendChatMessage, persistTurn } from "../lib/stream";
 import { branchSession } from "../lib/sessions";
 import type { Message, ChatEvent, SessionMessage } from "../lib/theme";
@@ -71,9 +72,22 @@ export default function Page() {
   const inFlightRef = useRef(false);
   // (abortRef already declared at line 50 — reused across onSend/onStop/finally.)
 
+  // F-10: true on viewports < 768px (mobile). Sidebar becomes a drawer.
+  const isMobile = useIsMobile(768);
+  // When the viewport flips to mobile, the sidebar must come up collapsed
+  // (drawer) so the content is usable; back to a sane default on desktop.
+  useEffect(() => {
+    if (isMobile) setSidebarMode("closed");
+    // On mobile the sandbox is too wide — close it.
+    if (isMobile) setSandboxOpen(false);
+  }, [isMobile]);
+
   // Hydrate panel state from localStorage. Default to AUTO (open with
   // sidebar, closed with sandbox) when no preference is stored yet.
   useEffect(() => {
+    if (typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches) {
+      return; // F-10: on mobile the effect above defaults to closed.
+    }
     const side = localStorage.getItem(LS_SIDEBAR);
     const sand = localStorage.getItem(LS_SANDBOX);
     // Stored value: "1"|"0"|"mini". Backwards-compat: "0" means closed.
@@ -82,14 +96,17 @@ export default function Page() {
     setSandboxOpen(sand === "1");
   }, []);
 
-  // Ctrl+B cycles: open → mini → open (closed is only an explicit state).
+  // Ctrl+B (desktop) cycles open → mini → open.
+  // On mobile the sidebar is a drawer: the button toggles open ↔ closed.
   const toggleSidebar = useCallback(() => {
     setSidebarMode((m) => {
-      const next: SidebarMode = m === "open" ? "mini" : "open";
+      const next: SidebarMode = isMobile
+        ? m === "closed" ? "open" : "closed"
+        : m === "open" ? "mini" : "open";
       localStorage.setItem(LS_SIDEBAR, next);
       return next;
     });
-  }, []);
+  }, [isMobile]);
   const toggleSandbox = useCallback(() => {
     setSandboxOpen((o) => {
       localStorage.setItem(LS_SANDBOX, o ? "0" : "1");
@@ -345,11 +362,35 @@ export default function Page() {
 
   return (
     <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "var(--nexa-bg, #0D0E10)", color: "var(--nexa-text, #ECECEC)" }}>
-      {/* Sidebar (full / mini icon-only / closed) */}
-      {sidebarMode === "open" && (
-        <Sidebar activeSessionId={sessionId} onSelect={onSelect} onNew={onNew} refreshKey={refreshKey} />
+      {/* F-10: on mobile the sidebar renders as an overlay drawer. */}
+      {isMobile && sidebarMode === "open" && (
+        <div
+          onClick={() => setSidebarMode("closed")}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.55)",
+            zIndex: 60,
+          }}
+        />
       )}
-      {sidebarMode === "mini" && (
+      {sidebarMode === "open" && (
+        <div
+          style={
+            isMobile
+              ? { position: "fixed", top: 0, left: 0, bottom: 0, zIndex: 61, boxShadow: "8px 0 24px rgba(0,0,0,0.5)" }
+              : undefined
+          }
+        >
+          <Sidebar
+            activeSessionId={sessionId}
+            onSelect={(id) => { onSelect(id); if (isMobile) setSidebarMode("closed"); }}
+            onNew={() => { onNew(); if (isMobile) setSidebarMode("closed"); }}
+            refreshKey={refreshKey}
+          />
+        </div>
+      )}
+      {!isMobile && sidebarMode === "mini" && (
         <CollapsedSidebar onNew={onNew} onExpand={() => setSidebarMode("open")} />
       )}
 
@@ -445,8 +486,8 @@ export default function Page() {
         <Composer onSend={onSend} onStop={onStop} disabled={thinking} thinking={thinking} showSuggestions={isEmpty} />
       </main>
 
-      {/* Sandbox panel */}
-      {sandboxOpen && <SandboxPanel onClose={toggleSandbox} width={480} />}
+      {/* Sandbox panel — full width on mobile (F-10). */}
+      {sandboxOpen && !isMobile && <SandboxPanel onClose={toggleSandbox} width={480} />}
 
       {/* F-07: keyboard shortcuts overlay ("?") */}
       {showShortcuts && <ShortcutsHelp onClose={() => setShowShortcuts(false)} />}

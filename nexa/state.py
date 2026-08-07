@@ -147,7 +147,19 @@ class ConversationDB:
         async with aiosqlite.connect(str(NEXA_DB_PATH)) as db:
             await db.executescript(PRAGMAS)
             await db.executescript(SCHEMA)
+            # F-04: safe additive columns for pin/archive. SQLite has no
+            # "ADD COLUMN IF NOT EXISTS", so probe via PRAGMA first.
+            await self._ensure_column(db, "conversations", "pinned", "INTEGER DEFAULT 0")
+            await self._ensure_column(db, "conversations", "archived", "INTEGER DEFAULT 0")
             await db.commit()
+
+    @staticmethod
+    async def _ensure_column(db: aiosqlite.Connection, table: str, name: str, ddl: str) -> None:
+        """ALTER TABLE ADD COLUMN only when missing (idempotent migration)."""
+        cursor = await db.execute(f"PRAGMA table_info({table})")
+        cols = [row[1] for row in await cursor.fetchall()]
+        if name not in cols:
+            await db.execute(f"ALTER TABLE {table} ADD COLUMN {name} {ddl}")
 
     # ------------------------------------------------------------------
     # Conversations
@@ -182,16 +194,100 @@ class ConversationDB:
             "updated_at": now,
         }
 
-    async def list_conversations(self, limit: int = 100) -> List[Dict[str, Any]]:
-        """List conversations newest-first."""
+    async def list_conversations(
+        self,
+        limit: int = 100,
+        query: str = "",
+        include_archived: bool = False,
+    ) -> List[Dict[str, Any]]:
+        """
+        List conversations newest-first (pinned first).
+
+        F-03: ``query`` filters case-insensitively over the title and, when a
+        plain word (FTS5-safe), over message content via the messages_fts
+        virtual table. Unsafe queries fall back to title-only matching.
+        F-04: archived conversations are hidden unless ``include_archived``.
+        """
+        q = query.strip()
         async with aiosqlite.connect(str(NEXA_DB_PATH)) as db:
             db.row_factory = aiosqlite.Row
+
+            match_ids: Optional[set] = None
+            if q:
+                like = f"%{q.lower()}%"
+                try:
+                    # FTS5 match over message content.
+                    cur = await db.execute(
+                        "SELECT DISTINCT m.conversation_id AS cid FROM messages m "
+                        "JOIN messages_fts f ON f.rowid = m.rowid "
+                        "WHERE messages_fts MATCH ?",
+                        (q,),
+                    )
+                    match_ids = {r[0] for r in await cur.fetchall()}
+                except Exception:
+                    # Unsafe FTS query characters (e.g. "*", quotes) — degrade
+                    # gracefully to a plain content substring scan.
+                    cur = await db.execute(
+                        "SELECT DISTINCT conversation_id FROM messages "
+                        "WHERE lower(content) LIKE ?",
+                        (like,),
+                    )
+                    match_ids = {r[0] for r in await cur.fetchall()}
+
+                sql = (
+                    "SELECT id, title, parent_session_id, created_at, updated_at, "
+                    "pinned, archived FROM conversations WHERE "
+                    + ("" if include_archived else "COALESCE(archived,0)=0 AND ")
+                    + "(lower(title) LIKE ? OR id IN (SELECT value FROM json_each(?))) "
+                    "ORDER BY COALESCE(pinned,0) DESC, updated_at DESC LIMIT ?"
+                )
+                import json as _json
+                cursor = await db.execute(
+                    sql, (like, _json.dumps(sorted(match_ids)) if match_ids else "[]", limit)
+                )
+            else:
+                cursor = await db.execute(
+                    "SELECT id, title, parent_session_id, created_at, updated_at, "
+                    "pinned, archived FROM conversations "
+                    + ("" if include_archived else "WHERE COALESCE(archived,0)=0 ")
+                    + "ORDER BY COALESCE(pinned,0) DESC, updated_at DESC LIMIT ?",
+                    (limit,),
+                )
+            rows = [dict(r) for r in await cursor.fetchall()]
+            # Normalize legacy rows (pre-F-04) that may lack the value.
+            for r in rows:
+                r["pinned"] = bool(r.get("pinned") or 0)
+                r["archived"] = bool(r.get("archived") or 0)
+            return rows
+
+    async def set_conversation_flags(
+        self,
+        conversation_id: str,
+        pinned: Optional[bool] = None,
+        archived: Optional[bool] = None,
+    ) -> bool:
+        """
+        F-04: set pinned / archived flags on a conversation.
+
+        Returns True when the row exists (even if flags are unchanged).
+        """
+        sets: List[str] = []
+        vals: List[Any] = []
+        if pinned is not None:
+            sets.append("pinned = ?")
+            vals.append(1 if pinned else 0)
+        if archived is not None:
+            sets.append("archived = ?")
+            vals.append(1 if archived else 0)
+        if not sets:
+            return True
+        async with aiosqlite.connect(str(NEXA_DB_PATH)) as db:
             cursor = await db.execute(
-                "SELECT id, title, parent_session_id, created_at, updated_at "
-                "FROM conversations ORDER BY updated_at DESC LIMIT ?",
-                (limit,),
+                f"UPDATE conversations SET {', '.join(sets)} WHERE id = ?",
+                (*vals, conversation_id),
             )
-            return [dict(r) for r in await cursor.fetchall()]
+            await db.commit()
+            return cursor.rowcount > 0
 
     async def get_messages(self, conversation_id: str) -> List[Dict[str, Any]]:
         """Get all messages for a conversation, oldest first."""

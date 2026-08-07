@@ -20,7 +20,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Settings, X, Plus, Trash2, Zap, CheckCircle2, XCircle, Loader2,
   Search, ChevronDown, ChevronUp, Play,
@@ -70,6 +70,59 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
   const [executingSkill, setExecutingSkill] = useState<Record<string, "idle" | "running" | "ok" | "fail">>({});
   const [skillResults, setSkillResults] = useState<Record<string, unknown>>({});
   const [searchQuery, setSearchQuery] = useState("");
+
+  // F-09: dialog behaviour (Esc to close, focus trap, body scroll-lock,
+  // focus restoration on close).
+  const panelRef = useRef<HTMLDivElement>(null);
+  const openerRef = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    openerRef.current = document.activeElement as HTMLElement | null;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden"; // scroll-lock
+    // Initial focus into the dialog.
+    const el = panelRef.current;
+    const focusables = el?.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    (focusables && focusables.length > 0 ? focusables[0] : el)?.focus();
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.stopPropagation();
+        onClose();
+        return;
+      }
+      if (e.key === "Tab" && el) {
+        // Focus-trap: keep Tab / Shift+Tab cycling inside the panel.
+        const items = Array.from(
+          el.querySelectorAll<HTMLElement>(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+          )
+        ).filter((n) => !n.hasAttribute("disabled") && n.tabIndex !== -1);
+        if (items.length === 0) return;
+        const first = items[0];
+        const last = items[items.length - 1];
+        const active = document.activeElement as HTMLElement | null;
+        if (e.shiftKey) {
+          if (active === first || !el.contains(active)) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else if (active === last || !el.contains(active)) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    document.addEventListener("keydown", onKey, true);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.removeEventListener("keydown", onKey, true);
+      // Restore focus to whatever opened the dialog.
+      openerRef.current?.focus?.();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const SKILL_CATEGORIES = [
     "code_intelligence",
@@ -258,6 +311,11 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
       onClick={onClose}
     >
       <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Provider and skills settings"
+        tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
         style={{
           width: "min(640px, 92vw)",
@@ -267,6 +325,7 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
           border: "1px solid #2E2F34",
           borderRadius: 12,
           padding: 24,
+          outline: "none",
         }}
       >
         {/* Header */}

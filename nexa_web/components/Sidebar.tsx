@@ -1,14 +1,17 @@
 /**
- * Nexa Agent — Sidebar (Z.ai minimal + full CRUD)
+ * Nexa Agent — Sidebar (Z.ai minimal + full CRUD + pin/archive + search)
  * ==================================================
  *
- * Minimalist sidebar with:
- *  - Logo header
- *  - New Chat pill button
- *  - Session history grouped by time (Today / Yesterday / Older)
- *  - Per-session rename (double-click or pencil) + delete (trash icon)
+ * - Logo header + New Chat pill
+ * - Session history grouped by time (Today / Yesterday / Older)
+ * - F-03: search box (queries the backend's FTS5 search via ?q=)
+ * - F-04: pin / archive per session; pinned float to the top, archived
+ *   collapse into a "Archived" section; date grouping preserved
+ * - F-12: per-session export (Markdown / JSON) download button
+ * - Rename (double-click or pencil) + delete (two-click confirm)
  *
  * Copyright (c) 2026 Dearly Febriano Irwansyah
+ * SPDX-License-Identifier: MIT
  */
 
 "use client";
@@ -21,31 +24,24 @@ import {
   Settings as SettingsIcon,
   Check,
   X,
+  Search,
+  Pin,
+  PinOff,
+  Archive,
+  ArchiveRestore,
+  Download,
 } from "lucide-react";
 import type { Session } from "../lib/theme";
+import { groupByDate, splitByPinArchive } from "../lib/sessions";
 import { SettingsPanel } from "./SettingsPanel";
+
+const GROUPS = ["Today", "Yesterday", "Older"] as const;
 
 interface SidebarProps {
   activeSessionId: string | null;
   onSelect: (id: string) => void;
   onNew: () => void;
   refreshKey: number;
-  /** When true, renders the slim icon-only variant (Z.ai style, ~64px wide). */
-  collapsed?: boolean;
-}
-
-type SessionGroup = "Today" | "Yesterday" | "Older";
-
-function groupLabel(iso: string): SessionGroup {
-  const date = new Date(iso);
-  if (isNaN(date.getTime())) return "Older";
-  const now = new Date();
-  const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const thatMidnight = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  const days = Math.round((midnight.getTime() - thatMidnight.getTime()) / 86_400_000);
-  if (days === 0) return "Today";
-  if (days === 1) return "Yesterday";
-  return "Older";
 }
 
 export function Sidebar({ activeSessionId, onSelect, onNew, refreshKey }: SidebarProps) {
@@ -55,17 +51,28 @@ export function Sidebar({ activeSessionId, onSelect, onNew, refreshKey }: Sideba
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  // F-03: search box
+  const [query, setQuery] = useState("");
+  // F-04: show the archived section
+  const [showArchived, setShowArchived] = useState(false);
+
+  const searching = query.trim().length > 0;
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       setLoading(true);
       try {
-        const res = await fetch("/api/sessions", { cache: "no-store" });
+        // Always fetch with includeArchived so the client can split the
+        // buckets itself; `q` is forwarded to the backend FTS search (F-03).
+        const url =
+          "/api/sessions?includeArchived=true" +
+          (query.trim() ? `&q=${encodeURIComponent(query.trim())}` : "");
+        const res = await fetch(url, { cache: "no-store" });
         const data = await res.json();
         if (!cancelled) setSessions(data.sessions ?? []);
       } catch {
-        /* keep */
+        /* keep previous list */
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -73,26 +80,21 @@ export function Sidebar({ activeSessionId, onSelect, onNew, refreshKey }: Sideba
     return () => {
       cancelled = true;
     };
-  }, [refreshKey]);
+  }, [refreshKey, query]);
 
-  const grouped = useMemo(() => {
-    const buckets: Record<SessionGroup, Session[]> = {
-      Today: [],
-      Yesterday: [],
-      Older: [],
-    };
-    for (const s of sessions) buckets[groupLabel(s.updatedAt)].push(s);
-    return buckets;
-  }, [sessions]);
+  // F-04: split into pinned / normal (date-grouped) / archived.
+  const { pinned, normal, archived } = useMemo(
+    () => splitByPinArchive(sessions),
+    [sessions]
+  );
+  const groupedNormal = useMemo(() => groupByDate(normal), [normal]);
 
   const remove = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    // Two-phase delete: first click marks the row, second click confirms.
     if (deletingId !== id) {
       setDeletingId(id);
-      // Auto-cancel after 3 s if not confirmed.
       window.setTimeout(() => {
-        setDeletingId((current) => (current === id ? null : current));
+        setDeletingId((cur) => (cur === id ? null : cur));
       }, 3000);
       return;
     }
@@ -114,23 +116,52 @@ export function Sidebar({ activeSessionId, onSelect, onNew, refreshKey }: Sideba
 
   const commitRename = async (id: string) => {
     const next = renameValue.trim();
-    if (!next) {
-      setRenamingId(null);
-      return;
-    }
+    setRenamingId(null);
+    if (!next) return;
+    const ok = await patchFlags(id, { title: next });
+    if (ok) setSessions((all) => all.map((s) => (s.id === id ? { ...s, title: next } : s)));
+  };
+
+  // F-04: toggle pin / archive with an optimistic UI update.
+  const togglePin = async (s: Session, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const next = !s.pinned;
+    await patchFlags(s.id, { pinned: next });
+    setSessions((all) => all.map((x) => (x.id === s.id ? { ...x, pinned: next } : x)));
+  };
+  const toggleArchive = async (s: Session, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const next = !s.archived;
+    await patchFlags(s.id, { archived: next });
+    setSessions((all) => all.map((x) => (x.id === s.id ? { ...x, archived: next } : x)));
+  };
+
+  // F-12: download a session transcript via the existing export endpoint.
+  const exportSession = (s: Session, format: "md" | "json", e: React.MouseEvent) => {
+    e.stopPropagation();
+    const a = document.createElement("a");
+    a.href = `/api/export/${s.id}?format=${format}`;
+    a.download = `${(s.title || "session").replace(/[^\w.-]+/g, "_").slice(0, 60)}.${format === "md" ? "md" : "json"}`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
+
+  async function patchFlags(
+    id: string,
+    patch: { title?: string; pinned?: boolean; archived?: boolean }
+  ): Promise<boolean> {
     try {
       const res = await fetch(`/api/sessions/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: next }),
+        body: JSON.stringify(patch),
       });
-      if (res.ok) {
-        setSessions((all) => all.map((s) => (s.id === id ? { ...s, title: next } : s)));
-      }
-    } finally {
-      setRenamingId(null);
+      return res.ok;
+    } catch {
+      return false;
     }
-  };
+  }
 
   const renderRow = (s: Session) => {
     const isActive = activeSessionId === s.id;
@@ -161,16 +192,20 @@ export function Sidebar({ activeSessionId, onSelect, onNew, refreshKey }: Sideba
           if (!isActive && !isRenaming) e.currentTarget.style.background = "transparent";
         }}
       >
-        {/* Activity dot */}
-        <div
-          style={{
-            width: 6,
-            height: 6,
-            borderRadius: "50%",
-            background: isActive ? "#4A9EFF" : "#2E2F34",
-            flexShrink: 0,
-          }}
-        />
+        {/* Pin indicator */}
+        {s.pinned ? (
+          <Pin size={12} color="#4A9EFF" style={{ flexShrink: 0 }} />
+        ) : (
+          <div
+            style={{
+              width: 6,
+              height: 6,
+              borderRadius: "50%",
+              background: isActive ? "#4A9EFF" : "#2E2F34",
+              flexShrink: 0,
+            }}
+          />
+        )}
 
         {/* Title (or rename input) */}
         {isRenaming ? (
@@ -180,10 +215,10 @@ export function Sidebar({ activeSessionId, onSelect, onNew, refreshKey }: Sideba
             onChange={(e) => setRenameValue(e.target.value)}
             onClick={(e) => e.stopPropagation()}
             onKeyDown={(e) => {
-              if (e.key === "Enter") commitRename(s.id);
+              if (e.key === "Enter") void commitRename(s.id);
               if (e.key === "Escape") setRenamingId(null);
             }}
-            onBlur={() => commitRename(s.id)}
+            onBlur={() => void commitRename(s.id)}
             style={{
               flex: 1,
               minWidth: 0,
@@ -215,7 +250,7 @@ export function Sidebar({ activeSessionId, onSelect, onNew, refreshKey }: Sideba
           </div>
         )}
 
-        {/* Action buttons (visible on hover / when renaming) */}
+        {/* Hover actions */}
         {!isRenaming && (
           <div
             style={{
@@ -226,15 +261,28 @@ export function Sidebar({ activeSessionId, onSelect, onNew, refreshKey }: Sideba
             }}
             onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
           >
+            <button onClick={(e) => void togglePin(s, e)} title={s.pinned ? "Unpin" : "Pin"} style={iconBtn}>
+              {s.pinned ? <PinOff size={13} color="#4A9EFF" /> : <Pin size={13} color="#8F8F8F" />}
+            </button>
             <button
-              onClick={(e) => startRename(s, e)}
-              title="Rename session"
+              onClick={(e) => exportSession(s, "md", e)}
+              title="Export as Markdown"
               style={iconBtn}
             >
+              <Download size={13} color="#8F8F8F" />
+            </button>
+            <button
+              onClick={(e) => void toggleArchive(s, e)}
+              title={s.archived ? "Unarchive" : "Archive"}
+              style={iconBtn}
+            >
+              {s.archived ? <ArchiveRestore size={13} color="#8F8F8F" /> : <Archive size={13} color="#8F8F8F" />}
+            </button>
+            <button onClick={(e) => startRename(s, e)} title="Rename session" style={iconBtn}>
               <Pencil size={13} color="#8F8F8F" />
             </button>
             <button
-              onClick={(e) => remove(s.id, e)}
+              onClick={(e) => void remove(s.id, e)}
               title={isDeleting ? "Click again to delete" : "Delete session"}
               style={{ ...iconBtn, ...(isDeleting ? { background: "rgba(248,113,113,0.12)" } : {}) }}
             >
@@ -243,13 +291,32 @@ export function Sidebar({ activeSessionId, onSelect, onNew, refreshKey }: Sideba
           </div>
         )}
         {isRenaming && (
-          <button onClick={() => commitRename(s.id)} style={iconBtn} title="Save">
+          <button onClick={() => void commitRename(s.id)} style={iconBtn} title="Save">
             <Check size={13} color="#4ADE80" />
           </button>
         )}
       </div>
     );
   };
+
+  const renderSection = (label: string, list: Session[]) =>
+    list.length === 0 ? null : (
+      <div key={label} style={{ marginBottom: 12 }}>
+        <div
+          style={{
+            fontSize: 10,
+            color: "#6A6A6A",
+            textTransform: "uppercase",
+            letterSpacing: 1.2,
+            padding: "8px 12px 4px",
+            fontWeight: 700,
+          }}
+        >
+          {label}
+        </div>
+        {list.map(renderRow)}
+      </div>
+    );
 
   return (
     <aside
@@ -314,7 +381,44 @@ export function Sidebar({ activeSessionId, onSelect, onNew, refreshKey }: Sideba
         </button>
       </div>
 
-      {/* Session list grouped by time */}
+      {/* F-03: search box */}
+      <div style={{ padding: "0 12px 8px" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            background: "#0D0E10",
+            border: "1px solid #24262B",
+            borderRadius: 8,
+            padding: "6px 10px",
+          }}
+        >
+          <Search size={13} color="#6A6A6A" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search conversations…"
+            aria-label="search-sessions"
+            style={{
+              flex: 1,
+              minWidth: 0,
+              background: "transparent",
+              border: "none",
+              outline: "none",
+              color: "#ECECEC",
+              fontSize: 13,
+            }}
+          />
+          {query && (
+            <button onClick={() => setQuery("")} aria-label="clear-search" style={iconBtn} title="Clear search">
+              <X size={12} color="#8F8F8F" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Session list */}
       <div style={{ flex: 1, overflowY: "auto", padding: "4px 8px" }}>
         {loading ? (
           <div style={{ padding: 16, textAlign: "center", color: "#6A6A6A", fontSize: 13 }}>
@@ -322,48 +426,52 @@ export function Sidebar({ activeSessionId, onSelect, onNew, refreshKey }: Sideba
           </div>
         ) : sessions.length === 0 ? (
           <div style={{ padding: 16, textAlign: "center", color: "#6A6A6A", fontSize: 13 }}>
-            No conversations yet.
+            {searching ? "No conversations match your search." : "No conversations yet."}
           </div>
         ) : (
-          (["Today", "Yesterday", "Older"] as const).map((label) => {
-            const list = grouped[label];
-            if (list.length === 0) return null;
-            return (
-              <div key={label} style={{ marginBottom: 12 }}>
-                <div
+          <>
+            {/* Pinned (F-04) — only meaningful when not searching */}
+            {!searching && pinned.length > 0 && renderSection("Pinned", pinned)}
+
+            {/* Normal, date-grouped (F-04). When searching we show a flat list. */}
+            {searching
+              ? renderSection("Results", normal)
+              : GROUPS.map((label) => renderSection(label, groupedNormal[label]))}
+
+            {/* Archived (F-04) */}
+            {archived.length > 0 && (
+              <div style={{ marginTop: 8 }}>
+                <button
+                  onClick={() => setShowArchived((v) => !v)}
                   style={{
-                    fontSize: 10,
+                    width: "100%",
+                    textAlign: "left",
+                    background: "transparent",
+                    border: "none",
                     color: "#6A6A6A",
+                    fontSize: 10,
                     textTransform: "uppercase",
                     letterSpacing: 1.2,
-                    padding: "8px 12px 4px",
                     fontWeight: 700,
+                    padding: "8px 12px 4px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
                   }}
                 >
-                  {label}
-                </div>
-                {list.map(renderRow)}
+                  <Archive size={11} /> Archived ({archived.length}) {showArchived ? "▾" : "▸"}
+                </button>
+                {showArchived && archived.map(renderRow)}
               </div>
-            );
-          })
+            )}
+          </>
         )}
       </div>
 
       {/* Footer */}
-      <div
-        style={{
-          borderTop: "1px solid #1e2023",
-          padding: "10px 14px",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            gap: 8,
-          }}
-        >
+      <div style={{ borderTop: "1px solid #1e2023", padding: "10px 14px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
           <div style={{ minWidth: 0 }}>
             <div style={{ fontSize: 10, color: "#6A6A6A" }}>© 2026 Dearly Febriano Irwansyah</div>
             <div style={{ fontSize: 10, color: "#6A6A6A" }}>MIT License</div>
@@ -397,10 +505,6 @@ export function Sidebar({ activeSessionId, onSelect, onNew, refreshKey }: Sideba
 }
 
 export function CollapsedSidebar({ onNew, onExpand }: { onNew: () => void; onExpand: () => void }) {
-  /**
-   * Icon-only sidebar (Z.ai super-mini, image #4 style).
-   * ~52px wide; exposes Logo + New-Chat + Expand button.
-   */
   return (
     <aside
       style={{
@@ -416,16 +520,8 @@ export function CollapsedSidebar({ onNew, onExpand }: { onNew: () => void; onExp
         height: "100%",
       }}
     >
-      <button
-        onClick={onExpand}
-        title="Expand sidebar"
-        style={{ background: "transparent", border: "none", cursor: "pointer", padding: 0, marginBottom: 6 }}
-      >
-        <img
-          src="/nexa-agent.png"
-          alt="Nexa"
-          style={{ width: 28, height: 28, borderRadius: 8, objectFit: "cover" }}
-        />
+      <button onClick={onExpand} title="Expand sidebar" style={{ background: "transparent", border: "none", cursor: "pointer", padding: 0, marginBottom: 6 }}>
+        <img src="/nexa-agent.png" alt="Nexa" style={{ width: 28, height: 28, borderRadius: 8, objectFit: "cover" }} />
       </button>
       <button
         onClick={onNew}

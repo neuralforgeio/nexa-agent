@@ -38,7 +38,7 @@ import uuid
 from contextlib import asynccontextmanager
 from typing import Any, Dict, List, Optional
 
-from fastapi import Depends, FastAPI, Header, HTTPException, Request, WebSocket, status
+from fastapi import Depends, FastAPI, File, Header, HTTPException, Request, UploadFile, WebSocket, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, JSONResponse
 from pydantic import BaseModel
@@ -440,9 +440,14 @@ async def chat_persist(req: PersistRequest) -> JSONResponse:
 # Session CRUD
 # ---------------------------------------------------------------------------
 @app.get("/api/sessions")
-async def list_sessions() -> Dict[str, Any]:
-    """List all conversations, newest first (camelCase for frontend compat)."""
-    convs = await _db.list_conversations()
+async def list_sessions(q: str = "", includeArchived: bool = False) -> Dict[str, Any]:
+    """
+    List conversations, pinned-first then newest (camelCase for frontend).
+
+    F-03: ``q`` filters title + message content. F-04: archived conversations
+    are hidden unless ``includeArchived=true``.
+    """
+    convs = await _db.list_conversations(query=q, include_archived=includeArchived)
     result = []
     for c in convs:
         msgs = await _db.get_messages(c["id"])
@@ -452,6 +457,8 @@ async def list_sessions() -> Dict[str, Any]:
             "createdAt": c["created_at"],
             "updatedAt": c["updated_at"],
             "messageCount": len(msgs),
+            "pinned": bool(c.get("pinned")),
+            "archived": bool(c.get("archived")),
         })
     return {"sessions": result}
 
@@ -491,19 +498,41 @@ async def delete_session(session_id: str) -> Dict[str, bool]:
 class RenameSessionRequest(BaseModel):
     """Request body for PATCH /api/sessions/{id}."""
 
-    title: str
+    title: Optional[str] = None
+    pinned: Optional[bool] = None
+    archived: Optional[bool] = None
 
 
 @app.patch("/api/sessions/{session_id}")
 async def rename_session(session_id: str, req: RenameSessionRequest) -> Dict[str, Any]:
-    """Rename a conversation's title."""
-    title = req.title.strip()
-    if not title:
-        return JSONResponse({"error": "title is required"}, status_code=400)
-    ok = await _db.rename_conversation(session_id, title)
-    if not ok:
-        return JSONResponse({"error": "session not found"}, status_code=404)
-    return {"ok": True, "id": session_id, "title": title}
+    """
+    Update a conversation.
+
+    F-03/F-04: supports renaming plus the pinned/archived flags. At least one
+    field must be provided; returns 404 when the session does not exist.
+    """
+    did_anything = False
+
+    if req.title is not None:
+        title = req.title.strip()
+        if not title:
+            return JSONResponse({"error": "title is required"}, status_code=400)
+        ok = await _db.rename_conversation(session_id, title)
+        if not ok:
+            return JSONResponse({"error": "session not found"}, status_code=404)
+        did_anything = True
+
+    if req.pinned is not None or req.archived is not None:
+        ok = await _db.set_conversation_flags(
+            session_id, pinned=req.pinned, archived=req.archived
+        )
+        if not ok:
+            return JSONResponse({"error": "session not found"}, status_code=404)
+        did_anything = True
+
+    if not did_anything:
+        return JSONResponse({"error": "nothing to update"}, status_code=400)
+    return {"ok": True, "id": session_id}
 
 
 class BranchSessionRequest(BaseModel):
@@ -1115,6 +1144,66 @@ def _resolve_in_sandbox(rel_path: str) -> _Path:
     except ValueError:
         raise ValueError("path escapes the workspace sandbox") from None
     return target
+
+
+# ---------------------------------------------------------------------------
+# v4.7.0 (F-11) — File upload (multipart)
+# ---------------------------------------------------------------------------
+
+#: Maximum upload size (10 MiB). Larger payloads are rejected with 413.
+_UPLOAD_MAX_BYTES = 10 * 1024 * 1024
+
+
+def _sanitize_filename(name: str) -> str:
+    """
+    Reduce a client-supplied filename to a safe, workspace-local basename.
+
+    Strips any directory components and keeps only alphanumerics plus a small
+    whitelist; falls back to "upload.bin" when nothing safe remains.
+    """
+    import re as _re
+
+    base = name.replace("\\", "/").split("/")[-1]
+    base = _re.sub(r"[^A-Za-z0-9._-]+", "_", base).strip("._")
+    return base or "upload.bin"
+
+
+@app.post("/api/upload")
+async def upload_file(file: UploadFile = File(...)) -> Dict[str, Any]:
+    """
+    Accept a single multipart file upload and store it in the workspace.
+
+    Saves to ``NEXA_WORKSPACE/uploads/<sanitized-name>`` and returns a
+    workspace-relative ``path`` the assistant can inspect with read tools.
+    """
+    data = await file.read()
+    if not data:
+        return JSONResponse({"error": "empty file"}, status_code=400)
+    if len(data) > _UPLOAD_MAX_BYTES:
+        return JSONResponse({"error": "file too large (max 10 MiB)"}, status_code=413)
+
+    uploads = _WORKSPACE / "uploads"
+    uploads.mkdir(parents=True, exist_ok=True)
+
+    name = _sanitize_filename(file.filename or "upload.bin")
+    target = (uploads / name)
+    # De-duplicate on collision: "report.pdf" → "report-1.pdf", "report-2.pdf"…
+    stem, dot, ext = name.rpartition(".")
+    for i in range(1, 1000):
+        if not target.exists():
+            break
+        candidate = f"{stem}-{i}.{ext}" if dot else f"{name}-{i}"
+        target = uploads / candidate
+
+    target.write_bytes(data)
+    rel = str(target.relative_to(_WORKSPACE)).replace("\\", "/")
+    return {
+        "ok": True,
+        "filename": target.name,
+        "path": rel,
+        "size": len(data),
+        "mime": file.content_type or "application/octet-stream",
+    }
 
 
 def _detect_framework(project_path: str) -> Dict[str, Any]:
