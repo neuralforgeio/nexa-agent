@@ -16,8 +16,8 @@ project:
   repository: "neuralforgeio/nexa-agent"
 
 version:
-  current: "4.10.0"
-  codename: "Browser + Creative UX"
+  current: "4.11.0"
+  codename: "HITL + Observability"
   released: "2026-08-07"
   semver_scheme: "MAJOR.MINOR.PATCH"
   notes: |

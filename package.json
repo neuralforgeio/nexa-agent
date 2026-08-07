@@ -1,6 +1,6 @@
 {
   "name": "nexa-agent",
-  "version": "4.10.0",
+  "version": "4.11.0",
   "private": true,
   "scripts": {
     "dev": "cd nexa_web && npx next dev -p 3000",
