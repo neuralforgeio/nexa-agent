@@ -509,3 +509,32 @@ from `v4.4.6.4` through `v4.15.0` has a corresponding GitHub Release.
 *Amandemen v1 authored per user instruction, 2026-08-08. Verified against
 live repo state: latest release v4.15.0 (published 2026-08-08T00:51:28Z),
 10/10 tag-release parity.*
+
+---
+
+## 📝 SECTION 18: COMMIT DISCIPLINE & README CURRENCY MANDATE
+### (Nexa/OpenForge Amandemen v2 — user instruction, 2026-08-08)
+
+**Context.** Verbal feedback (same day): commit messages like "Phase 1" are
+ambiguous to outside contributors. Release tags must be self-describing; README
+must always reflect the current state.
+
+**RULE C-1 — Commit messages describe change, not project milestones.**
+- ❌ FORBIDDEN: `feat: Phase 1`, `feat: Phase 2 done`, `WIP`.
+- ✅ REQUIRED: `feat: <what actually changed>`, `fix: <bug fixed>`, `docs: <doc updated>`, `chore(release): <version> — <what shipped>`.
+- Every release commit must include: **(1)** bump version manifests, **(2)** describe user-visible changes (features added/removed, paths renamed, env vars changed).
+
+**RULE C-2 — README.md MUST be updated on every release/feature.**
+- If a release changes name/brand/paths/commands — README MUST reflect it before tagging.
+- If a new tool/skill/provider is added — README MUST list it.
+- If a feature is removed — README MUST not still advertise it.
+- When in doubt, update README *before* the tag.
+
+**RULE C-3 — The canonical "release package" order for nexa-agent/openforge:**
+1. Commit changes (semantic, atomic)
+2. Bump version in: `pyproject.toml`, `package.json`, `openforge_web/package.json`, `config.yaml`
+3. `git tag -a vX.Y.Z -m "<what> | <why> | risk: <level>"` annotated
+4. `git push origin main` + `git push origin vX.Y.Z`
+5. `gh release create` via absolute path
+6. `gh release view` verify
+7. **If README isn't updated, do NOT create tag** — fix and re-commit first.

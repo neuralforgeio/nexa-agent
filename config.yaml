@@ -17,15 +17,14 @@ project:
   repository: "neuralforgeio/openforge"
 
 version:
-  current: "4.17.0"
-  codename: "OpenForge — The Great Consolidation"
+  current: "5.0.0"
+  codename: "OpenForge v5 — MAJOR Consolidation"
   released: "2026-08-08"
   semver_scheme: "MAJOR.MINOR.PATCH"
   notes: |
-    Migrated to Semantic Versioning 2.0.0 (semver.org) policy.
-    PATCH (x.y.Z) = backward-compatible bug fixes / tests / docs / refactor.
-    MINOR (x.Y.0) = backward-compatible new features (tools, skills, UX, rename+unified-arch via auto-migration).
-    MAJOR (X.0.0) = backward-incompatible breaking change ONLY on explicit user request.
+    Semantic Versioning 2.0.0 (semver.org).
+    v5.0.0 = BREAKING: package paths renamed nexa→openforge, CLI renamed,
+    NEXA_*→FORGE_* env renamed. Migration layer provided in Phase 3.
 
 features:
   providers: 25
