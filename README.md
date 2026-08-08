@@ -28,7 +28,7 @@ OpenForge adalah **local-first AI agent** yang sangat powerful — terminal, TUI
 > OpenForge adalah evolusi **The Great Consolidation** — penggabungan nama (dari Nexa Agent), arsitektur terpadu `~/.openforge/`, dan ekspansi UI/UX ke Web, TUI, dan Desktop.
 
 - **🔒 Private by default** — tidak ada cloud, tidak kirim data, semua memory di `~/.openforge/`
-- **⚡ Tools & Skills超多** — 43 built-in tools, 44 skills (6 kategori), 41 intelligence modules
+- **⚡ Tools & Skills ekstensif** — 43 built-in tools, 44 skills (6 kategori), 41 intelligence modules
 - **🔌 25 LLM provider** — termasuk llama.cpp lokal, Ollama, OpenAI, Anthropic, TokenRouter
 - **📦 Unified home** — developer bisa `cd ~/.openforge/lib/` untuk lihat kode, data Anda di satu atap
 
