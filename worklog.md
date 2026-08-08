@@ -1,7 +1,36 @@
 # Nexa Agent — Project Worklog
 
 > Source of truth for project state across development phases.
-> Owned by: Nexa Architect flow. Last updated: 2026-07-16.
+> Owned by: Nexa Architect flow. Last updated: 2026-08-08.
+
+---
+
+## Task ID: BUGFIX-v4.15.1 (2026-08-08)
+Agent: Principal Engineer (Autonomous Protocol v8 + Nexa Amandemen v1)
+Task: Fix BUG 1 (llama.cpp --jinja P0) + BUG 2 (session_search test pollution P1) per user bug report; release v4.15.1.
+
+Work Log:
+- S1 DISCOVERY: read .plans/CHECKPOINT_85tools.md; baseline HEAD=8338dd7 (v4.15.0); 3 modified files identified via git diff.
+  Audit found BOTH live Jinja violators: conversation_loop.py (mid-array system [already fixed in diff]) AND
+  context_compressor.py:142 (summary inserted as a system msg at index 1 — reported by user audit mandate, fixed).
+- S6 EXECUTE: conversation_loop.py (kept diff), run_agent.py (kept diff + restored quick-strip + virtual-agent persona prepend),
+  context_compressor.py (fold summary INTO system[0]), tests/test_session_search.py (monkeypatch nexa.config AND nexa.state -> tmp_path),
+  tests/test_context_compressor.py (NEW regression file).
+- S7 VERIFY (Triad 3/3):
+    [E] llama.cpp HTTP probe: mid-system transcript -> HTTP 500 "System message must be at the beginning."; system-first -> accepted.
+    [E] Full pytest: 1097 passed, 20 skipped, 0 failed (baseline was 1086+7fail; +8 from newly-green search tests, +3 from new compressor tests).
+    [E] vitest: 80/80 (one Onboarding integration test flaky under load; targeted re-run 4/4 green — not a regression).
+    [E] Live provider chat_stream (system-first transcript): reasoning/token events streamed, zero Jinja exception.
+- S9 RELEASE: commits 3bd1615 (fix) + 45e6df2 (docs/AGENTS.md) + baa3a77 (chore v4.15.1); annotated tag v4.15.1; pushed main+tag;
+  gh release create v4.15.1 OK; parity 11/11 tags->releases.
+
+POST-RELEASE FOLLOW-UP (v4.15.2, same day):
+- User reported "still auto-stops" on slow laptop. Diagnosis: client-side test harness timeouts (my 120s/150s/600s probes),
+  NOT production code. llama.cpp log shows "srv stop: cancel task" = client aborted.
+- Verified NO-TIMEOUT live E2E: tests/test_llamacpp_real.py — test_run_agent_end_to_end_against_llamacpp PASSED in 425.98s (~7 min),
+  chat_completions_streaming + nonstream PASSED (~7 min). Model 9B Q4 on old hardware legitimately takes minutes.
+- Code changes seen: tests/test_session_search.py (fixture fix), tests/test_context_compressor.py (regression tests) — both already in v4.15.1.
+- No new production code required for v4.15.2.
 
 ---
 
