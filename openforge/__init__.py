@@ -1,49 +1,69 @@
-"""
-Nexa Agent — Core Package
+"""OpenForge — Core Package
 =========================
 
-This package contains the core runtime modules for Nexa Agent:
+This package contains the core runtime modules for OpenForge:
 
-    - :mod:`nexa.bootstrap`   — UTF-8 stdio setup (imported first).
-    - :mod:`nexa.constants`   — Brand identity, version, paths, safeguards.
-    - :mod:`nexa.config`      — Environment variable loading.
-    - :mod:`nexa.state`       — SQLite + FTS5 persistence layer.
-    - :mod:`nexa.provider`    — LLM provider (AsyncOpenAI, streaming, tools).
+    - :mod:`openforge.bootstrap`   — UTF-8 stdio setup (imported first).
+    - :mod:`openforge.constants`   — Brand identity, version, paths, safeguards.
+    - :mod:`openforge.config`      — Environment variable loading.
+    - :mod:`openforge.state`       — SQLite + FTS5 persistence layer.
+    - :mod:`openforge.provider`    — LLM provider (AsyncOpenAI, streaming, tools).
 
-Entry points (``cli.py``, ``run_agent.py``, ``server.py``) live at the
-repository root and import from this package.
+Entry points (``openforge``, ``openforge-chat``, …) come from console_scripts
+and import from here.
 
 Copyright (c) 2026 Dearly Febriano Irwansyah
 SPDX-License-Identifier: MIT
 """
 
-# Import bootstrap first to ensure UTF-8 stdio on all platforms.
 from . import bootstrap  # noqa: F401
 
 from .constants import (
-    NEXA_AUTHOR,
+    FORGE_AUTHOR,
     FORGE_HOME,
     FORGE_MAX_CONTEXT_MESSAGES,
     FORGE_MAX_TOOL_ITERATIONS,
+    FORGE_MODEL,
+    FORGE_NAME,
+    FORGE_TAGLINE,
+    FORGE_VERSION,
+    FORGE_WORKSPACE,
+    OPENAI_API_KEY,
+    OPENAI_BASE_URL,
+    ensure_forge_home,
+)
+
+# Build __all__ from FORGE_* first; keep NEXA_* as deprecated aliases from
+# openforge.config so importing legacy names still works during transition.
+from .config import (  # noqa: F401
+    NEXA_AUTHOR,
     NEXA_MODEL,
     NEXA_NAME,
     NEXA_TAGLINE,
     NEXA_VERSION,
-    FORGE_WORKSPACE,
     ensure_nexa_home,
 )
 
 __all__ = [
+    "FORGE_NAME",
+    "FORGE_VERSION",
+    "FORGE_AUTHOR",
+    "FORGE_TAGLINE",
+    "FORGE_HOME",
+    "FORGE_WORKSPACE",
+    "FORGE_MODEL",
+    "FORGE_MAX_TOOL_ITERATIONS",
+    "FORGE_MAX_CONTEXT_MESSAGES",
+    "OPENAI_API_KEY",
+    "OPENAI_BASE_URL",
+    "ensure_forge_home",
+    # legacy aliases
     "NEXA_NAME",
     "NEXA_VERSION",
     "NEXA_AUTHOR",
     "NEXA_TAGLINE",
-    "FORGE_HOME",
-    "FORGE_WORKSPACE",
     "NEXA_MODEL",
-    "FORGE_MAX_TOOL_ITERATIONS",
-    "FORGE_MAX_CONTEXT_MESSAGES",
     "ensure_nexa_home",
 ]
 
-__version__ = NEXA_VERSION
+__version__ = FORGE_VERSION

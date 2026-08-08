@@ -1,46 +1,45 @@
-"""
-Nexa Agent — Constants
+"""OpenForge — Constants
 ======================
 
 Central registry of brand identity, version, and runtime constants.
-This is the single source of truth for all Nexa Agent constants
-.
+Single source of truth for OpenForge constants.
 
 Copyright (c) 2026 Dearly Febriano Irwansyah
 SPDX-License-Identifier: MIT
 """
 
-# Re-export everything from config so both `from nexa_constants import ...`
-# and `from .config import ...` work identically.
 from .config import (  # noqa: F401
-    NEXA_AUTHOR,
+    FORGE_AUTHOR,
     FORGE_HOME,
     FORGE_MAX_CONTEXT_MESSAGES,
     FORGE_MAX_TOOL_ITERATIONS,
-    NEXA_MODEL,
-    NEXA_NAME,
-    NEXA_TAGLINE,
-    NEXA_VERSION,
+    FORGE_MODEL,
+    FORGE_NAME,
+    FORGE_TAGLINE,
+    FORGE_VERSION,
     FORGE_WORKSPACE,
     OPENAI_API_KEY,
     OPENAI_BASE_URL,
     ensure_forge_home,
-    ensure_nexa_home,
 )
 
-FORGE_NAME = "OpenForge"
-
 __all__ = [
-    "NEXA_NAME",
-    "NEXA_VERSION",
-    "NEXA_AUTHOR",
-    "NEXA_TAGLINE",
+    "FORGE_NAME",
+    "FORGE_VERSION",
+    "FORGE_AUTHOR",
+    "FORGE_TAGLINE",
     "FORGE_HOME",
     "FORGE_WORKSPACE",
-    "NEXA_MODEL",
+    "FORGE_MODEL",
     "FORGE_MAX_TOOL_ITERATIONS",
     "FORGE_MAX_CONTEXT_MESSAGES",
     "OPENAI_API_KEY",
     "OPENAI_BASE_URL",
-    "ensure_nexa_home",
+    "ensure_forge_home",
+    # Backwards-compat aliases (one MINOR cycle).
+    "NEXA_NAME",
+    "NEXA_VERSION",
+    "NEXA_AUTHOR",
+    "NEXA_TAGLINE",
+    "NEXA_MODEL",
 ]

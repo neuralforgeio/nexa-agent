@@ -34,7 +34,7 @@ from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
 
-from openforge.constants import FORGE_NAME, NEXA_VERSION, ensure_forge_home
+from openforge.constants import FORGE_NAME, FORGE_VERSION, ensure_forge_home
 from openforge.config import FORGE_HOME, FORGE_WORKSPACE
 
 console = Console()
@@ -59,7 +59,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     """
     parser = argparse.ArgumentParser(
         prog="openforge",
-        description=f"{FORGE_NAME} v{NEXA_VERSION} — CLI",
+        description=f"{FORGE_NAME} v{FORGE_VERSION} — CLI",
         add_help=True,
     )
     # v4.2.3: top-level --version flag (parses and exits before subcommands).
@@ -125,7 +125,7 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     # v4.2.3: --version short-circuit (handled BEFORE subcommand dispatch).
     if getattr(args, "version", False):
-        print(f"{FORGE_NAME} v{NEXA_VERSION}")
+        print(f"{FORGE_NAME} v{FORGE_VERSION}")
         return 0
 
     if args.command == "setup":
@@ -176,7 +176,7 @@ def _cmd_plugin_install(url: str) -> int:
 
 def _print_rich_help() -> None:
     """Print a rich-rendered help table listing all subcommands."""
-    table = Table(title=f"{FORGE_NAME} v{NEXA_VERSION} — Subcommands", show_header=True, header_style="bold cyan")
+    table = Table(title=f"{FORGE_NAME} v{FORGE_VERSION} — Subcommands", show_header=True, header_style="bold cyan")
     table.add_column("Command", style="cyan", no_wrap=True)
     table.add_column("Description", style="white")
     table.add_column("Example", style="dim")
