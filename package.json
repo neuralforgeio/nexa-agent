@@ -1,6 +1,6 @@
 {
   "name": "openforge",
-  "version": "5.0.1",
+  "version": "5.0.2",
   "private": true,
   "scripts": {
     "dev": "cd nexa_web && npx next dev -p 3000",
