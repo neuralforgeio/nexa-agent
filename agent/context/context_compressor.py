@@ -139,16 +139,27 @@ class ContextCompressor:
         else:
             summary = self._truncate_compress(to_compress)
 
-        compressed = (
-            system_msgs
-            + [
+        # v4.15.1 (llama.cpp --jinja fix): fold the context summary INTO the
+        # existing system message at index 0 instead of emitting a NEW
+        # mid-transcript "system" message. The OpenAI chat template used by
+        # llama.cpp requires every system-role message to sit at index 0 —
+        # any system message after a user/assistant turn triggers:
+        #   "Jinja Exception: System message must be at the beginning."
+        # Result: the compressed transcript still has exactly ONE system
+        # message (position 0), followed by the retained recent messages.
+        if system_msgs:
+            head = dict(system_msgs[0])
+            head["content"] = head.get("content", "") + f"\n\n[Context Summary]\n{summary}"
+            compressed = [head] + to_keep
+        else:
+            # No system prompt at the head (unusual but legal): the summary
+            # becomes the ONLY system message, sitting safely at index 0.
+            compressed = [
                 {
                     "role": "system",
                     "content": f"[Context Summary]\n{summary}",
                 }
-            ]
-            + to_keep
-        )
+            ] + to_keep
         return compressed, True
 
     async def _summarize(self, messages: List[Dict[str, Any]]) -> str:

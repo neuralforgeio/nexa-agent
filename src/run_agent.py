@@ -292,7 +292,9 @@ class NexaAgent:
             reasoning_block_text=reasoning_block_text,
         )
 
-        # Prepend the virtual-agent identity block (v4.1.0).
+        # Prepend the virtual-agent identity block (v4.1.0). Folded into the
+        # system prompt text (NOT a separate mid-conversation system message)
+        # so llama.cpp --jinja templates stay valid.
         if virtual_agent_block:
             system_prompt = virtual_agent_block + "\n\n" + system_prompt
 
@@ -306,9 +308,11 @@ class NexaAgent:
             except Exception:
                 pass
 
-        transcript: List[Dict[str, Any]] = [
-            {"role": "system", "content": system_prompt}
-        ]
+        # v4.15.1 (llama.cpp --jinja fix): the transcript's first element is
+        # always the single system message (index 0), and any system-role
+        # entries inside the loaded history are skipped below so nothing but
+        # index 0 ever carries role == "system".
+        transcript: List[Dict[str, Any]] = [{"role": "system", "content": system_prompt}]
         for msg in history[-NEXA_MAX_CONTEXT_MESSAGES:]:
             if msg.get("role") == "system":
                 continue

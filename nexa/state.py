@@ -203,48 +203,54 @@ class ConversationDB:
         """
         List conversations newest-first (pinned first).
 
-        F-03: ``query`` filters case-insensitively over the title and, when a
-        plain word (FTS5-safe), over message content via the messages_fts
-        virtual table. Unsafe queries fall back to title-only matching.
-        F-04: archived conversations are hidden unless ``include_archived``.
+        F-03: ``query`` filters case-insensitively over the title and message
+        content via the FTS5 index. F-04: archived conversations are hidden
+        unless ``include_archived``.
         """
         q = query.strip()
         async with aiosqlite.connect(str(NEXA_DB_PATH)) as db:
             db.row_factory = aiosqlite.Row
 
-            match_ids: Optional[set] = None
             if q:
                 like = f"%{q.lower()}%"
+                # Find conversations that match the FTS5 index OR fall back to
+                # a plain substring scan when the query isn't FTS-safe.
+                match_ids: set = set()
                 try:
-                    # FTS5 match over message content.
                     cur = await db.execute(
-                        "SELECT DISTINCT m.conversation_id AS cid FROM messages m "
+                        "SELECT DISTINCT m.conversation_id FROM messages m "
                         "JOIN messages_fts f ON f.rowid = m.rowid "
                         "WHERE messages_fts MATCH ?",
                         (q,),
                     )
                     match_ids = {r[0] for r in await cur.fetchall()}
                 except Exception:
-                    # Unsafe FTS query characters (e.g. "*", quotes) — degrade
-                    # gracefully to a plain content substring scan.
+                    # FTS query unsafe (e.g. "*", quotes) — fallback to LIKE.
                     cur = await db.execute(
-                        "SELECT DISTINCT conversation_id FROM messages "
-                        "WHERE lower(content) LIKE ?",
+                        "SELECT DISTINCT conversation_id FROM messages WHERE lower(content) LIKE ?",
                         (like,),
                     )
                     match_ids = {r[0] for r in await cur.fetchall()}
 
-                sql = (
-                    "SELECT id, title, parent_session_id, created_at, updated_at, "
-                    "pinned, archived FROM conversations WHERE "
-                    + ("" if include_archived else "COALESCE(archived,0)=0 AND ")
-                    + "(lower(title) LIKE ? OR id IN (SELECT value FROM json_each(?))) "
-                    "ORDER BY COALESCE(pinned,0) DESC, updated_at DESC LIMIT ?"
-                )
-                import json as _json
-                cursor = await db.execute(
-                    sql, (like, _json.dumps(sorted(match_ids)) if match_ids else "[]", limit)
-                )
+                if match_ids:
+                    placeholders = ",".join("?" * len(match_ids))
+                    sql = (
+                        "SELECT id, title, parent_session_id, created_at, updated_at, pinned, archived "
+                        "FROM conversations WHERE "
+                        + ("" if include_archived else "COALESCE(archived,0)=0 AND ")
+                        + f"(lower(title) LIKE ? OR id IN ({placeholders})) "
+                        "ORDER BY COALESCE(pinned,0) DESC, updated_at DESC LIMIT ?"
+                    )
+                    cursor = await db.execute(sql, (like, *sorted(match_ids), limit))
+                else:
+                    sql = (
+                        "SELECT id, title, parent_session_id, created_at, updated_at, pinned, archived "
+                        "FROM conversations WHERE "
+                        + ("" if include_archived else "COALESCE(archived,0)=0 AND ")
+                        + "lower(title) LIKE ? "
+                        "ORDER BY COALESCE(pinned,0) DESC, updated_at DESC LIMIT ?"
+                    )
+                    cursor = await db.execute(sql, (like, limit))
             else:
                 cursor = await db.execute(
                     "SELECT id, title, parent_session_id, created_at, updated_at, "
@@ -254,7 +260,6 @@ class ConversationDB:
                     (limit,),
                 )
             rows = [dict(r) for r in await cursor.fetchall()]
-            # Normalize legacy rows (pre-F-04) that may lack the value.
             for r in rows:
                 r["pinned"] = bool(r.get("pinned") or 0)
                 r["archived"] = bool(r.get("archived") or 0)

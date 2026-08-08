@@ -154,20 +154,22 @@ async def run_conversation(
         history = [m for m in messages if m.get("role") in ("user", "assistant")]
         expanded = expand_prompt(user_input, history)
         yield {"type": "expand", "expanded": expanded.expanded[:200] + "…"}
-        # v4.1.0: actually USE the expansion. Previously `expanded` was
-        # computed and thrown away. Inject it as a system note right before
-        # the latest user message so the final answer benefits from the
-        # structured phrasing without rewriting what the user typed.
-        messages.insert(
-            len(messages) - 1,
-            {
-                "role": "system",
-                "content": (
-                    "[Expanded intent — terse input expanded]\n"
-                    + expanded.expanded.strip()
-                ),
-            },
-        )
+        # v4.15.1 fix: llama.cpp --jinja templates REQUIRE all system messages
+        # to be at index 0. Injecting a mid-conversation "system" role breaks
+        # them. Fold the expansion into the EXISTING system message at index 0.
+        if messages and messages[0].get("role") == "system":
+            messages[0] = dict(messages[0])
+            messages[0]["content"] = (
+                messages[0]["content"]
+                + "\n\n[Expanded intent — terse input expanded]\n"
+                + expanded.expanded.strip()
+            )
+        else:
+            # Fallback: attach as an assistant note right before the user msg.
+            messages.insert(
+                len(messages) - 1,
+                {"role": "assistant", "content": "[Expanded intent] " + expanded.expanded.strip()},
+            )
 
     # v2.0: intent detection.
     if user_input:
