@@ -36,7 +36,7 @@ from pathlib import Path
 import pytest
 
 # Provider failover
-from nexa.provider_failover import (
+from openforge.provider_failover import (
     FailoverChain,
     FailoverPolicy,
     ProviderHealth,
@@ -210,24 +210,24 @@ class TestProviderFailover:
 
     def test_is_failover_enabled_default_off(self) -> None:
         """is_failover_enabled defaults to False when env unset."""
-        old = os.environ.pop("NEXA_FAILOVER_ENABLED", None)
+        old = os.environ.pop("FORGE_FAILOVER_ENABLED", None)
         try:
             assert is_failover_enabled() is False
         finally:
             if old is not None:
-                os.environ["NEXA_FAILOVER_ENABLED"] = old
+                os.environ["FORGE_FAILOVER_ENABLED"] = old
 
     def test_is_failover_enabled_when_set(self) -> None:
         """is_failover_enabled returns True when env is '1'."""
-        old = os.environ.get("NEXA_FAILOVER_ENABLED")
-        os.environ["NEXA_FAILOVER_ENABLED"] = "1"
+        old = os.environ.get("FORGE_FAILOVER_ENABLED")
+        os.environ["FORGE_FAILOVER_ENABLED"] = "1"
         try:
             assert is_failover_enabled() is True
         finally:
             if old is None:
-                os.environ.pop("NEXA_FAILOVER_ENABLED", None)
+                os.environ.pop("FORGE_FAILOVER_ENABLED", None)
             else:
-                os.environ["NEXA_FAILOVER_ENABLED"] = old
+                os.environ["FORGE_FAILOVER_ENABLED"] = old
 
 
 # ===========================================================================
@@ -253,15 +253,15 @@ class TestAutonomousLearner:
 
     def test_learning_budget_disabled_by_default(self) -> None:
         """LearningBudget.enabled defaults to False."""
-        os.environ.pop("NEXA_AUTONOMOUS_LEARNING", None)
+        os.environ.pop("FORGE_AUTONOMOUS_LEARNING", None)
         b = LearningBudget()
         assert b.enabled is False
         assert b.can_search is False
 
     def test_learning_budget_enabled_can_search(self) -> None:
         """When enabled with remaining budget, can_search is True."""
-        old = os.environ.get("NEXA_AUTONOMOUS_LEARNING")
-        os.environ["NEXA_AUTONOMOUS_LEARNING"] = "1"
+        old = os.environ.get("FORGE_AUTONOMOUS_LEARNING")
+        os.environ["FORGE_AUTONOMOUS_LEARNING"] = "1"
         try:
             b = LearningBudget()
             b.last_search_at = 0.0  # ensure cooldown passed
@@ -270,20 +270,20 @@ class TestAutonomousLearner:
             assert b.used == 1
         finally:
             if old is None:
-                os.environ.pop("NEXA_AUTONOMOUS_LEARNING", None)
+                os.environ.pop("FORGE_AUTONOMOUS_LEARNING", None)
             else:
-                os.environ["NEXA_AUTONOMOUS_LEARNING"] = old
+                os.environ["FORGE_AUTONOMOUS_LEARNING"] = old
 
     def test_should_auto_learn_returns_none_when_disabled(self) -> None:
         """should_auto_learn returns None when learning is disabled."""
-        os.environ.pop("NEXA_AUTONOMOUS_LEARNING", None)
+        os.environ.pop("FORGE_AUTONOMOUS_LEARNING", None)
         b = LearningBudget()
         assert should_auto_learn("latest news about OpenAI", b) is None
 
     def test_should_auto_learn_returns_query_for_freshness(self) -> None:
         """should_auto_learn returns a query when freshness + unknown entity."""
-        old = os.environ.get("NEXA_AUTONOMOUS_LEARNING")
-        os.environ["NEXA_AUTONOMOUS_LEARNING"] = "1"
+        old = os.environ.get("FORGE_AUTONOMOUS_LEARNING")
+        os.environ["FORGE_AUTONOMOUS_LEARNING"] = "1"
         try:
             b = LearningBudget()
             b.last_search_at = 0.0
@@ -292,15 +292,15 @@ class TestAutonomousLearner:
             assert "OpenAI" in q
         finally:
             if old is None:
-                os.environ.pop("NEXA_AUTONOMOUS_LEARNING", None)
+                os.environ.pop("FORGE_AUTONOMOUS_LEARNING", None)
             else:
-                os.environ["NEXA_AUTONOMOUS_LEARNING"] = old
+                os.environ["FORGE_AUTONOMOUS_LEARNING"] = old
 
     @pytest.mark.asyncio
     async def test_learn_about_returns_fact(self) -> None:
         """learn_about runs the search_fn and returns a LearnedFact."""
-        old = os.environ.get("NEXA_AUTONOMOUS_LEARNING")
-        os.environ["NEXA_AUTONOMOUS_LEARNING"] = "1"
+        old = os.environ.get("FORGE_AUTONOMOUS_LEARNING")
+        os.environ["FORGE_AUTONOMOUS_LEARNING"] = "1"
         try:
             b = LearningBudget()
             b.last_search_at = 0.0
@@ -315,15 +315,15 @@ class TestAutonomousLearner:
             assert "OpenAI" in fact.summary or "AI" in fact.summary
         finally:
             if old is None:
-                os.environ.pop("NEXA_AUTONOMOUS_LEARNING", None)
+                os.environ.pop("FORGE_AUTONOMOUS_LEARNING", None)
             else:
-                os.environ["NEXA_AUTONOMOUS_LEARNING"] = old
+                os.environ["FORGE_AUTONOMOUS_LEARNING"] = old
 
     @pytest.mark.asyncio
     async def test_learn_about_returns_none_on_empty_results(self) -> None:
         """learn_about returns None when search yields no results."""
-        old = os.environ.get("NEXA_AUTONOMOUS_LEARNING")
-        os.environ["NEXA_AUTONOMOUS_LEARNING"] = "1"
+        old = os.environ.get("FORGE_AUTONOMOUS_LEARNING")
+        os.environ["FORGE_AUTONOMOUS_LEARNING"] = "1"
         try:
             b = LearningBudget()
             b.last_search_at = 0.0
@@ -335,9 +335,9 @@ class TestAutonomousLearner:
             assert fact is None
         finally:
             if old is None:
-                os.environ.pop("NEXA_AUTONOMOUS_LEARNING", None)
+                os.environ.pop("FORGE_AUTONOMOUS_LEARNING", None)
             else:
-                os.environ["NEXA_AUTONOMOUS_LEARNING"] = old
+                os.environ["FORGE_AUTONOMOUS_LEARNING"] = old
 
     def test_enrich_with_learned_facts_formats_block(self) -> None:
         """enrich_with_learned_facts formats facts into a block."""

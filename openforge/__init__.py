@@ -22,14 +22,14 @@ from . import bootstrap  # noqa: F401
 
 from .constants import (
     NEXA_AUTHOR,
-    NEXA_HOME,
-    NEXA_MAX_CONTEXT_MESSAGES,
-    NEXA_MAX_TOOL_ITERATIONS,
+    FORGE_HOME,
+    FORGE_MAX_CONTEXT_MESSAGES,
+    FORGE_MAX_TOOL_ITERATIONS,
     NEXA_MODEL,
     NEXA_NAME,
     NEXA_TAGLINE,
     NEXA_VERSION,
-    NEXA_WORKSPACE,
+    FORGE_WORKSPACE,
     ensure_nexa_home,
 )
 
@@ -38,11 +38,11 @@ __all__ = [
     "NEXA_VERSION",
     "NEXA_AUTHOR",
     "NEXA_TAGLINE",
-    "NEXA_HOME",
-    "NEXA_WORKSPACE",
+    "FORGE_HOME",
+    "FORGE_WORKSPACE",
     "NEXA_MODEL",
-    "NEXA_MAX_TOOL_ITERATIONS",
-    "NEXA_MAX_CONTEXT_MESSAGES",
+    "FORGE_MAX_TOOL_ITERATIONS",
+    "FORGE_MAX_CONTEXT_MESSAGES",
     "ensure_nexa_home",
 ]
 

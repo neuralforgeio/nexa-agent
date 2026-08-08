@@ -10,9 +10,9 @@ from __future__ import annotations
 
 import pytest
 
-import nexa.intelligence_store as istore
-from nexa.prompt_cache import PromptCache, get, put
-from nexa.provider_failover import FailoverPolicy, ProviderHealth, ProviderHealthTracker
+import openforge.intelligence_store as istore
+from openforge.prompt_cache import PromptCache, get, put
+from openforge.provider_failover import FailoverPolicy, ProviderHealth, ProviderHealthTracker
 
 
 def test_intelligence_store_round_trip(tmp_path, monkeypatch):
@@ -49,9 +49,9 @@ def test_capability_aware_failover_requires_vision():
 
 
 def test_modules_import_cleanly():
-    import nexa.telemetry as t
-    import nexa.audit as a
-    import nexa.cost_tracker as ct
+    import openforge.telemetry as t
+    import openforge.audit as a
+    import openforge.cost_tracker as ct
     import agent.autopilot as ap
     import agent.swarm as s
     assert True

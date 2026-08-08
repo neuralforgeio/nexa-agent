@@ -5,9 +5,9 @@ import sqlite3
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-from nexa.config import NEXA_HOME
+from openforge.config import FORGE_HOME
 
-_DB = NEXA_HOME / "cost_tracking.db"
+_DB = FORGE_HOME / "cost_tracking.db"
 
 # Provider pricing per 1K tokens (USD). Overridden via env if needed.
 _PRICING = {
@@ -19,7 +19,7 @@ _PRICING = {
 
 
 def _conn():
-    NEXA_HOME.mkdir(parents=True, exist_ok=True)
+    FORGE_HOME.mkdir(parents=True, exist_ok=True)
     con = sqlite3.connect(str(_DB))
     con.execute("""CREATE TABLE IF NOT EXISTS usage(
         id INTEGER PRIMARY KEY AUTOINCREMENT,

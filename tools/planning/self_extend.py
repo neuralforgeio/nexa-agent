@@ -5,7 +5,7 @@ Nexa Agent — Planning Tools: Self-Extension (v4.1.0)
 The "getting smarter" tier:
 
 - :func:`create_tool`        — write a brand-new Nexa tool into the
-  user-writable directory ``~/.nexa/tools/``. The tool is auto-discovered
+  user-writable directory ``~/.openforge/tools/``. The tool is auto-discovered
   at the *next* registry build (``create_default_registry`` scans that
   directory). This is how Nexa extends itself on the user's machine.
 
@@ -26,7 +26,7 @@ from __future__ import annotations
 import re
 from typing import Any, Dict, List, Optional
 
-import nexa.config as _config
+import openforge.config as _config
 from tools.planning.todos import task_plan
 
 
@@ -36,11 +36,11 @@ from tools.planning.todos import task_plan
 def _user_tools_dir():
     """Return the user-writable tools directory, creating it if needed.
 
-    Reads ``NEXA_HOME`` from the config module at *call time* so tests can
-    monkeypatch ``nexa.config.NEXA_HOME`` (or ``process_manager``-style
+    Reads ``FORGE_HOME`` from the config module at *call time* so tests can
+    monkeypatch ``nexa.config.FORGE_HOME`` (or ``process_manager``-style
     overrides) and have them picked up here.
     """
-    d = _config.NEXA_HOME / "tools"
+    d = _config.FORGE_HOME / "tools"
     d.mkdir(parents=True, exist_ok=True)
     return d
 
@@ -103,7 +103,7 @@ async def create_tool(
     body: Optional[str] = None,
 ) -> str:
     """
-    Draft a new Nexa tool as a Python file in ``~/.nexa/tools/``.
+    Draft a new Nexa tool as a Python file in ``~/.openforge/tools/``.
 
     The tool becomes available the *next* time the registry is built
     (i.e. the next conversation turn), because the registry's user-tool
@@ -199,7 +199,7 @@ async def create_tool(
 
     return (
         f"Tool **{name}** created at `{path}`.\n\n"
-        "**Available next turn.** The registry scans `~/.nexa/tools/` "
+        "**Available next turn.** The registry scans `~/.openforge/tools/` "
         "on every `create_default_registry()` call, so this tool will be "
         "callable the next time the agent loads its tool registry."
         + load_result

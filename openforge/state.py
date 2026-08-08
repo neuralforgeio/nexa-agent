@@ -25,7 +25,7 @@ from typing import Any, Dict, List, Optional
 
 import aiosqlite
 
-from .config import NEXA_DB_PATH, NEXA_HOME
+from .config import FORGE_DB_PATH, FORGE_HOME
 
 #: The SQL schema applied on initialization.
 SCHEMA = """
@@ -133,7 +133,7 @@ class ConversationDB:
     the learning graph.
 
     All methods are async and open a fresh connection per call. The database
-    file lives at ``NEXA_HOME/nexa.db`` (default ``~/.nexa/nexa.db``).
+    file lives at ``FORGE_HOME/openforge.db`` (default ``~/.openforge/openforge.db``).
     """
 
     async def init(self) -> None:
@@ -143,8 +143,8 @@ class ConversationDB:
         Enables WAL mode for better concurrent read performance. Safe to
         call multiple times — uses ``IF NOT EXISTS`` on all DDL.
         """
-        NEXA_HOME.mkdir(parents=True, exist_ok=True)
-        async with aiosqlite.connect(str(NEXA_DB_PATH)) as db:
+        FORGE_HOME.mkdir(parents=True, exist_ok=True)
+        async with aiosqlite.connect(str(FORGE_DB_PATH)) as db:
             await db.executescript(PRAGMAS)
             await db.executescript(SCHEMA)
             # F-04: safe additive columns for pin/archive. SQLite has no
@@ -179,7 +179,7 @@ class ConversationDB:
         """
         cid = _uid("conv")
         now = _now_iso()
-        async with aiosqlite.connect(str(NEXA_DB_PATH)) as db:
+        async with aiosqlite.connect(str(FORGE_DB_PATH)) as db:
             await db.execute(
                 "INSERT INTO conversations (id, title, parent_session_id, created_at, updated_at) "
                 "VALUES (?, ?, ?, ?, ?)",
@@ -208,7 +208,7 @@ class ConversationDB:
         unless ``include_archived``.
         """
         q = query.strip()
-        async with aiosqlite.connect(str(NEXA_DB_PATH)) as db:
+        async with aiosqlite.connect(str(FORGE_DB_PATH)) as db:
             db.row_factory = aiosqlite.Row
 
             if q:
@@ -286,7 +286,7 @@ class ConversationDB:
             vals.append(1 if archived else 0)
         if not sets:
             return True
-        async with aiosqlite.connect(str(NEXA_DB_PATH)) as db:
+        async with aiosqlite.connect(str(FORGE_DB_PATH)) as db:
             cursor = await db.execute(
                 f"UPDATE conversations SET {', '.join(sets)} WHERE id = ?",
                 (*vals, conversation_id),
@@ -296,7 +296,7 @@ class ConversationDB:
 
     async def get_messages(self, conversation_id: str) -> List[Dict[str, Any]]:
         """Get all messages for a conversation, oldest first."""
-        async with aiosqlite.connect(str(NEXA_DB_PATH)) as db:
+        async with aiosqlite.connect(str(FORGE_DB_PATH)) as db:
             db.row_factory = aiosqlite.Row
             cursor = await db.execute(
                 "SELECT id, role, content, tool_name, token_count, created_at "
@@ -316,7 +316,7 @@ class ConversationDB:
         """Append a message to a conversation and update its timestamp."""
         mid = _uid("msg")
         now = _now_iso()
-        async with aiosqlite.connect(str(NEXA_DB_PATH)) as db:
+        async with aiosqlite.connect(str(FORGE_DB_PATH)) as db:
             await db.execute(
                 "INSERT INTO messages (id, conversation_id, role, content, tool_name, token_count, created_at) "
                 "VALUES (?, ?, ?, ?, ?, ?, ?)",
@@ -331,7 +331,7 @@ class ConversationDB:
 
     async def delete_conversation(self, conversation_id: str) -> bool:
         """Delete a conversation and all its messages."""
-        async with aiosqlite.connect(str(NEXA_DB_PATH)) as db:
+        async with aiosqlite.connect(str(FORGE_DB_PATH)) as db:
             await db.execute("DELETE FROM messages WHERE conversation_id = ?", (conversation_id,))
             await db.execute("DELETE FROM conversations WHERE id = ?", (conversation_id,))
             await db.commit()
@@ -349,7 +349,7 @@ class ConversationDB:
             ``True`` if the row was updated, else ``False``.
         """
         now = _now_iso()
-        async with aiosqlite.connect(str(NEXA_DB_PATH)) as db:
+        async with aiosqlite.connect(str(FORGE_DB_PATH)) as db:
             cursor = await db.execute(
                 "UPDATE conversations SET title = ?, updated_at = ? WHERE id = ?",
                 (title, now, conversation_id),
@@ -381,7 +381,7 @@ class ConversationDB:
             ``created_at`` and ``updated_at``, or ``None`` if the source
             conversation or message id does not exist.
         """
-        async with aiosqlite.connect(str(NEXA_DB_PATH)) as db:
+        async with aiosqlite.connect(str(FORGE_DB_PATH)) as db:
             db.row_factory = aiosqlite.Row
             # 1. Source conversation must exist.
             cur = await db.execute(
@@ -449,7 +449,7 @@ class ConversationDB:
         Returns:
             List of matching message dicts.
         """
-        async with aiosqlite.connect(str(NEXA_DB_PATH)) as db:
+        async with aiosqlite.connect(str(FORGE_DB_PATH)) as db:
             db.row_factory = aiosqlite.Row
             cursor = await db.execute(
                 "SELECT m.id, m.conversation_id, m.role, m.content, m.tool_name, m.created_at "
@@ -487,7 +487,7 @@ class ConversationDB:
         """
         mid = _uid("mem")
         now = _now_iso()
-        async with aiosqlite.connect(str(NEXA_DB_PATH)) as db:
+        async with aiosqlite.connect(str(FORGE_DB_PATH)) as db:
             await db.execute(
                 "INSERT INTO memories (id, kind, content, source, confidence, times_used, created_at, updated_at) "
                 "VALUES (?, ?, ?, ?, ?, 0, ?, ?)",
@@ -502,7 +502,7 @@ class ConversationDB:
 
         Returns memories sorted by confidence (descending), then recency.
         """
-        async with aiosqlite.connect(str(NEXA_DB_PATH)) as db:
+        async with aiosqlite.connect(str(FORGE_DB_PATH)) as db:
             db.row_factory = aiosqlite.Row
             if kind:
                 cursor = await db.execute(
@@ -518,7 +518,7 @@ class ConversationDB:
 
     async def search_memories(self, query: str, limit: int = 10) -> List[Dict[str, Any]]:
         """Full-text search across memories via FTS5."""
-        async with aiosqlite.connect(str(NEXA_DB_PATH)) as db:
+        async with aiosqlite.connect(str(FORGE_DB_PATH)) as db:
             db.row_factory = aiosqlite.Row
             cursor = await db.execute(
                 "SELECT m.* FROM memories_fts f JOIN memories m ON m.rowid = f.rowid "
@@ -529,7 +529,7 @@ class ConversationDB:
 
     async def increment_memory_usage(self, memory_id: str) -> None:
         """Increment the times_used counter when a memory is referenced."""
-        async with aiosqlite.connect(str(NEXA_DB_PATH)) as db:
+        async with aiosqlite.connect(str(FORGE_DB_PATH)) as db:
             await db.execute(
                 "UPDATE memories SET times_used = times_used + 1, updated_at = ? WHERE id = ?",
                 (_now_iso(), memory_id),
@@ -552,7 +552,7 @@ class ConversationDB:
         from datetime import datetime, timedelta, timezone as _tz
 
         cutoff = (datetime.now(_tz.utc) - timedelta(days=max(days, 1))).isoformat()
-        async with aiosqlite.connect(str(NEXA_DB_PATH)) as db:
+        async with aiosqlite.connect(str(FORGE_DB_PATH)) as db:
             db.row_factory = aiosqlite.Row
 
             total_cur = await db.execute(
@@ -594,7 +594,7 @@ class ConversationDB:
         Returns True when a row was removed, False when the id did not exist
         (B-01: lets the HTTP layer return 404 instead of silently "ok").
         """
-        async with aiosqlite.connect(str(NEXA_DB_PATH)) as db:
+        async with aiosqlite.connect(str(FORGE_DB_PATH)) as db:
             cursor = await db.execute("DELETE FROM memories WHERE id = ?", (memory_id,))
             await db.commit()
             return cursor.rowcount > 0
@@ -618,7 +618,7 @@ class ConversationDB:
             success:    True if the outcome was successful.
         """
         now = _now_iso()
-        async with aiosqlite.connect(str(NEXA_DB_PATH)) as db:
+        async with aiosqlite.connect(str(FORGE_DB_PATH)) as db:
             await db.execute(
                 "INSERT INTO learning_graph (id, node_type, node_value, success, failure, last_seen) "
                 "VALUES (?, ?, ?, ?, ?, ?) "
@@ -644,7 +644,7 @@ class ConversationDB:
 
         Returns None if the node has never been recorded.
         """
-        async with aiosqlite.connect(str(NEXA_DB_PATH)) as db:
+        async with aiosqlite.connect(str(FORGE_DB_PATH)) as db:
             cursor = await db.execute(
                 "SELECT success, failure FROM learning_graph WHERE node_type = ? AND node_value = ?",
                 (node_type, node_value),
@@ -657,7 +657,7 @@ class ConversationDB:
 
     async def get_learning_stats(self) -> Dict[str, Any]:
         """Get aggregate learning statistics for the /doctor command."""
-        async with aiosqlite.connect(str(NEXA_DB_PATH)) as db:
+        async with aiosqlite.connect(str(FORGE_DB_PATH)) as db:
             cursor = await db.execute("SELECT COUNT(*) FROM conversations")
             conv_count = (await cursor.fetchone())[0]
             cursor = await db.execute("SELECT COUNT(*) FROM messages")

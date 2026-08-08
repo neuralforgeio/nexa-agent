@@ -9,7 +9,7 @@ import pytest
 
 from tools._paths import resolve_in_workspace
 from src.server import _sanitize_filename
-from nexa.audit import AuditLog
+from openforge.audit import AuditLog
 
 
 # ── SEC-01: path traversal ──────────────────────────────────────────────────
@@ -17,7 +17,7 @@ from nexa.audit import AuditLog
 PATH_PAYLOADS = [
     "..\\", "..\\..\\", "..\\..\\..\\windows\\system32\\config",
     "../", "../../etc/passwd", "../../../secrets.txt",
-    "..%5c", "..%2f", "%2e%2e%2f", "….\\", "....//", "a/../../b", "..\\..\\nexa.db",
+    "..%5c", "..%2f", "%2e%2e%2f", "….\\", "....//", "a/../../b", "..\\..\\openforge.db",
 ]
 
 
@@ -65,11 +65,11 @@ SQLI_PAYLOADS = [
 @pytest.mark.parametrize("payload", SQLI_PAYLOADS)
 async def test_sql_injection_safe_in_memory_payload(payload, tmp_path, monkeypatch):
     """Feeding SQLi payloads into a memory add must not crash or exec."""
-    import nexa.state as st
-    from nexa.state import ConversationDB
+    import openforge.state as st
+    from openforge.state import ConversationDB
 
-    monkeypatch.setattr(st, "NEXA_HOME", tmp_path / ".nexa")
-    monkeypatch.setattr(st, "NEXA_DB_PATH", tmp_path / ".nexa" / "nexa.db")
+    monkeypatch.setattr(st, "FORGE_HOME", tmp_path / ".nexa")
+    monkeypatch.setattr(st, "FORGE_DB_PATH", tmp_path / ".nexa" / "openforge.db")
     db = ConversationDB()
     await db.init()
     # Store the payload as message content — parameterized queries must treat
@@ -127,8 +127,8 @@ def test_oversized_message_rejected():
 def test_auth_gate_blocks_bad_token(tmp_path, monkeypatch):
     import importlib
     import src.server
-    monkeypatch.setenv("NEXA_REQUIRE_AUTH", "1")
-    monkeypatch.setenv("NEXA_API_TOKEN", "good-token")
+    monkeypatch.setenv("FORGE_REQUIRE_AUTH", "1")
+    monkeypatch.setenv("FORGE_API_TOKEN", "good-token")
     importlib.reload(src.server)
     from fastapi.testclient import TestClient
     client = TestClient(src.server.app)
@@ -141,7 +141,7 @@ def test_auth_gate_blocks_bad_token(tmp_path, monkeypatch):
 def test_allowed_origins_respected(monkeypatch):
     import importlib
     import src.server
-    monkeypatch.setenv("NEXA_ALLOWED_ORIGINS", "https://only-safe.example")
+    monkeypatch.setenv("FORGE_ALLOWED_ORIGINS", "https://only-safe.example")
     importlib.reload(src.server)
     assert src.server._allowed_origins() == ["https://only-safe.example"]
 

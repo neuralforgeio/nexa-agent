@@ -2,7 +2,7 @@
 Tests for the ``spreadsheet_operations`` skill (data_analytics).
 
 ``create``/``edit`` run for real via openpyxl against the temp workspace
-(``NEXA_WORKSPACE`` -> ``tmp_path``); output is schema-validated. The missing-
+(``FORGE_WORKSPACE`` -> ``tmp_path``); output is schema-validated. The missing-
 backend case is exercised by monkeypatching the module's openpyxl flag and
 asserts NO file is faked. Every async test is marked (pytest-asyncio strict).
 """
@@ -23,9 +23,9 @@ XLSX_PATH = "reports/budget.xlsx"
 @pytest.fixture
 def ws(tmp_path, monkeypatch):
     (tmp_path / "reports").mkdir()
-    monkeypatch.setenv("NEXA_WORKSPACE", str(tmp_path))
+    monkeypatch.setenv("FORGE_WORKSPACE", str(tmp_path))
     monkeypatch.chdir(tmp_path)
-    monkeypatch.setattr("tools._paths.NEXA_WORKSPACE", tmp_path)
+    monkeypatch.setattr("tools._paths.FORGE_WORKSPACE", tmp_path)
     return tmp_path
 
 

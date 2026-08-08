@@ -10,7 +10,7 @@ percentage.
 Permissions used:
   * ``filesystem:workspace`` — the file referenced by ``file_path`` is read
     through :func:`agent.tool_api.workspace_path`, i.e. sandboxed to
-    ``NEXA_WORKSPACE``.
+    ``FORGE_WORKSPACE``.
   * ``filesystem:workspace:write`` — declared by the manifest; this handler
     does NOT itself write the generated tests to disk (see the honesty note).
 

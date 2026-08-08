@@ -11,7 +11,7 @@ progress, and create rollback checkpoints.
 - :func:`git_checkpoint`— stage-and-commit a snapshot so work can be rolled
   back with ``git revert`` later.
 
-All commands run with ``cwd=NEXA_WORKSPACE`` (safe by construction), a
+All commands run with ``cwd=FORGE_WORKSPACE`` (safe by construction), a
 hardcoded timeout, and size-capped stdout so large diffs never blow up
 context.
 

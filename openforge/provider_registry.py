@@ -3,7 +3,7 @@ Nexa Agent — Provider Registry (v4.1.0)
 ========================================
 
 Runtime provider management with secrets stored in
-``~/.nexa/secrets/providers.json``. This module lets the user add, switch,
+``~/.openforge/secrets/providers.json``. This module lets the user add, switch,
 list, and remove LLM providers at runtime — without editing env vars or
 restarting the agent.
 
@@ -11,7 +11,7 @@ Design goals:
     - **Single source of truth**: catalog defaults (openai, ollama, etc.)
       + user-defined custom providers (TokenRouter, Databricks, any
       OpenAI-compatible endpoint) live in one registry.
-    - **Secret-safe**: api_keys are stored in ``~/.nexa/secrets/`` (which
+    - **Secret-safe**: api_keys are stored in ``~/.openforge/secrets/`` (which
       ``run_terminal_command`` cannot access — see ``tools.terminal_tool``).
     - **Masked display**: ``list_all()`` masks api_keys as ``tr_...wxyz``
       so logs / UIs never leak the full secret.
@@ -29,9 +29,9 @@ from dataclasses import dataclass, asdict, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from nexa.config import NEXA_SECRETS_DIR, ensure_nexa_home
+from openforge.config import FORGE_SECRETS_DIR, ensure_nexa_home
 from providers.catalog import PROVIDER_CATALOG, ProviderConfig, resolve_provider
-from nexa.provider_failover import check_provider_health
+from openforge.provider_failover import check_provider_health
 
 
 # ---------------------------------------------------------------------------
@@ -95,7 +95,7 @@ class ProviderRegistry:
     """
     Runtime provider registry.
 
-    Loads custom providers from ``~/.nexa/secrets/providers.json`` on init,
+    Loads custom providers from ``~/.openforge/secrets/providers.json`` on init,
     merges with the catalog defaults, and tracks the active provider.
     """
 
@@ -104,9 +104,9 @@ class ProviderRegistry:
         Initialize the registry.
 
         Args:
-            secrets_dir: Override for the secrets directory (default NEXA_SECRETS_DIR).
+            secrets_dir: Override for the secrets directory (default FORGE_SECRETS_DIR).
         """
-        self._secrets_dir: Path = secrets_dir or NEXA_SECRETS_DIR
+        self._secrets_dir: Path = secrets_dir or FORGE_SECRETS_DIR
         self._secrets_dir.mkdir(parents=True, exist_ok=True)
         self._secrets_file: Path = self._secrets_dir / "providers.json"
         self._active_file: Path = self._secrets_dir / "active"
@@ -234,7 +234,7 @@ class ProviderRegistry:
         Mark ``name`` as the active provider.
 
         The provider must exist in either custom or catalog. The choice is
-        persisted to ``~/.nexa/secrets/active`` so it survives restarts.
+        persisted to ``~/.openforge/secrets/active`` so it survives restarts.
 
         Args:
             name: Provider name.
@@ -255,7 +255,7 @@ class ProviderRegistry:
         Return the active provider config (or ``None``).
 
         Resolution order:
-            1. ``~/.nexa/secrets/active`` file.
+            1. ``~/.openforge/secrets/active`` file.
             2. ``NEXA_PROVIDER`` env var.
             3. ``"openai"`` default.
 

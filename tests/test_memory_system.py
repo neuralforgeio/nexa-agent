@@ -2,7 +2,7 @@
 Tests for the memory file system (MEMORY.md + USER.md).
 
 Verifies:
-    - Memory files are created at ~/.nexa/memory/.
+    - Memory files are created at ~/.openforge/memory/.
     - append_to_memory and append_to_user add entries under correct sections.
     - read_memory_file and read_user_file return content.
     - build_memory_file_digest combines both files.
@@ -35,7 +35,7 @@ from agent.memory.memory_files import (
     write_user_file,
 )
 from agent.memory.memory_curator import MemoryCurator
-from nexa.state import ConversationDB
+from openforge.state import ConversationDB
 
 
 @pytest.fixture
@@ -49,7 +49,7 @@ def temp_memory_dir(tmp_path, monkeypatch):
     monkeypatch.setattr(mf, "MEMORY_FILE", temp_dir / "MEMORY.md")
     monkeypatch.setattr(mf, "USER_FILE", temp_dir / "USER.md")
     # v4.1.0: also neutralize the root-level USER.md / PROCEDURES.md so a
-    # real ~/.nexa directory on the dev machine can't leak into tests.
+    # real ~/.openforge directory on the dev machine can't leak into tests.
     monkeypatch.setattr(mf, "USER_FILE_ROOT", tmp_path / "_no_user.md")
     monkeypatch.setattr(mf, "PROCEDURES_FILE", tmp_path / "_no_procs.md")
     return temp_dir
@@ -163,7 +163,7 @@ class TestMemoryFiles:
 
 @pytest_asyncio.fixture
 async def db_for_curator(tmp_path):
-    """Provide a DB with temp NEXA_HOME for curator testing."""
+    """Provide a DB with temp FORGE_HOME for curator testing."""
     db = ConversationDB()
     await db.init()
     yield db

@@ -10,7 +10,7 @@ the requested ``analysis_type`` (``anomaly`` | ``pattern`` | ``error`` |
 Permissions used:
   * ``filesystem:workspace`` — the file referenced by ``log_source`` is read
     through :func:`agent.tool_api.workspace_path`, i.e. sandboxed to
-    ``NEXA_WORKSPACE``.
+    ``FORGE_WORKSPACE``.
   * ``memory:read`` — declared by the manifest; this handler itself does not
     touch memory.
 

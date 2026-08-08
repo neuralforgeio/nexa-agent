@@ -171,7 +171,7 @@ async def _fetch_page_content(
         import httpx
         async with httpx.AsyncClient(timeout=timeout, follow_redirects=True) as client:
             resp = await client.get(url, headers={
-                "User-Agent": "Mozilla/5.0 (compatible; NexaAgent/1.0; +https://github.com/neuralforgeio/nexa-agent)"
+                "User-Agent": "Mozilla/5.0 (compatible; OpenForgeAgent/1.0; +https://github.com/neuralforgeio/nexa-agent)"
             })
             resp.raise_for_status()
             html = resp.text

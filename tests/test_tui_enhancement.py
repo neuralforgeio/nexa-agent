@@ -17,7 +17,7 @@ import pytest
 import pytest_asyncio
 
 from src.cli import SLASH_COMMANDS
-from nexa.state import ConversationDB
+from openforge.state import ConversationDB
 
 
 class TestSlashCommandRegistration:
@@ -122,10 +122,10 @@ class TestConfigCommand:
     """Tests for /config command behavior."""
 
     def test_config_show_displays_info(self) -> None:
-        """/config show must display NEXA_HOME, workspace, model, provider."""
-        from nexa.config import NEXA_HOME, NEXA_WORKSPACE
-        assert NEXA_HOME is not None
-        assert NEXA_WORKSPACE is not None
+        """/config show must display FORGE_HOME, workspace, model, provider."""
+        from openforge.config import FORGE_HOME, FORGE_WORKSPACE
+        assert FORGE_HOME is not None
+        assert FORGE_WORKSPACE is not None
 
     def test_config_set_model(self) -> None:
         """Setting model via config must update the provider."""

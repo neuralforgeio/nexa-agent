@@ -28,7 +28,7 @@ def ws(tmp_path, monkeypatch):
     d = tmp_path / "sub"
     d.mkdir()
     (d / "gamma.md").write_text("backoff retry logic lives here\n", encoding="utf-8")
-    monkeypatch.setenv("NEXA_WORKSPACE", str(tmp_path))
+    monkeypatch.setenv("FORGE_WORKSPACE", str(tmp_path))
     monkeypatch.chdir(tmp_path)
     return tmp_path
 

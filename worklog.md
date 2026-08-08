@@ -41,7 +41,7 @@ Task: Build Nexa Agent v1.0.0 — a clean-room, web-based AI agent (Next.js 16) 
 Work Log:
 - Invoked the LLM skill to learn the Nexa SDK API (system prompts use role 'assistant'; thinking toggle; chat.completions.create).
 - Created the Nexa core library under `src/lib/nexa/`:
-  - `constants.ts` — NEXA_NAME, NEXA_VERSION (1.0.0), NEXA_AUTHOR, NEXA_HOME (~/.nexa), boot banner/sequence.
+  - `constants.ts` — NEXA_NAME, NEXA_VERSION (1.0.0), NEXA_AUTHOR, FORGE_HOME (~/.openforge), boot banner/sequence.
   - `types.ts` — NexaMessage, ProviderMessage, ToolSchema, ToolRequest, ToolResult, AgentStep, AgentTurnResult, NexaSession, NexaMemory.
   - `tools/base.ts` — abstract NexaTool contract.
   - `tools/registry.ts` — ToolRegistry (register/has/get/list/schemas/describe/execute with timing).
@@ -49,7 +49,7 @@ Work Log:
   - `tools/memory-tools.ts` — SaveMemoryTool, RecallMemoryTool, ListMemoryTool, ForgetMemoryTool.
   - `provider.ts` — LLMProvider wrapping Nexa SDK with a singleton client.
   - `memory.ts` — persistent memory CRUD (saveMemory/recallMemory/listMemory/deleteMemory/renderMemoryDigest) backed by Prisma.
-  - `agent.ts` — NexaAgent core loop: assembles system prompt (identity + tool catalog + memory digest), calls LLM, parses tool calls (5-level tolerant parser), executes via registry, feeds results back, iterates until final answer or NEXA_MAX_TOOL_ITERATIONS.
+  - `agent.ts` — OpenForgeAgent core loop: assembles system prompt (identity + tool catalog + memory digest), calls LLM, parses tool calls (5-level tolerant parser), executes via registry, feeds results back, iterates until final answer or FORGE_MAX_TOOL_ITERATIONS.
 - Prisma schema (`prisma/schema.prisma`): NexaSession, NexaMessage, NexaMemory. Ran `bun run db:push` — DB in sync.
 - API routes:
   - `POST /api/chat` — runs one agent turn, persists user/tool/assistant messages, returns steps + answer.
@@ -174,7 +174,7 @@ Work Log:
     - `WriteFileTool` — writes files (creates parent dirs, overwrites existing)
     - `ListDirTool` — lists directory entries with file/folder icons
     - `RunTerminalCommandTool` — executes shell commands via `spawn` (15s timeout, 2000-char output cap, blocked dangerous patterns like `rm -rf /`, `mkfs`, `shutdown`)
-  - Added `NEXA_WORKSPACE` constant (sandboxed to `nexa-workspace/` directory)
+  - Added `FORGE_WORKSPACE` constant (sandboxed to `forge-workspace/` directory)
   - Added `getOpenAiSchemas()` method to `ToolRegistry` — returns OpenAI function-calling format (`{type:"function", function:{name, description, parameters}}`)
   - Registered all 4 new tools in `createDefaultToolSet()` → **18 tools total**
   - Wired `setActiveSessionId()` in chat API route so notes tools know the active session
@@ -208,7 +208,7 @@ Work Log:
 
 - **GitHub Release Preparation**:
   - Set git identity: `neuralforgeio` / `dearlyfebrianoi@gmail.com`
-  - Created comprehensive `.gitignore` excluding: node_modules, .next, db/*.db, dev.log, nexa-workspace/, upload/, skills/, examples/, Caddyfile, test screenshots
+  - Created comprehensive `.gitignore` excluding: node_modules, .next, db/*.db, dev.log, forge-workspace/, upload/, skills/, examples/, Caddyfile, test screenshots
   - Committed as `feat: Nexa Agent v1.0.0 — initial release` (31 files changed, 2082 insertions, 1352 deletions)
   - Created annotated tag `v1.0.0`
   - Added remote: `origin → https://github.com/neuralforgeio/nexa-agent.git`
@@ -239,7 +239,7 @@ Work Log:
 - **TUGAS 2 — Color Cleanup**: Found and removed ALL emerald/green/teal from secondary components (`boot-sequence.tsx` deleted as unused, `command-palette.tsx` and `memory-panel.tsx` sed-replaced emerald→primary). Verified: `grep -rn "emerald\|green-[0-9]\|teal-[0-9]" src/` → 0 results.
 - **TUGAS 3 — Streaming Backend**:
   - Added `LLMProvider.chatCompletionStream()` async generator — tries SDK `stream:true`, handles ReadableStream/SSE/async-iterable Response shapes, falls back to pseudo-streaming.
-  - Added `NexaAgent.runStreaming()` — yields `StreamEvent`s: `thinking`, `token`, `tool_call`, `tool_result`, `done`, `error`.
+  - Added `OpenForgeAgent.runStreaming()` — yields `StreamEvent`s: `thinking`, `token`, `tool_call`, `tool_result`, `done`, `error`.
   - Created `POST /api/chat/stream` — pure SSE streaming, NO DB writes (separated to avoid Turbopack SQLite readonly issue).
   - Created `POST /api/chat` persist mode (`action:"persist"`) — saves completed turn to DB using the existing working route's Prisma connection.
   - Added `StreamEvent` type to `types.ts`, `isPureMarkup()` helper to filter tool-call markup from token stream.
@@ -282,10 +282,10 @@ Work Log:
 
 - **Python Backend (backend/)**:
   - Created standalone FastAPI implementation mirroring [agent architecture]:
-    - `nexa/agent.py` — NexaAgent with `run_conversation()` (non-streaming) + `run_streaming()` (async generator yielding events)
+    - `nexa/agent.py` — OpenForgeAgent with `run_conversation()` (non-streaming) + `run_streaming()` (async generator yielding events)
     - `nexa/provider.py` — LLMProvider wrapping AsyncOpenAI with retry/backoff + streaming via `stream=True`
     - `nexa/state.py` — SQLite + FTS5 (conversations, messages, full-text search via virtual table + triggers)
-    - `nexa/memory.py` — MemoryManager for ~/.nexa/memory/MEMORY.md and USER.md
+    - `nexa/memory.py` — MemoryManager for ~/.openforge/memory/MEMORY.md and USER.md
     - `nexa/tools/` — 8 tools: echo, calculate, get_time, generate_uuid, read_file, write_file, list_dir, run_terminal_command
     - `nexa/main.py` — FastAPI gateway: REST endpoints + WebSocket `/ws/chat` for streaming
     - `pyproject.toml` + `requirements.txt` + `README.md`
@@ -403,7 +403,7 @@ Work Log:
 ### agent/self_health.py
 - HealthCheck + HealthReport dataclasses
 - check_database(): DB connectivity + table counts
-- check_disk_space(): free space at NEXA_HOME
+- check_disk_space(): free space at FORGE_HOME
 - check_memories(): memory store stats
 - check_learning_graph(): tool success/failure breakdown
 - check_provider_reachable(): TCP connect test
@@ -497,7 +497,7 @@ Agent: Nexa Autonomous Engineer (cron job 274406)
 Task: Roadmap item #3 — Memory System: file-based memory (MEMORY.md + USER.md), /memory command, tests.
 
 Work Log:
-- Created agent/memory_files.py: file-based memory persistence at ~/.nexa/memory/
+- Created agent/memory_files.py: file-based memory persistence at ~/.openforge/memory/
   - MEMORY.md: agent notes, insights, skills (sectioned by kind)
   - USER.md: user profile (preferences, facts)
   - Functions: read/write/append_to_memory, read/write/append_to_user, build_memory_file_digest, sync_db_to_files
@@ -537,7 +537,7 @@ Work Log:
 - Deleted old cron job (274406, failed due to 429) and created new merged cron (274439, every 30m) with:
   - Documentation mandatory every cycle (README.md + docs/)
   - uv/bun usage requirements
-  - Local AI architecture emphasis (~/.nexa/)
+  - Local AI architecture emphasis (~/.openforge/)
   - 12-item roadmap (subagent → prompt builder → terminal backends → more tools → TUI → failover → trajectory → CLI entry → config)
 - Created tools/delegate_tool.py: sub-agent spawning for parallel subtasks
   - delegate(task, context, max_iterations) function
@@ -551,7 +551,7 @@ Work Log:
   - Registration, schema validation, prompt builder, pending tool calls, empty task errors
 - Updated tests/test_tool_registry.py: expected 5 tools (was 4)
 - Comprehensive documentation:
-  - README.md: full rewrite (features, installation, providers table, TUI commands, tools, architecture, ~/.nexa/ structure)
+  - README.md: full rewrite (features, installation, providers table, TUI commands, tools, architecture, ~/.openforge/ structure)
   - docs/tools.md: detailed tool reference (parameters, limits, custom tool guide, OpenAI schema)
   - docs/architecture.md: system design, agent loop flow, data flow, self-improvement loop, testing
   - docs/providers.md: setup guides for all 6 providers + custom endpoints + resolution order
@@ -859,7 +859,7 @@ Agent: Nexa Autonomous Principal Engineer
    - Port 3001, OpenAI-compatible API
    - Uses z-ai-web-dev-sdk internally
    - Pseudo-stream mode (non-stream internally, SSE output)
-   - Separate from nexa-agent repo (never pushed to GitHub)
+   - Separate from openforge-agent repo (never pushed to GitHub)
 3. Restored Next.js Web UI (src/app/):
    - layout.tsx, page.tsx, globals.css
    - Chat UI with streaming, sidebar, tool cards
@@ -938,7 +938,7 @@ consolidate memory, and reformulate vague queries.
 - `LearningBudget` (per-session cap, rate-limited)
 - `learn_about()` runs injected search_fn, returns `LearnedFact`
 - `enrich_with_learned_facts()` for prompt injection
-- Opt-in via `NEXA_AUTONOMOUS_LEARNING=1`
+- Opt-in via `FORGE_AUTONOMOUS_LEARNING=1`
 
 **agent/prompt_expander.py** — Terse → Structured Prompt Expander
 - Detects intent (code_fix/generate/search/refactor/explain)
@@ -959,7 +959,7 @@ consolidate memory, and reformulate vague queries.
 - LRU eviction (cap 50)
 
 **agent/knowledge_cache.py** — On-Disk Fact Cache
-- One JSON file per entity under `~/.nexa/knowledge/`
+- One JSON file per entity under `~/.openforge/knowledge/`
 - TTL-based expiry (default 7 days)
 - LRU index + eviction (cap 500)
 - Cross-fact dedup
@@ -980,7 +980,7 @@ consolidate memory, and reformulate vague queries.
 - Generates suggestions from patterns
 
 **agent/error_memory.py** — Persistent Error Log
-- JSON file at `~/.nexa/memory/errors.json`
+- JSON file at `~/.openforge/memory/errors.json`
 - Signature-based dedup (numbers/paths normalized)
 - Tracks occurrences, remediation, resolved status
 - Cap 200 records
@@ -1129,7 +1129,7 @@ build blockers.
 **P1.2 code_execution_tool.py REWRITE** (Project-Scoped Boundary + HITL)
 - Was: hardcoded `python3` (fails on Windows), docstring lied ("sandboxed, no
   file access" — actually had full host FS access).
-- Now: uses `sys.executable` (cross-platform). cwd default NEXA_WORKSPACE,
+- Now: uses `sys.executable` (cross-platform). cwd default FORGE_WORKSPACE,
   validates `Path.is_relative_to()` — rejects /etc, C:\Windows, ../../.
 - HITL: `requires_approval: bool = True` parameter. `approval_callback(code) -> bool`
   invoked before execution. Headless (callback=None) = auto-deny. Timeout 30s = deny.
@@ -1138,7 +1138,7 @@ build blockers.
 - 18 tests pass (test_code_execution_hardened.py).
 
 **P1.3 terminal_tool.py HARDENING**
-- cwd validation (same as P1.2 — rejects paths outside NEXA_WORKSPACE).
+- cwd validation (same as P1.2 — rejects paths outside FORGE_WORKSPACE).
 - Expanded blocklist to Windows: `del /s`, `del /f`, `format`, `rmdir /s`,
   `rd /s`, `Remove-Item -Recurse`, `Remove-Item -Force`, `shutdown /s`,
   `shutdown /r`, `diskpart`, `reg delete`.
@@ -1285,17 +1285,17 @@ terminal panel with WebSocket backend. 84 new tests (396 → 480 passing).
 - **P0.2 ErrorMemory persistence**: `error_memory.save()` is now called
   in the conversation loop before the final `done` event. Errors survive
   process restarts.
-- **P0.3 Failover chain wiring**: `NexaAgent.__init__` now builds a
-  `failover_chain` when `NEXA_FAILOVER_ENABLED=1`. `run_streaming` passes
+- **P0.3 Failover chain wiring**: `OpenForgeAgent.__init__` now builds a
+  `failover_chain` when `FORGE_FAILOVER_ENABLED=1`. `run_streaming` passes
   it to `run_conversation`. The loop's failover branch now ACTUALLY swaps
   `provider.base_url`/`api_key`/`model`/`_client=None` (was dead-code
   scaffold in v2.0).
 - **P0.4 Terminal security**: `is_protected_path_reference()` blocks
-  `~/.nexa/`, `$HOME/.nexa`, `$NEXA_HOME`, `nexa.db`, `.nexa/secrets`,
+  `~/.openforge/`, `$HOME/.nexa`, `$FORGE_HOME`, `openforge.db`, `.nexa/secrets`,
   `.nexa/memory`, `.nexa/knowledge`, `.nexa/history`, `.nexa/logs`, and
-  absolute paths resolving inside NEXA_HOME. The LLM can no longer
-  exfiltrate API keys via `cat ~/.nexa/.env`.
-- **P0.5 NEXA_SECRETS_DIR**: new `~/.nexa/secrets/` directory (chmod 700
+  absolute paths resolving inside FORGE_HOME. The LLM can no longer
+  exfiltrate API keys via `cat ~/.openforge/.env`.
+- **P0.5 FORGE_SECRETS_DIR**: new `~/.openforge/secrets/` directory (chmod 700
   on Unix) for storing provider credentials separately from `.env`.
 
 ### P1 — Provider Expansion
@@ -1303,7 +1303,7 @@ terminal panel with WebSocket backend. 84 new tests (396 → 480 passing).
   default model `auto:balance`) and `databricks` (user-supplied base_url,
   default `databricks-claude-sonnet-4-6`). 8 providers total.
 - **P1.2 ProviderRegistry** (`nexa/provider_registry.py`): runtime
-  management with secrets stored in `~/.nexa/secrets/providers.json`.
+  management with secrets stored in `~/.openforge/secrets/providers.json`.
   `list_all()` masks API keys as `tr_...wxyz`.
 - **P1.3 Interactive CLI**: `nexa provider add/use/list/remove/test`
   subcommands. `add` prompts for name, base_url, api_key (hidden), model.
@@ -1340,7 +1340,7 @@ terminal panel with WebSocket backend. 84 new tests (396 → 480 passing).
 - Frontend `nexa_web` dev server on port 3000 (HTTP 200).
 - Provider API tested: POST /api/provider add tokenrouter → masked key
   `tr_...2345`, active switched.
-- Terminal security tested: `cat ~/.nexa/.env` → blocked with clear message.
+- Terminal security tested: `cat ~/.openforge/.env` → blocked with clear message.
 - SSE stream tested: session → thinking → error (expected, mock key) → end.
 
 ### P5 — Roadmap
@@ -1412,14 +1412,14 @@ Python+uv setup), comprehensive manual testing guide, and fixed the last
   factual questions ("what's the capital of France?").
 - Heuristic: short (<= 12 words), no action verbs, no file/code references.
 - `should_use_quick_mode()`, `build_quick_system_prompt()` (strips tool catalog),
-  `is_quick_mode_enabled()` (NEXA_QUICK_MODE env).
-- Wired into `run_conversation(quick_mode=)` + `NexaAgent.run_streaming`.
+  `is_quick_mode_enabled()` (FORGE_QUICK_MODE env).
+- Wired into `run_conversation(quick_mode=)` + `OpenForgeAgent.run_streaming`.
 - 15 tests.
 
 **Feature 2: Trajectory Export** (`agent/trajectory_recorder.py`)
 - Records the full prompt → tool → response trajectory as JSONL for
   fine-tuning datasets.
-- `TrajectoryRecorder` appends to `~/.nexa/logs/trajectory.jsonl` (one line
+- `TrajectoryRecorder` appends to `~/.openforge/logs/trajectory.jsonl` (one line
   per turn, append-only, survives restarts).
 - `TurnTrajectory` dataclass with session_id, turn_id, user_message,
   system_prompt (truncated to 2KB), tool_calls, assistant_response, errors,
@@ -1440,7 +1440,7 @@ Python+uv setup), comprehensive manual testing guide, and fixed the last
 - Lightweight semantic memory store using TF-IDF + cosine similarity
   (pure Python, no external dependencies like ChromaDB/FAISS).
 - `SemanticMemory.add/get/remove/search/list_all/count/clear/save_all`.
-- Documents persisted to `~/.nexa/memory/semantic.jsonl`.
+- Documents persisted to `~/.openforge/memory/semantic.jsonl`.
 - `search(query, top_k=5, min_similarity=0.05, kind_filter=None)` returns
   ranked results by semantic similarity.
 - Stopword-aware tokenizer, smoothed IDF, cosine similarity.
@@ -1488,7 +1488,7 @@ Agent: Nexa Autonomous Principal Engineer (Desktop IDE)
 - **Ask Question Mode**: Quick Q&A shortcut for factual questions
 - **Trajectory Export**: JSONL for fine-tuning dataset (via NEXA_TRAJECTORY=1)
 - **File Patch Rollback**: `.bak` history + `revert_file` tool (11th tool)
-- **Semantic Vector Memory**: TF-IDF-based recall in `~/.nexa/memory/semantic.jsonl`
+- **Semantic Vector Memory**: TF-IDF-based recall in `~/.openforge/memory/semantic.jsonl`
 - **70 new tests** (482 → 552 passing)
 - **Cross-platform installer**: scripts/install.sh (Linux/macOS) + scripts/install.ps1 (Windows)
 
@@ -1531,7 +1531,7 @@ Twenty planning tools in `tools/planning/`:
 - Knowledge: memory_search, session_search, web_fetch
 - Self-extension: create_tool, plan_and_delegate
 
-User-extensible: any ``~/.nexa/tools/*.py`` file exporting ``async def
+User-extensible: any ``~/.openforge/tools/*.py`` file exporting ``async def
 <filename>(...)`` + ``<FILENAME>_SCHEMA`` is auto-registered.
 
 ### Bug fixes
@@ -1551,10 +1551,10 @@ User-extensible: any ``~/.nexa/tools/*.py`` file exporting ``async def
 ### Internal hardening
 - `nexa/process_manager.py` — PID-based singleton across processes
   (Windows ctypes OpenProcess + POSIX kill(pid,0)), stale-lock recovery.
-- `agent/memory_files.py` — reads ``~/.nexa/USER.md`` (root) and
-  ``~/.nexa/PROCEDURES.md`` if present, so users can quick-edit from
+- `agent/memory_files.py` — reads ``~/.openforge/USER.md`` (root) and
+  ``~/.openforge/PROCEDURES.md`` if present, so users can quick-edit from
   the home directory.
-- `tools/registry.py::load_user_tools` — scans ``~/.nexa/tools/``
+- `tools/registry.py::load_user_tools` — scans ``~/.openforge/tools/``
   on every registry build for user-authored tools.
 
 ### Testing
@@ -1603,9 +1603,9 @@ virtual-multi-agent state machine, and a defense-in-depth security pass.
    machine could loop forever. Fixed by moving the counter into `transition_to`
    and removing the double-increment in `decide_next`. 15/15 FSM tests.
 2. **Live-session contamination between tests** — `Orchestrator.__init__`
-   always loaded `~/.nexa/workspace/state.json`, so smoke-E2E runs started in
+   always loaded `~/.openforge/workspace/state.json`, so smoke-E2E runs started in
    whatever phase the previous agent had left behind. Added `fresh=True` flag,
-   used by `NexaAgent`.
+   used by `OpenForgeAgent`.
 3. **FTS5 orphaned entries** — `messages_fts` / `memories_fts` never cleaned
    their rows on DELETE/UPDATE. Added `AFTER DELETE` + `AFTER UPDATE` triggers;
    searches no longer return ghost rows after deletion.
@@ -1621,7 +1621,7 @@ virtual-multi-agent state machine, and a defense-in-depth security pass.
    reached the model. Now injects as a system message before the user message.
 7. **Quick-mode prompt not actually quick** — `build_quick_system_prompt()`
    existed in `agent/ask_question_mode.py` but was never called. Wired so
-   `NEXA_QUICK_MODE=1` (or `should_use_quick_mode`) strips the 2K-token tool
+   `FORGE_QUICK_MODE=1` (or `should_use_quick_mode`) strips the 2K-token tool
    catalog before sending.
 8. **No tool args surface for the UI** — when the model invoked a tool the
    UI couldn't show what parameters it sent. `provider.chat_stream` now
@@ -1632,14 +1632,14 @@ virtual-multi-agent state machine, and a defense-in-depth security pass.
 
 #### A. Virtual Multi-Agent (State Machine)
 - `agent/orchestrator.py` — state machine (PLANNING → EXPLORING → CODING →
-  REVIEWING → DONE with bounded REVIEWING↔CODING loop). `~/.nexa/workspace/`
+  REVIEWING → DONE with bounded REVIEWING↔CODING loop). `~/.openforge/workspace/`
   holds the shared memory files (`task.md`, `context.md`, `errors.log`,
   `state.json`).
 - `agent/persona_manager.py` — persona catalog (🧠 Planner / 🔍 Explorer /
   💻 Coder / 🛡️ Reviewer / ✅ Final Reporter) with per-persona tool
   whitelists and icons.
-- Driven by `NEXA_ORCHESTRATOR=1`. Single-agent mode unchanged otherwise.
-- `NexaAgent` owns persistent `Orchestrator`, `PersonaManager`,
+- Driven by `FORGE_ORCHESTRATOR=1`. Single-agent mode unchanged otherwise.
+- `OpenForgeAgent` owns persistent `Orchestrator`, `PersonaManager`,
   `AdaptivePersona`, `SelfImprovementLoop`, `PatternRecognizer`,
   `ProactiveSuggester`, `KnowledgeCache`, `SelfHealer`, `ErrorMemory` so
   state accumulates across turns instead of resetting each message.
@@ -1655,20 +1655,20 @@ Sections that existed in modules but were never passed to
 This is what enables the agent to ACTUALLY learn across turns.
 
 #### C. Security Hardening (Phase 1)
-- **Bearer-token auth** (optional, `NEXA_REQUIRE_AUTH=1`): global HTTP
+- **Bearer-token auth** (optional, `FORGE_REQUIRE_AUTH=1`): global HTTP
   middleware + WS query-param gate; auto-generates a random 32-byte token
-  if `NEXA_API_TOKEN` isn't set.
+  if `FORGE_API_TOKEN` isn't set.
 - **Environment whitelist** on `run_terminal_command` + PTY stream: scrubs
   `OPENAI_API_KEY`, `DATABRICKS_TOKEN`, `*_API_KEY`, `*_TOKEN`,
   `*_SECRET`, `*_PASSWORD` from subprocess env vars.
-- **CORS locked to localhost:3000** by default (`NEXA_ALLOWED_ORIGINS` to widen).
+- **CORS locked to localhost:3000** by default (`FORGE_ALLOWED_ORIGINS` to widen).
 - **CSP header** on every response.
-- **PTY opt-in** (was always-on): `NEXA_ENABLE_PTY=1` to keep the previous
+- **PTY opt-in** (was always-on): `FORGE_ENABLE_PTY=1` to keep the previous
   behavior; otherwise uses the safer command-mode fallback.
-- **User-tool AST sandbox**: `tools/registry.py` rejects any `~/.nexa/tools/*.py`
+- **User-tool AST sandbox**: `tools/registry.py` rejects any `~/.openforge/tools/*.py`
   file that imports `os/subprocess/socket/ctypes/sys.modules/builtins/...`
   or calls `eval/exec/__import__/open/compile/...` and writes to
-  `~/.nexa/logs/tool_loads.jsonl`.
+  `~/.openforge/logs/tool_loads.jsonl`.
 
 #### D. Chat UI Enhancements
 - `/new` route for landing-only fresh session ("What can I build?").
@@ -1728,12 +1728,12 @@ v4.2.1.
    `getattr(__builtins__, 'open')`) — all rejected.
 3. `Orchestrator.decide_next` returned a stale phase when the review-loop cap
    was hit.
-4. `HOME` env leak — subprocesses could read `~/.nexa/` via `~` expansion.
+4. `HOME` env leak — subprocesses could read `~/.openforge/` via `~` expansion.
    HOME now points at the workspace for any spawned process.
 5. `deep_research` crashed on stringified `web_search` results — now coerces.
 6. `pyproject.toml` was missing the runtime deps used by `server.py`:
    fastapi, uvicorn, websockets, watchdog.
-7. `terminal_exec` defaulted to `NEXA_HOME` instead of `NEXA_WORKSPACE` and
+7. `terminal_exec` defaulted to `FORGE_HOME` instead of `FORGE_WORKSPACE` and
    swallowed errors into dicts — both fixed.
 8. `set_active_agent` was never called when `server.py` was imported
    directly — the delegate tool silently failed in-process.
@@ -1765,7 +1765,7 @@ Agent: Nexa autonomously planned
 - Test count: 636 → 660 (+24 across releases).
 
 Stage Summary:
-- gateway base is fully contract-compliant so NexaAgent can attach more
+- gateway base is fully contract-compliant so OpenForgeAgent can attach more
   channels later without breaking user code.
 
 

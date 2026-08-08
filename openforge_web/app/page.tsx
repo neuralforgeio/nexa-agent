@@ -6,7 +6,7 @@
  *
  * Features:
  * - Ctrl+B (⌘B) toggles sidebar
- * - Sidebar lists sessions from the local ~/.nexa store, deletable
+ * - Sidebar lists sessions from the local ~/.openforge store, deletable
  * - Thinking steps streamed into a collapsible "Working Process" panel
  *   (auto-collapses 800ms after completion, shows summary)
  * - Sandbox panel on the right: live web preview (auto-detect dev servers)

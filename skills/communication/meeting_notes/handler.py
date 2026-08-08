@@ -12,7 +12,7 @@ Permissions
 -----------
 Declared: ``filesystem:workspace`` (the audio file referenced by
 ``audio_path`` is resolved and sized through
-:func:`agent.tool_api.workspace_path`, sandboxed to ``NEXA_WORKSPACE``) and
+:func:`agent.tool_api.workspace_path`, sandboxed to ``FORGE_WORKSPACE``) and
 ``memory:write`` (declared by the manifest; this handler itself does not
 write memory).
 

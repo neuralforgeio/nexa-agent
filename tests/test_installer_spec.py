@@ -1,6 +1,6 @@
 """Static structural tests for the installer scripts.
 
-These do NOT run the installer (which would touch ~/.nexa/ and the host
+These do NOT run the installer (which would touch ~/.openforge/ and the host
 system). They verify the on-disk specification that the installer's helper
 functions, signal traps, and partial-resume machinery are all present and
 wired correctly.

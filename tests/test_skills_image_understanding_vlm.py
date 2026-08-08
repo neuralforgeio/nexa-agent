@@ -5,7 +5,7 @@ There is no local vision-language model backend, so the handler returns an
 honest degraded result: per-question answers that state plainly that a vision
 backend is not configured (``confidence`` 0.0), empty ``detected_objects``
 and ``extracted_text``. What DOES run for real is the workspace path
-validation (``NEXA_WORKSPACE`` pointed at ``tmp_path``) and schema
+validation (``FORGE_WORKSPACE`` pointed at ``tmp_path``) and schema
 validation.
 
 Honesty invariant under test: no visual content is ever fabricated — answers
@@ -27,11 +27,11 @@ QUESTIONS = ["What components does this diagram show?", "Is there any text?"]
 @pytest.fixture
 def ws(tmp_path, monkeypatch):
     (tmp_path / "diagram.png").write_bytes(b"\x89PNG fake-but-present")
-    monkeypatch.setenv("NEXA_WORKSPACE", str(tmp_path))
+    monkeypatch.setenv("FORGE_WORKSPACE", str(tmp_path))
     monkeypatch.chdir(tmp_path)
-    # NEXA_WORKSPACE is captured at import time by tools._paths, so the env
+    # FORGE_WORKSPACE is captured at import time by tools._paths, so the env
     # var alone is not enough — repoint the already-imported reference.
-    monkeypatch.setattr("tools._paths.NEXA_WORKSPACE", tmp_path)
+    monkeypatch.setattr("tools._paths.FORGE_WORKSPACE", tmp_path)
     return tmp_path
 
 

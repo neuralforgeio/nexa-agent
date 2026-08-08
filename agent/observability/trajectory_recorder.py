@@ -17,7 +17,7 @@ Each line is a JSON object with:
     - ``confidence``:  Confidence score (0.0–1.0).
     - ``timestamp``:    ISO 8601 timestamp.
 
-The trajectory is appended to ``~/.nexa/logs/trajectory.jsonl`` (one file,
+The trajectory is appended to ``~/.openforge/logs/trajectory.jsonl`` (one file,
 append-only, so it survives restarts and grows incrementally).
 
 Copyright (c) 2026 Dearly Febriano Irwansyah
@@ -33,11 +33,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from nexa.config import NEXA_HOME
+from openforge.config import FORGE_HOME
 
 
 #: Default trajectory file path.
-DEFAULT_TRAJECTORY_PATH: Path = NEXA_HOME / "logs" / "trajectory.jsonl"
+DEFAULT_TRAJECTORY_PATH: Path = FORGE_HOME / "logs" / "trajectory.jsonl"
 
 #: Truncate the system prompt in the trajectory to keep file size manageable.
 SYSTEM_PROMPT_TRUNCATE: int = 2048
@@ -92,7 +92,7 @@ class TrajectoryRecorder:
     """
     Append-only trajectory recorder.
 
-    Writes one JSONL line per turn to ``~/.nexa/logs/trajectory.jsonl``.
+    Writes one JSONL line per turn to ``~/.openforge/logs/trajectory.jsonl``.
     Failures are silently swallowed (trajectory is best-effort — must never
     break the agent loop).
     """
@@ -102,7 +102,7 @@ class TrajectoryRecorder:
         Initialize the recorder.
 
         Args:
-            path: Override for the trajectory file (default NEXA_HOME/logs/trajectory.jsonl).
+            path: Override for the trajectory file (default FORGE_HOME/logs/trajectory.jsonl).
         """
         self.path: Path = path or DEFAULT_TRAJECTORY_PATH
         self.path.parent.mkdir(parents=True, exist_ok=True)

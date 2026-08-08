@@ -43,7 +43,7 @@ async def memory_search(query: str, kind: Optional[str] = None, limit: int = 8) 
 
     limit = max(1, min(limit, 20))
     # Lazy import so state.py stays optional at import time.
-    from nexa.state import ConversationDB
+    from openforge.state import ConversationDB
 
     db = ConversationDB()
     await db.init()
@@ -96,7 +96,7 @@ async def session_search(query: str, role: Optional[str] = None, limit: int = 8)
         return "**Error.** `query` cannot be empty."
 
     limit = max(1, min(limit, 20))
-    from nexa.state import ConversationDB
+    from openforge.state import ConversationDB
 
     db = ConversationDB()
     await db.init()
@@ -134,7 +134,7 @@ SESSION_SEARCH_SCHEMA: Dict[str, Any] = {
 # ---------------------------------------------------------------------------
 _MAX_FETCH = 32 * 1024       # 32 KB decoded-text cap
 _TIMEOUT_S = 12.0            # Reasonable for slow CDNs
-_UA = "NexaAgent/4.0 (+https://github.com/neuralforgeio/nexa-agent)"
+_UA = "OpenForgeAgent/4.0 (+https://github.com/neuralforgeio/nexa-agent)"
 
 
 def _html_to_text(raw: str) -> str:

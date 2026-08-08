@@ -3,7 +3,7 @@ Tests for the ``voice_cloning`` skill handler.
 
 No voice-cloning backend is configured, so the handler is an honest graceful
 stub: it validates inputs for real, genuinely verifies the sample audio file
-exists in the workspace (``NEXA_WORKSPACE`` pointed at ``tmp_path``), and
+exists in the workspace (``FORGE_WORKSPACE`` pointed at ``tmp_path``), and
 returns ``audio_path == ""`` with ``similarity_score == 0.0`` rather than
 fabricating synthesized audio.
 
@@ -32,11 +32,11 @@ def ws(tmp_path, monkeypatch):
     media = tmp_path / "media"
     media.mkdir()
     (media / "voice_sample.wav").write_bytes(b"RIFF fake-but-present")
-    monkeypatch.setenv("NEXA_WORKSPACE", str(tmp_path))
+    monkeypatch.setenv("FORGE_WORKSPACE", str(tmp_path))
     monkeypatch.chdir(tmp_path)
-    # NEXA_WORKSPACE is captured at import time by tools._paths, so the env
+    # FORGE_WORKSPACE is captured at import time by tools._paths, so the env
     # var alone is not enough — repoint the already-imported reference.
-    monkeypatch.setattr("tools._paths.NEXA_WORKSPACE", tmp_path)
+    monkeypatch.setattr("tools._paths.FORGE_WORKSPACE", tmp_path)
     return tmp_path
 
 

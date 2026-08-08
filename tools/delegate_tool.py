@@ -16,7 +16,7 @@ The sub-agent inherits the parent's provider and tool registry but gets
 a fresh transcript with a focused system prompt.
 
 Architecture note:
-    The active :class:`~run_agent.NexaAgent` instance is discovered via
+    The active :class:`~run_agent.OpenForgeAgent` instance is discovered via
     :func:`run_agent.get_active_agent`. The CLI / server / TUI must call
     :func:`run_agent.set_active_agent` at startup for delegation to work.
     If no agent is registered, ``delegate`` returns a clear error message

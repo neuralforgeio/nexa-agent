@@ -132,12 +132,12 @@ def ast_check_tool_source(source: str) -> Tuple[bool, str]:
 
 
 def _log_tool_load(tool_name: str, path: Any, ok: bool, reason: str = "") -> None:
-    """Append a JSON line to ~/.nexa/logs/tool_loads.jsonl (best-effort)."""
+    """Append a JSON line to ~/.openforge/logs/tool_loads.jsonl (best-effort)."""
     import json as _json
-    import nexa.config as _config
+    import openforge.config as _config
     try:
         from datetime import datetime, timezone
-        logs = _config.NEXA_HOME / "logs"
+        logs = _config.FORGE_HOME / "logs"
         logs.mkdir(parents=True, exist_ok=True)
         entry = {
             "ts": datetime.now(timezone.utc).isoformat(),
@@ -516,13 +516,13 @@ def create_default_registry() -> ToolRegistry:
             "Execute a terminal command with optional session persistence. "
             "Use this to run shell commands (npm install, pytest, etc.) on "
             "behalf of the user. All commands still respect the workspace "
-            "sandbox and ~/.nexa/ security boundary."
+            "sandbox and ~/.openforge/ security boundary."
         ),
         parameters=TERMINAL_EXEC_SCHEMA,
     )
     # v4.0.0: register the 20 planning tools.
     register_planning_tools(registry)
-    # v4.0.0: load user-written tools from ~/.nexa/tools/ so anything the
+    # v4.0.0: load user-written tools from ~/.openforge/tools/ so anything the
     # agent drafted via create_tool earlier becomes callable immediately.
     load_user_tools(registry)
 
@@ -592,7 +592,7 @@ def register_planning_tools(registry: ToolRegistry) -> ToolRegistry:
 
 def load_user_tools(registry: ToolRegistry) -> ToolRegistry:
     """
-    Scan ``~/.nexa/tools/`` and register every user-drafted tool.
+    Scan ``~/.openforge/tools/`` and register every user-drafted tool.
 
     Files in that directory are expected to expose:
       - an async function named after the file (``my_tool.py`` → ``my_tool``)
@@ -605,8 +605,8 @@ def load_user_tools(registry: ToolRegistry) -> ToolRegistry:
     import sys
     from pathlib import Path
 
-    import nexa.config as _config
-    tools_dir = Path(_config.NEXA_HOME) / "tools"
+    import openforge.config as _config
+    tools_dir = Path(_config.FORGE_HOME) / "tools"
     if not tools_dir.is_dir():
         return registry
 

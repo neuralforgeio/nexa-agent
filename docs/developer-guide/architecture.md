@@ -12,7 +12,7 @@ loop, multi-provider LLM support, and a self-improvement memory system.
 | File | Purpose |
 |------|---------|
 | `cli.py` | Interactive TUI with prompt_toolkit + rich |
-| `run_agent.py` | NexaAgent class + standalone CLI runner |
+| `run_agent.py` | OpenForgeAgent class + standalone CLI runner |
 | `server.py` | FastAPI SSE server for web UI integration |
 
 ### 2. nexa/ — Core Package
@@ -20,7 +20,7 @@ loop, multi-provider LLM support, and a self-improvement memory system.
 | Module | Responsibility |
 |--------|---------------|
 | `bootstrap.py` | UTF-8 stdio setup (imported first) |
-| `constants.py` | NEXA_HOME, version, safeguards |
+| `constants.py` | FORGE_HOME, version, safeguards |
 | `config.py` | Environment variable loading |
 | `state.py` | SQLite + FTS5 persistence (conversations, messages, memories) |
 | `provider.py` | LLMProvider — AsyncOpenAI with streaming + tool dispatch |
@@ -62,7 +62,7 @@ loop, multi-provider LLM support, and a self-improvement memory system.
 User Input
     │
     ▼
-NexaAgent.run_streaming()
+OpenForgeAgent.run_streaming()
     │
     ├─ Build system prompt (identity + tools + memory digest)
     ├─ Build transcript (system + history + user input)
@@ -95,11 +95,11 @@ ConversationDB: persist user message + tool results + answer
 
 ## Data Flow
 
-### Local Storage (~/.nexa/)
+### Local Storage (~/.openforge/)
 
 ```
-~/.nexa/
-├── nexa.db              ← SQLite (conversations, messages, memories, learning_graph)
+~/.openforge/
+├── openforge.db              ← SQLite (conversations, messages, memories, learning_graph)
 │   ├── conversations    ← id, title, parent_session_id, timestamps
 │   ├── messages          ← id, conversation_id, role, content, tool_name, token_count
 │   ├── memories          ← id, kind, content, source, confidence, times_used

@@ -3,7 +3,7 @@ Tests for the Trajectory Recorder (v3.1.0).
 
 Verifies:
     - TurnTrajectory serializes to a single JSONL line.
-    - TrajectoryRecorder appends to ~/.nexa/logs/trajectory.jsonl.
+    - TrajectoryRecorder appends to ~/.openforge/logs/trajectory.jsonl.
     - read_all() round-trips.
     - count() returns the line count.
     - clear() deletes the file.

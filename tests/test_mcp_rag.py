@@ -21,8 +21,8 @@ import tools.core.read_pptx as _rpptx  # noqa: F401
 import tools.core.semantic_search as _ss  # noqa: F401
 import tools.core.mcp_client as _mcp  # noqa: F401
 
-from nexa.embeddings import embed_text
-from nexa.vector_db import VectorStore
+from openforge.embeddings import embed_text
+from openforge.vector_db import VectorStore
 from tools.registry import create_default_registry
 
 
@@ -37,7 +37,7 @@ def test_embed_text_dim_and_norm():
 
 
 def test_vectorstore_upsert_and_search(tmp_path, monkeypatch):
-    monkeypatch.setattr("nexa.vector_db._DB", tmp_path / "vec.db")
+    monkeypatch.setattr("openforge.vector_db._DB", tmp_path / "vec.db")
     store = VectorStore()
     store.initialize()
     store.upsert("a::0", "a.py", 0, "def hello(): return 'world'", embed_text("hello world python"))
@@ -51,8 +51,8 @@ def test_vectorstore_upsert_and_search(tmp_path, monkeypatch):
 
 @pytest.mark.asyncio
 async def test_workspace_indexer_and_semantic_search(tmp_path, monkeypatch):
-    monkeypatch.setattr("agent.workspace_indexer.NEXA_WORKSPACE", tmp_path)
-    monkeypatch.setattr("nexa.vector_db._DB", tmp_path / "vec.db")
+    monkeypatch.setattr("agent.workspace_indexer.FORGE_WORKSPACE", tmp_path)
+    monkeypatch.setattr("openforge.vector_db._DB", tmp_path / "vec.db")
     (tmp_path / "hello.py").write_text("def greet(): return 'hi'", encoding="utf-8")
     from agent.workspace_indexer import WorkspaceIndexer
 
@@ -63,7 +63,7 @@ async def test_workspace_indexer_and_semantic_search(tmp_path, monkeypatch):
     from tools.core.semantic_search import semantic_search
 
     # Force the semantic_search tool to use the same store file.
-    monkeypatch.setattr("nexa.vector_db._DB", tmp_path / "vec.db")
+    monkeypatch.setattr("openforge.vector_db._DB", tmp_path / "vec.db")
     out = await semantic_search("greet")
     assert "hello.py" in out
 
@@ -85,7 +85,7 @@ async def test_mcp_list_servers_when_not_configured(tmp_path, monkeypatch):
 
 @pytest.mark.asyncio
 async def test_read_pdf_on_real_pdf(tmp_path, monkeypatch):
-    monkeypatch.setattr("tools._paths.NEXA_WORKSPACE", tmp_path, raising=False)
+    monkeypatch.setattr("tools._paths.FORGE_WORKSPACE", tmp_path, raising=False)
     from pypdf import PdfWriter
 
     writer = PdfWriter()

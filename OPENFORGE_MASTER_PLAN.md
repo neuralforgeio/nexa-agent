@@ -13,7 +13,7 @@ Version 1.7.0 · Author: Dearly Febriano Irwansyah · MIT License
 Nexa Agent is a **local-first AI agent** built entirely in Python. It runs
 as a terminal application (TUI) with an iterative tool-calling loop,
 multi-provider LLM support, and a self-improvement memory system. All user
-data is stored locally at `~/.nexa/`.
+data is stored locally at `~/.openforge/`.
 
 ### Core Principles
 - **100% Original** — All code is written from scratch by Dearly Febriano Irwansyah.
@@ -29,11 +29,11 @@ data is stored locally at `~/.nexa/`.
 ```
 nexa-agent/
 ├── cli.py                  # Interactive TUI (prompt_toolkit + rich)
-├── run_agent.py            # NexaAgent class + standalone runner
+├── run_agent.py            # OpenForgeAgent class + standalone runner
 ├── server.py               # FastAPI SSE server (port 8000)
 ├── nexa/                   # Core package
 │   ├── bootstrap.py        # UTF-8 stdio setup
-│   ├── constants.py        # NEXA_HOME, version, safeguards
+│   ├── constants.py        # FORGE_HOME, version, safeguards
 │   ├── config.py           # Environment variable loading
 │   ├── state.py            # SQLite + FTS5 persistence
 │   └── provider.py         # LLMProvider (AsyncOpenAI, streaming, tools)
@@ -114,7 +114,7 @@ Nexa Agent is developed by an autonomous cron system with 3 cycles:
 | 9 | Provider Failover: health check + automatic failover |
 | 10 | Trajectory Recording |
 | 11 | CLI Entry Point: `pip install nexa-agent` → `nexa` command |
-| 12 | Config File: ~/.nexa/config.yaml |
+| 12 | Config File: ~/.openforge/config.yaml |
 
 ### Future Enterprise Features
 | # | Feature |
@@ -134,7 +134,7 @@ Nexa Agent is developed by an autonomous cron system with 3 cycles:
 - **Agent modules**: 12
 - **Providers**: 6 (openai, openrouter, ollama, llamacpp, lmstudio, vllm)
 - **TUI commands**: /help /tools /search /memory /memories /doctor /model /provider /history /clear /exit
-- **Storage**: ~/.nexa/ (nexa.db, memory/MEMORY.md, memory/USER.md)
+- **Storage**: ~/.openforge/ (openforge.db, memory/MEMORY.md, memory/USER.md)
 - **GitHub**: github.com/neuralforgeio/nexa-agent
 
 ---

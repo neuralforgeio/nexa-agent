@@ -60,7 +60,7 @@ body:
     id: logs
     attributes:
       label: Relevant log excerpt
-      description: Pull from ~/.nexa/logs/nexa.log around the failure timestamp.
+      description: Pull from ~/.openforge/logs/nexa.log around the failure timestamp.
       render: shell
     validations:
       required: true

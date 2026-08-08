@@ -4,7 +4,7 @@ Tests for the ``bug_diagnosis`` skill handler.
 The provider is a :class:`tests._skill_helpers.ScriptedProvider` — a scripted
 stand-in for the LLM boundary only. Context-file reads, prompt construction,
 schema validation, and the registry executor all run for real against a
-temporary workspace (``NEXA_WORKSPACE`` pointed at ``tmp_path``).
+temporary workspace (``FORGE_WORKSPACE`` pointed at ``tmp_path``).
 """
 
 from __future__ import annotations
@@ -39,11 +39,11 @@ GOOD_REPLY = (
 @pytest.fixture
 def ws(tmp_path, monkeypatch):
     (tmp_path / "mod.py").write_text(CONTEXT_SNIPPET, encoding="utf-8")
-    monkeypatch.setenv("NEXA_WORKSPACE", str(tmp_path))
+    monkeypatch.setenv("FORGE_WORKSPACE", str(tmp_path))
     monkeypatch.chdir(tmp_path)
-    # NEXA_WORKSPACE is captured at import time by tools._paths, so the env
+    # FORGE_WORKSPACE is captured at import time by tools._paths, so the env
     # var alone is not enough — repoint the already-imported reference.
-    monkeypatch.setattr("tools._paths.NEXA_WORKSPACE", tmp_path)
+    monkeypatch.setattr("tools._paths.FORGE_WORKSPACE", tmp_path)
     return tmp_path
 
 

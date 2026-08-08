@@ -1,5 +1,5 @@
 """
-Tests for F-02 branch_conversation (fork-at-message) in nexa.state.ConversationDB.
+Tests for F-02 branch_conversation (fork-at-message) in openforge.state.ConversationDB.
 
 Copyright (c) 2026 Dearly Febriano Irwansyah
 SPDX-License-Identifier: MIT
@@ -8,15 +8,15 @@ SPDX-License-Identifier: MIT
 import pytest
 import pytest_asyncio
 
-from nexa.state import ConversationDB
+from openforge.state import ConversationDB
 
 
 @pytest_asyncio.fixture
 async def tmp_db(tmp_path, monkeypatch):
-    """Isolated DB in a temp dir so we never touch the real ~/.nexa/nexa.db."""
-    import nexa.state as st
-    monkeypatch.setattr(st, "NEXA_DB_PATH", tmp_path / "test.db")
-    monkeypatch.setattr(st, "NEXA_HOME", tmp_path)
+    """Isolated DB in a temp dir so we never touch the real ~/.openforge/openforge.db."""
+    import openforge.state as st
+    monkeypatch.setattr(st, "FORGE_DB_PATH", tmp_path / "test.db")
+    monkeypatch.setattr(st, "FORGE_HOME", tmp_path)
     db = ConversationDB()
     await db.init()
     return db

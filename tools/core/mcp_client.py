@@ -1,6 +1,6 @@
 """MCP client — connect to external MCP servers (filesystem, github, etc.).
 
-Reads server definitions from ``~/.nexa/extensions/mcp_servers.json``.
+Reads server definitions from ``~/.openforge/extensions/mcp_servers.json``.
 Uses the official ``mcp`` package when available; otherwise returns a clear
 error message so callers degrade gracefully.
 """
@@ -9,14 +9,14 @@ from __future__ import annotations
 import json
 from typing import Any, Dict, List, Optional
 
-from nexa.config import NEXA_HOME
+from openforge.config import FORGE_HOME
 
 try:
     import mcp  # official MCP python SDK
 except Exception:  # pragma: no cover
     mcp = None  # type: ignore[assignment]
 
-_SERVERS_FILE = NEXA_HOME / "extensions" / "mcp_servers.json"
+_SERVERS_FILE = FORGE_HOME / "extensions" / "mcp_servers.json"
 
 
 def _load_servers() -> Dict[str, Dict[str, Any]]:
@@ -41,7 +41,7 @@ async def mcp_list_servers(**_: Any) -> str:
     if mcp is None:
         return "mcp package not installed (pip install mcp). Configured servers: " + ", ".join(servers.keys())
     if not servers:
-        return "No MCP servers configured in ~/.nexa/extensions/mcp_servers.json"
+        return "No MCP servers configured in ~/.openforge/extensions/mcp_servers.json"
     return "Configured MCP servers:\n" + "\n".join(f"- {name}" for name in servers)
 
 

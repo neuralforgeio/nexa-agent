@@ -9,7 +9,7 @@ This module wraps :class:`openai.AsyncOpenAI` with:
 - Automatic tool-call dispatch through the :class:`~tools.registry.ToolRegistry`.
 
 The :meth:`LLMProvider.chat_stream` method is the core entry point used by
-:class:`~agent.NexaAgent`. It yields ``("token", text)`` tuples for content
+:class:`~agent.OpenForgeAgent`. It yields ``("token", text)`` tuples for content
 deltas and ``("tool_call", result)`` tuples for executed tools.
 
 Copyright (c) 2026 Dearly Febriano Irwansyah
@@ -157,7 +157,7 @@ class LLMProvider:
         defaults.
         """
         try:
-            from nexa.provider_registry import ProviderRegistry
+            from openforge.provider_registry import ProviderRegistry
             cfg = ProviderRegistry().get_active()
             if cfg is not None:
                 return cls(api_key=cfg.api_key, base_url=cfg.base_url, model=cfg.model)
@@ -176,7 +176,7 @@ class LLMProvider:
             kwargs: Dict[str, Any] = {
                 "api_key": self.api_key,
                 # Long timeout — local providers (llamacpp) can be slow.
-                "timeout": float(os.environ.get("NEXA_LLM_TIMEOUT", "600")),
+                "timeout": float(os.environ.get("FORGE_LLM_TIMEOUT", "600")),
             }
             if self.base_url:
                 kwargs["base_url"] = self.base_url

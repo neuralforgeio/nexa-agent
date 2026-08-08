@@ -16,7 +16,7 @@ SPDX-License-Identifier: MIT
 
 from typing import Any, Dict, List
 
-from nexa.state import ConversationDB
+from openforge.state import ConversationDB
 
 
 async def search_sessions(db: ConversationDB, query: str, limit: int = 10) -> List[Dict[str, Any]]:
@@ -60,9 +60,9 @@ async def search_sessions(db: ConversationDB, query: str, limit: int = 10) -> Li
 
     # Use FTS5 to find matching messages, grouped by conversation.
     import aiosqlite
-    from nexa.config import NEXA_DB_PATH
+    from openforge.config import FORGE_DB_PATH
 
-    async with aiosqlite.connect(str(NEXA_DB_PATH)) as conn:
+    async with aiosqlite.connect(str(FORGE_DB_PATH)) as conn:
         conn.row_factory = aiosqlite.Row
 
         # Step 1: Find matching messages grouped by conversation (no snippet).

@@ -201,7 +201,7 @@ async def cmd_doctor(state: TUIState, agent, parts: List[str]) -> str:
 
 async def cmd_provider(state: TUIState, agent, parts: List[str]) -> str:
     """Provider management."""
-    from nexa.provider_registry import ProviderRegistry
+    from openforge.provider_registry import ProviderRegistry
     reg = ProviderRegistry()
     sub = parts[1].lower() if len(parts) > 1 else "list"
 

@@ -4,7 +4,7 @@ Tests for the ``meeting_notes`` skill (communication).
 The provider is a :class:`tests._skill_helpers.ScriptedProvider` — a scripted
 stand-in for the LLM boundary only. The workspace file check, prompt
 construction, schema validation, and the registry executor all run for real
-against a temporary workspace (``NEXA_WORKSPACE`` pointed at ``tmp_path``).
+against a temporary workspace (``FORGE_WORKSPACE`` pointed at ``tmp_path``).
 
 For prompt-fidelity these tests use the ``events=[("token", reply),
 ("done", None)]`` form of the (chunk-agnostic) stock provider so the whole
@@ -40,12 +40,12 @@ GOOD_REPLY = (
 @pytest.fixture
 def ws(tmp_path, monkeypatch):
     (tmp_path / "meeting.mp3").write_bytes(DUMMY_AUDIO)
-    monkeypatch.setenv("NEXA_WORKSPACE", str(tmp_path))
+    monkeypatch.setenv("FORGE_WORKSPACE", str(tmp_path))
     monkeypatch.chdir(tmp_path)
-    # nexa.config.NEXA_WORKSPACE is captured at import time, so the env var
+    # openforge.config.FORGE_WORKSPACE is captured at import time, so the env var
     # alone is not enough — repoint the already-imported reference used by
     # tools._paths.resolve_in_workspace (same pattern as test_file_tools_*).
-    monkeypatch.setattr("tools._paths.NEXA_WORKSPACE", tmp_path)
+    monkeypatch.setattr("tools._paths.FORGE_WORKSPACE", tmp_path)
     return tmp_path
 
 

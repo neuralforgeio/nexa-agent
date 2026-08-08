@@ -8,7 +8,7 @@ Next.js dev server, etc.) run **exactly once per user account**, fixing the
 
 How it works
 ------------
-A lock file is created at ``~/.nexa/locks/<name>.lock`` containing the
+A lock file is created at ``~/.openforge/locks/<name>.lock`` containing the
 owning PID. Before trusting the lock, we check whether the recorded PID
 is **actually still alive**:
 
@@ -36,7 +36,7 @@ import time
 from pathlib import Path
 from typing import Optional
 
-from .config import NEXA_HOME
+from .config import FORGE_HOME
 
 
 def _pid_exists(pid: int) -> bool:
@@ -79,7 +79,7 @@ def _pid_exists(pid: int) -> bool:
 
 class SingletonProcess:
     """
-    A process-safe singleton backed by a PID file in ``~/.nexa/locks/``.
+    A process-safe singleton backed by a PID file in ``~/.openforge/locks/``.
 
     Acquire with :func:`acquire_singleton`; release with :meth:`release` or
     let :meth:`__del__` clean up. The lock file is removed on release so
@@ -92,7 +92,7 @@ class SingletonProcess:
             name: The singleton name (e.g. ``"server"``, ``"web"``).
         """
         safe = "".join(c if c.isalnum() or c in "-_" else "_" for c in name)
-        lock_dir = NEXA_HOME / "locks"
+        lock_dir = FORGE_HOME / "locks"
         lock_dir.mkdir(parents=True, exist_ok=True)
         self.name = name
         self.path: Path = lock_dir / f"{safe}.lock"
@@ -197,7 +197,7 @@ def acquire_singleton(name: str, label: str = "") -> SingletonProcess:
 
     Usage::
 
-        from nexa.process_manager import acquire_singleton, SingletonConflict
+        from openforge.process_manager import acquire_singleton, SingletonConflict
         try:
             _lock = acquire_singleton("server", label="server.py:8000")
         except SingletonConflict as e:

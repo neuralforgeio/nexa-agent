@@ -253,7 +253,7 @@ if (Test-Path (Join-Path $InstallDir "nexa_web")) {
 }
 
 # --- Step 6: Initialize ---
-Write-Step "Initializing ~/.nexa/ home directory..."
+Write-Step "Initializing ~/.openforge/ home directory..."
 try {
     & "$venvPath\Scripts\nexa.exe" setup 2>&1 | Out-Null
     Write-Ok "Nexa Agent initialized ✓"

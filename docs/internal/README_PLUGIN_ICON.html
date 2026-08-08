@@ -203,10 +203,10 @@
           </div>
           <div class="terminal-body">
 <span class="dim">$</span> nexa setup
-<span class="green">✓</span> Home directory initialized: ~/.nexa
+<span class="green">✓</span> Home directory initialized: ~/.openforge
 
 <span class="dim">$</span> nexa provider add tokenrouter
-<span class="green">✓</span> Saved tokenrouter to ~/.nexa/secrets/providers.json
+<span class="green">✓</span> Saved tokenrouter to ~/.openforge/secrets/providers.json
   base_url: https://api.tokenrouter.io/v1
   model:    auto:balance
   api_key:  tr_...wxyz
@@ -272,7 +272,7 @@ nexa-chat</code></pre>
         <div class="feature">
           <div class="feature-icon" style="background: rgba(251, 191, 36, 0.12)">🔐</div>
           <div class="feature-title">Security Hardened</div>
-          <div class="feature-desc">~/.nexa/ is blocked from terminal access (prevents API key exfiltration). Secrets stored with mode 700. HITL approval for code execution. Path traversal protection.</div>
+          <div class="feature-desc">~/.openforge/ is blocked from terminal access (prevents API key exfiltration). Secrets stored with mode 700. HITL approval for code execution. Path traversal protection.</div>
         </div>
         <div class="feature">
           <div class="feature-icon" style="background: rgba(74, 222, 128, 0.12)">💻</div>
@@ -282,7 +282,7 @@ nexa-chat</code></pre>
         <div class="feature">
           <div class="feature-icon" style="background: rgba(74, 158, 255, 0.12)">⚙️</div>
           <div class="feature-title">Auto-Failover</div>
-          <div class="feature-desc">If the provider fails, it automatically switches to the next healthy one. Set NEXA_FAILOVER_ENABLED=1 with a chain like tokenrouter,openai,ollama.</div>
+          <div class="feature-desc">If the provider fails, it automatically switches to the next healthy one. Set FORGE_FAILOVER_ENABLED=1 with a chain like tokenrouter,openai,ollama.</div>
         </div>
       </div>
     </div>

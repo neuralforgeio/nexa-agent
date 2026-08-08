@@ -15,7 +15,7 @@ This module provides:
 
 Design Philosophy:
     - **Non-blocking**: All execution is async via ``asyncio``.
-    - **Sandboxed**: Commands run in ``NEXA_WORKSPACE`` by default.
+    - **Sandboxed**: Commands run in ``FORGE_WORKSPACE`` by default.
     - **Safe**: Dangerous patterns are blocked. Output is capped to prevent
       memory exhaustion.
     - **Observable**: Background processes are tracked and can be listed/killed.
@@ -32,7 +32,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from nexa.config import NEXA_WORKSPACE
+from openforge.config import FORGE_WORKSPACE
 
 #: Substrings that cause a command to be rejected outright.
 # Includes both Unix and Windows dangerous patterns (case-insensitive match).
@@ -135,7 +135,7 @@ async def run_terminal_command(
     Args:
         command:    The shell command to execute.
         timeout:    Maximum execution time in seconds (default: 15, max: 60).
-        cwd:        Working directory override (default: NEXA_WORKSPACE).
+        cwd:        Working directory override (default: FORGE_WORKSPACE).
         env:        Additional environment variables to merge with os.environ.
         background: If True, the process runs in the background and its
                     PID is returned immediately. Use ``list_background_processes``
@@ -154,13 +154,13 @@ async def run_terminal_command(
     if not command or not command.strip():
         raise ValueError("command is empty or whitespace-only")
 
-    # v3.0.0: Block commands that try to access NEXA_HOME (security boundary).
+    # v3.0.0: Block commands that try to access FORGE_HOME (security boundary).
     # This prevents the LLM from exfiltrating API keys / secrets / memory
-    # stored in ~/.nexa/ via shell commands like `cat ~/.nexa/.env`.
+    # stored in ~/.openforge/ via shell commands like `cat ~/.openforge/.env`.
     if is_protected_path_reference(command):
         raise ValueError(
-            "command accesses protected NEXA_HOME path (~/.nexa/). "
-            "Terminal commands cannot read or write files inside NEXA_HOME "
+            "command accesses protected FORGE_HOME path (~/.openforge/). "
+            "Terminal commands cannot read or write files inside FORGE_HOME "
             "to prevent API key / secrets exfiltration."
         )
 
@@ -201,22 +201,22 @@ async def run_terminal_command(
         for k, v in env.items():
             if k.upper().endswith(("_API_KEY", "_TOKEN", "_SECRET", "_PASSWORD")):
                 continue  # never let a tool-specified secret through either
-            if k.upper() in ("HOME", "NEXA_HOME", "NEXA_WORKSPACE"):
+            if k.upper() in ("HOME", "FORGE_HOME", "FORGE_WORKSPACE"):
                 continue  # don't let caller redirect HOME back to ~/
             full_env[k] = v
 
     # Resolve working directory (project-scoped boundary).
     work_dir = _validate_cwd(cwd)
 
-    # v4.1.2 security: override HOME/NEXA_HOME/NEXA_WORKSPACE so any
+    # v4.1.2 security: override HOME/FORGE_HOME/FORGE_WORKSPACE so any
     # ``chr(126)+chr(47)+chr(46)+chr(110)...``-style obfuscated path (or any
-    # ``os.path.expanduser('~/.nexa/...')`` call inside a spawned Python)
+    # ``os.path.expanduser('~/.openforge/...')`` call inside a spawned Python)
     # resolves to the workspace, NOT the real user home. Without this the
     # entire chr()-based exfiltration family works because the regex block
     # matches nothing on the command string.
     full_env["HOME"] = str(work_dir)
-    full_env["NEXA_HOME"] = str(work_dir)
-    full_env["NEXA_WORKSPACE"] = str(work_dir)
+    full_env["FORGE_HOME"] = str(work_dir)
+    full_env["FORGE_WORKSPACE"] = str(work_dir)
 
     # Spawn the process with a new process group (so timeout can kill the tree).
     popen_kwargs: Dict[str, Any] = {
@@ -365,7 +365,7 @@ async def generate_uuid(**_: Any) -> str:
 # ---------------------------------------------------------------------------
 def _validate_cwd(cwd: Optional[str]) -> Path:
     """
-    Validate and resolve the working directory against NEXA_WORKSPACE.
+    Validate and resolve the working directory against FORGE_WORKSPACE.
 
     Args:
         cwd: The requested working directory (may be ``None``).
@@ -378,15 +378,15 @@ def _validate_cwd(cwd: Optional[str]) -> Path:
 
     Example:
         >>> _validate_cwd(None)  # doctest: +SKIP
-        PosixPath('.../nexa-workspace')
+        PosixPath('.../forge-workspace')
     """
     if cwd is None:
-        return NEXA_WORKSPACE.resolve()
+        return FORGE_WORKSPACE.resolve()
     try:
         candidate = Path(cwd).resolve()
     except (OSError, ValueError) as exc:
         raise ValueError(f"invalid cwd '{cwd}': {exc}") from exc
-    workspace = NEXA_WORKSPACE.resolve()
+    workspace = FORGE_WORKSPACE.resolve()
     try:
         candidate.relative_to(workspace)
     except ValueError as exc:
@@ -458,26 +458,41 @@ def _prune_completed_processes() -> int:
 
 
 # ---------------------------------------------------------------------------
-# v3.0.0 — Terminal security: NEXA_HOME path protection
+# v3.0.0 — Terminal security: FORGE_HOME path protection
 # ---------------------------------------------------------------------------
 import re as _re
 
-#: Patterns that indicate a command tries to access NEXA_HOME.
+#: Patterns that indicate a command tries to access FORGE_HOME (~/.openforge/)
+#: or its legacy alias (~/.nexa/) — both must stay blocked (post-rename backward
+#: compat + migration protection).
 #: Each is matched case-insensitively against the command string.
 _PROTECTED_PATH_PATTERNS: list[str] = [
-    r"~/\.nexa",            # ~/.nexa/...
-    r"\$HOME/\.nexa",       # $HOME/.nexa/...
-    r"\$NEXA_HOME",         # $NEXA_HOME/...
-    r"/\.nexa/",            # absolute /.nexa/ (Unix home-relative)
-    r"\.nexa/\.env",        # .nexa/.env (relative)
-    r"\.nexa/memory",       # .nexa/memory (relative)
-    r"\.nexa/secrets",      # .nexa/secrets (relative)
-    r"\bnexa\.db\b",        # the SQLite db filename
-    r"\.nexa/knowledge",    # knowledge cache
-    r"\.nexa/sessions",     # session data
-    r"\.nexa/logs",         # log files
-    r"\.nexa/history",     # TUI history (may contain user messages)
-    r"\.nexa/gateway\.pid", # gateway PID file
+    r"~/\.openforge",        # ~/.openforge/...
+    r"~/\.nexa",             # ~/.nexa/... (legacy)
+    r"\$HOME/\.openforge",   # $HOME/.openforge/...
+    r"\$HOME/\.nexa",        # $HOME/.nexa/... (legacy)
+    r"\$FORGE_HOME",         # $FORGE_HOME/...
+    r"\$NEXA_HOME",          # $NEXA_HOME/... (legacy)
+    r"/\.openforge/",        # absolute /.openforge/ (Unix home-relative)
+    r"/\.nexa/",             # absolute /.nexa/ (legacy)
+    r"\.openforge/\.env",    # .openforge/.env (relative)
+    r"\.nexa/\.env",         # .nexa/.env (relative legacy)
+    r"\.openforge/memory",   # .openforge/memory (relative)
+    r"\.nexa/memory",        # .nexa/memory (legacy)
+    r"\.openforge/secrets",  # .openforge/secrets (relative)
+    r"\.nexa/secrets",       # .nexa/secrets (legacy)
+    r"\bopenforge\.db\b",    # the SQLite db filename (new)
+    r"\bnexa\.db\b",         # the SQLite db filename (legacy)
+    r"\.openforge/knowledge",
+    r"\.nexa/knowledge",
+    r"\.openforge/sessions",
+    r"\.nexa/sessions",
+    r"\.openforge/logs",
+    r"\.nexa/logs",
+    r"\.openforge/history",  # TUI history (may contain user messages)
+    r"\.nexa/history",
+    r"\.openforge/gateway\.pid",
+    r"\.nexa/gateway\.pid",
 ]
 
 #: Compiled patterns (case-insensitive).
@@ -486,19 +501,21 @@ _PROTECTED_COMPILED = [_re.compile(p, _re.IGNORECASE) for p in _PROTECTED_PATH_P
 
 def is_protected_path_reference(command: str) -> bool:
     """
-    Check whether ``command`` references a path inside ``NEXA_HOME``.
+    Check whether ``command`` references a path inside ``FORGE_HOME``.
 
     This is the v3.0.0 security boundary: it prevents the LLM (via
     ``run_terminal_command``) from reading or writing files in
-    ``~/.nexa/`` — where API keys, memory, secrets, and the SQLite DB live.
+    ``~/.openforge/`` (or legacy ``~/.nexa/``) — where API keys, memory,
+    secrets, and the SQLite DB live.
 
     Detected references include:
-        - ``~/.nexa/...``
-        - ``$HOME/.nexa/...``
-        - ``$NEXA_HOME/...``
-        - ``.nexa/.env``, ``.nexa/memory``, ``.nexa/secrets``
-        - The literal filename ``nexa.db``
-        - Absolute paths that resolve inside ``NEXA_HOME`` (via ``Path.resolve()``).
+        - ``~/.openforge/...`` and ``~/.nexa/...``
+        - ``$HOME/.openforge/...`` and ``$HOME/.nexa/...``
+        - ``$FORGE_HOME/...`` and ``$NEXA_HOME/...``
+        - ``.openforge/.env``, ``.openforge/memory``, ``.openforge/secrets``
+          (and the ``.nexa/...`` legacy counterparts)
+        - The literal filenames ``openforge.db`` and ``nexa.db``
+        - Absolute paths that resolve inside ``FORGE_HOME`` (via ``Path.resolve()``).
 
     Args:
         command: The shell command string to inspect.
@@ -507,11 +524,11 @@ def is_protected_path_reference(command: str) -> bool:
         ``True`` if the command references a protected path, else ``False``.
 
     Example:
-        >>> is_protected_path_reference("cat ~/.nexa/.env")
+        >>> is_protected_path_reference("cat ~/.openforge/.env")
         True
         >>> is_protected_path_reference("echo hello")
         False
-        >>> is_protected_path_reference("ls nexa-workspace/")
+        >>> is_protected_path_reference("ls forge-workspace/")
         False
     """
     if not command:
@@ -522,11 +539,11 @@ def is_protected_path_reference(command: str) -> bool:
             return True
     # Absolute-path resolution check (slower but thorough).
     # Extract anything that looks like an absolute path (Windows drive-letter
-    # path or Unix absolute path) and check if it's inside NEXA_HOME.
+    # path or Unix absolute path) and check if it's inside FORGE_HOME.
     try:
-        # Import the live NEXA_HOME (honors monkeypatch in tests).
-        from nexa.config import NEXA_HOME as _NEXA_HOME
-        home_resolved = _NEXA_HOME.resolve()
+        # Import the live FORGE_HOME (honors monkeypatch in tests).
+        from openforge.config import FORGE_HOME as _FORGE_HOME
+        home_resolved = _FORGE_HOME.resolve()
         # Match Windows drive-letter paths (C:\... or C:/...) or Unix absolute (/...).
         # Allow spaces inside the path (paths like C:\Users\Dearly Febriano\...).
         # Stop at shell metacharacters (|, &, ;, >, <, `) and quotes.
@@ -540,7 +557,7 @@ def is_protected_path_reference(command: str) -> bool:
                 continue
             try:
                 resolved_token = Path(token).resolve()
-                # Check if the token is inside NEXA_HOME.
+                # Check if the token is inside FORGE_HOME.
                 resolved_token.relative_to(home_resolved)
                 return True
             except (ValueError, OSError):
@@ -567,7 +584,7 @@ RUN_TERMINAL_COMMAND_SCHEMA: Dict[str, Any] = {
             "type": "string",
             "description": (
                 "Working directory inside the workspace. Defaults to the "
-                "workspace root. Must be inside NEXA_WORKSPACE."
+                "workspace root. Must be inside FORGE_WORKSPACE."
             ),
         },
         "env": {

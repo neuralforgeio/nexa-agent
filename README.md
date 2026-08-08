@@ -128,7 +128,7 @@ cd openforge_web && npm run dev     # web UI on :3000
 
 ```
 ~/.openforge/
-├── lib/            # OpenForge code (READ-ONLY, chmod 555) — renamed from nexa/
+├── lib/            # OpenForge code (READ-ONLY, chmod 555) — renamed from openforge/
 │   ├── openforge/  openforge_cli/  openforge_web/
 │   ├── agent/      skills/         tools/   providers/
 │   ├── ui_tui/     src/            config/  public/icons/

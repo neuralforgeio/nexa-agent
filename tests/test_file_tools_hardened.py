@@ -31,25 +31,25 @@ class TestSharedPathHelper:
 
     def test_resolves_inside_workspace(self, tmp_path: Path, monkeypatch) -> None:
         """A relative path inside the workspace resolves correctly."""
-        monkeypatch.setattr("tools._paths.NEXA_WORKSPACE", tmp_path)
+        monkeypatch.setattr("tools._paths.FORGE_WORKSPACE", tmp_path)
         result = resolve_in_workspace("file.txt")
         assert result == (tmp_path / "file.txt").resolve()
 
     def test_rejects_traversal(self, tmp_path: Path, monkeypatch) -> None:
         """Path traversal via .. is rejected."""
-        monkeypatch.setattr("tools._paths.NEXA_WORKSPACE", tmp_path)
+        monkeypatch.setattr("tools._paths.FORGE_WORKSPACE", tmp_path)
         with pytest.raises(ValueError, match="escapes"):
             resolve_in_workspace("../../etc/passwd")
 
     def test_rejects_absolute_outside(self, tmp_path: Path, monkeypatch) -> None:
         """An absolute path outside the workspace is rejected."""
-        monkeypatch.setattr("tools._paths.NEXA_WORKSPACE", tmp_path)
+        monkeypatch.setattr("tools._paths.FORGE_WORKSPACE", tmp_path)
         with pytest.raises(ValueError, match="escapes"):
             resolve_in_workspace("/etc/passwd")
 
     def test_accepts_nested_subdir(self, tmp_path: Path, monkeypatch) -> None:
         """Nested subdirectories inside the workspace are accepted."""
-        monkeypatch.setattr("tools._paths.NEXA_WORKSPACE", tmp_path)
+        monkeypatch.setattr("tools._paths.FORGE_WORKSPACE", tmp_path)
         result = resolve_in_workspace("a/b/c/file.txt")
         assert result == (tmp_path / "a" / "b" / "c" / "file.txt").resolve()
 
@@ -63,9 +63,9 @@ class TestWriteFileHardening:
     @pytest.mark.asyncio
     async def test_rejects_oversized_content(self, tmp_path: Path, monkeypatch) -> None:
         """Content larger than 1MB is rejected."""
-        monkeypatch.setattr("tools._paths.NEXA_WORKSPACE", tmp_path)
+        monkeypatch.setattr("tools._paths.FORGE_WORKSPACE", tmp_path)
         # Also patch file_tools' import (it should re-export from _paths).
-        monkeypatch.setattr("tools.file_tools.NEXA_WORKSPACE", tmp_path)
+        monkeypatch.setattr("tools.file_tools.FORGE_WORKSPACE", tmp_path)
         big_content = "x" * (1024 * 1024 + 1)
         with pytest.raises(ValueError, match="too large|size"):
             await write_file("big.txt", big_content)
@@ -73,8 +73,8 @@ class TestWriteFileHardening:
     @pytest.mark.asyncio
     async def test_rejects_directory_target(self, tmp_path: Path, monkeypatch) -> None:
         """Writing to a path that is an existing directory fails cleanly."""
-        monkeypatch.setattr("tools._paths.NEXA_WORKSPACE", tmp_path)
-        monkeypatch.setattr("tools.file_tools.NEXA_WORKSPACE", tmp_path)
+        monkeypatch.setattr("tools._paths.FORGE_WORKSPACE", tmp_path)
+        monkeypatch.setattr("tools.file_tools.FORGE_WORKSPACE", tmp_path)
         # Create a directory inside the workspace.
         (tmp_path / "subdir").mkdir()
         with pytest.raises((ValueError, IsADirectoryError, OSError)):
@@ -83,8 +83,8 @@ class TestWriteFileHardening:
     @pytest.mark.asyncio
     async def test_catches_permission_error(self, tmp_path: Path, monkeypatch) -> None:
         """PermissionError is caught and returned as a friendly message."""
-        monkeypatch.setattr("tools._paths.NEXA_WORKSPACE", tmp_path)
-        monkeypatch.setattr("tools.file_tools.NEXA_WORKSPACE", tmp_path)
+        monkeypatch.setattr("tools._paths.FORGE_WORKSPACE", tmp_path)
+        monkeypatch.setattr("tools.file_tools.FORGE_WORKSPACE", tmp_path)
 
         def raise_perm(self, *args, **kwargs):
             raise PermissionError("denied")
@@ -103,16 +103,16 @@ class TestReadFileHardening:
     @pytest.mark.asyncio
     async def test_file_not_found_message(self, tmp_path: Path, monkeypatch) -> None:
         """FileNotFoundError produces a clear error message."""
-        monkeypatch.setattr("tools._paths.NEXA_WORKSPACE", tmp_path)
-        monkeypatch.setattr("tools.file_tools.NEXA_WORKSPACE", tmp_path)
+        monkeypatch.setattr("tools._paths.FORGE_WORKSPACE", tmp_path)
+        monkeypatch.setattr("tools.file_tools.FORGE_WORKSPACE", tmp_path)
         with pytest.raises(ValueError, match="file not found|not found"):
             await read_file("nonexistent.txt")
 
     @pytest.mark.asyncio
     async def test_directory_rejected(self, tmp_path: Path, monkeypatch) -> None:
         """Reading a directory fails with a clear message."""
-        monkeypatch.setattr("tools._paths.NEXA_WORKSPACE", tmp_path)
-        monkeypatch.setattr("tools.file_tools.NEXA_WORKSPACE", tmp_path)
+        monkeypatch.setattr("tools._paths.FORGE_WORKSPACE", tmp_path)
+        monkeypatch.setattr("tools.file_tools.FORGE_WORKSPACE", tmp_path)
         (tmp_path / "dir").mkdir()
         with pytest.raises(ValueError, match="directory"):
             await read_file("dir")
@@ -120,8 +120,8 @@ class TestReadFileHardening:
     @pytest.mark.asyncio
     async def test_large_file_rejected(self, tmp_path: Path, monkeypatch) -> None:
         """Files larger than 100KB are rejected."""
-        monkeypatch.setattr("tools._paths.NEXA_WORKSPACE", tmp_path)
-        monkeypatch.setattr("tools.file_tools.NEXA_WORKSPACE", tmp_path)
+        monkeypatch.setattr("tools._paths.FORGE_WORKSPACE", tmp_path)
+        monkeypatch.setattr("tools.file_tools.FORGE_WORKSPACE", tmp_path)
         big_file = tmp_path / "big.txt"
         big_file.write_text("x" * (100_000 + 1))
         with pytest.raises(ValueError, match="too large"):
@@ -137,8 +137,8 @@ class TestFilePatchAtomic:
     @pytest.mark.asyncio
     async def test_raises_on_hunk_mismatch(self, tmp_path: Path, monkeypatch) -> None:
         """A non-matching hunk raises an error (no silent append)."""
-        monkeypatch.setattr("tools._paths.NEXA_WORKSPACE", tmp_path)
-        monkeypatch.setattr("tools.file_patch_tool.NEXA_WORKSPACE", tmp_path)
+        monkeypatch.setattr("tools._paths.FORGE_WORKSPACE", tmp_path)
+        monkeypatch.setattr("tools.file_patch_tool.FORGE_WORKSPACE", tmp_path)
         # Create a file.
         target = tmp_path / "target.txt"
         target.write_text("original content\n")
@@ -157,8 +157,8 @@ class TestFilePatchAtomic:
         self, tmp_path: Path, monkeypatch
     ) -> None:
         """If the write fails, the original file is left intact."""
-        monkeypatch.setattr("tools._paths.NEXA_WORKSPACE", tmp_path)
-        monkeypatch.setattr("tools.file_patch_tool.NEXA_WORKSPACE", tmp_path)
+        monkeypatch.setattr("tools._paths.FORGE_WORKSPACE", tmp_path)
+        monkeypatch.setattr("tools.file_patch_tool.FORGE_WORKSPACE", tmp_path)
         target = tmp_path / "target.txt"
         target.write_text("original\n")
         original_content = target.read_text()

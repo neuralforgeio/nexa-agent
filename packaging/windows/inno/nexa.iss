@@ -4,9 +4,9 @@
 [Setup]
 AppName={#AppName}
 AppVersion={#AppVersion}
-DefaultDirName={autopf}\NexaAgent
+DefaultDirName={autopf}\OpenForgeAgent
 DefaultGroupName=Nexa Agent
-OutputBaseFilename=NexaAgent-Setup-{#AppVersion}
+OutputBaseFilename=OpenForgeAgent-Setup-{#AppVersion}
 Compression=lzma2
 SolidCompression=yes
 [Files]

@@ -34,7 +34,7 @@ _VALID_SCOPES = ("workspace", "memory", "all")
 
 
 def _workspace_root() -> Path:
-    root = os.environ.get("NEXA_WORKSPACE") or os.getcwd()
+    root = os.environ.get("FORGE_WORKSPACE") or os.getcwd()
     return Path(root)
 
 

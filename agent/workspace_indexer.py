@@ -9,9 +9,9 @@ import asyncio
 from pathlib import Path
 from typing import List
 
-from nexa.config import NEXA_WORKSPACE
-from nexa.embeddings import embed_text
-from nexa.vector_db import VectorStore
+from openforge.config import FORGE_WORKSPACE
+from openforge.embeddings import embed_text
+from openforge.vector_db import VectorStore
 
 CHUNK_TOKENS = 500
 OVERLAP = 50
@@ -40,7 +40,7 @@ class WorkspaceIndexer:
         if path.suffix.lower() not in WATCH_EXT or not path.is_file():
             return 0
         text = path.read_text("utf-8", errors="ignore")
-        rel = str(path.relative_to(NEXA_WORKSPACE)).replace("\\", "/")
+        rel = str(path.relative_to(FORGE_WORKSPACE)).replace("\\", "/")
         self.store.delete_source(rel)
         chunks = _chunk(text)
         for i, c in enumerate(chunks):
@@ -49,7 +49,7 @@ class WorkspaceIndexer:
 
     async def index_all(self) -> int:
         n = 0
-        for p in NEXA_WORKSPACE.rglob("*"):
+        for p in FORGE_WORKSPACE.rglob("*"):
             if p.is_file() and p.suffix.lower() in WATCH_EXT:
                 try:
                     n += await self.index_file(p)

@@ -8,10 +8,10 @@ from __future__ import annotations
 import hashlib, json, os
 from typing import Any, Dict, List
 
-from nexa.config import NEXA_HOME
+from openforge.config import FORGE_HOME
 
-_PATH = NEXA_HOME / "audit.log"
-_STATE = NEXA_HOME / "audit.state"
+_PATH = FORGE_HOME / "audit.log"
+_STATE = FORGE_HOME / "audit.state"
 
 
 def _sha(b: bytes) -> str:
@@ -20,7 +20,7 @@ def _sha(b: bytes) -> str:
 
 class AuditLog:
     def __init__(self) -> None:
-        NEXA_HOME.mkdir(parents=True, exist_ok=True)
+        FORGE_HOME.mkdir(parents=True, exist_ok=True)
         if not _STATE.exists():
             _STATE.write_text(_sha(b"nexa-genesis"), encoding="utf-8")
 

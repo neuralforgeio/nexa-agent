@@ -5,7 +5,7 @@ Nexa Agent — Memory Curator (The "Getting Smarter" Loop)
 This module implements Nexa Agent's self-improvement system. After each
 conversation turn, the curator analyzes the exchange and distills durable
 insights into both the SQLite memory store and the file-based memory
-system (``~/.nexa/memory/MEMORY.md`` and ``USER.md``). Over time, the
+system (``~/.openforge/memory/MEMORY.md`` and ``USER.md``). Over time, the
 agent accumulates knowledge about the user's preferences, effective
 problem-solving patterns, and domain-specific facts — making it
 progressively smarter.
@@ -31,7 +31,7 @@ import re
 from typing import Any, Dict, List, Optional
 
 from agent.memory.memory_files import append_to_memory, append_to_user
-from nexa.state import ConversationDB
+from openforge.state import ConversationDB
 
 
 #: Memory kinds the curator can produce.

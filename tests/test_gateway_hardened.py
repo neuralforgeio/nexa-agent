@@ -17,7 +17,7 @@ from unittest.mock import patch, MagicMock
 
 import pytest
 
-from nexa_cli.main import main
+from openforge_cli.main import main
 
 
 class TestGatewayStartUsesSysExecutable:
@@ -25,7 +25,7 @@ class TestGatewayStartUsesSysExecutable:
 
     def test_start_uses_sys_executable(self, tmp_path, monkeypatch) -> None:
         """gateway start must spawn sys.executable, not 'python3'."""
-        monkeypatch.setattr("nexa_cli.main.NEXA_HOME", tmp_path)
+        monkeypatch.setattr("openforge_cli.main.FORGE_HOME", tmp_path)
         captured_args = []
 
         class FakeProc:
@@ -35,7 +35,7 @@ class TestGatewayStartUsesSysExecutable:
             captured_args.extend(args)
             return FakeProc()
 
-        with patch("nexa_cli.main.subprocess.Popen", side_effect=fake_popen):
+        with patch("openforge_cli.main.subprocess.Popen", side_effect=fake_popen):
             rc = main(["gateway", "start"])
         assert rc == 0
         assert captured_args[0] == sys.executable, (
@@ -45,7 +45,7 @@ class TestGatewayStartUsesSysExecutable:
 
     def test_start_accepts_port_flag(self, tmp_path, monkeypatch) -> None:
         """gateway start must accept a --port flag."""
-        monkeypatch.setattr("nexa_cli.main.NEXA_HOME", tmp_path)
+        monkeypatch.setattr("openforge_cli.main.FORGE_HOME", tmp_path)
         captured_args = []
 
         class FakeProc:
@@ -55,7 +55,7 @@ class TestGatewayStartUsesSysExecutable:
             captured_args.extend(args)
             return FakeProc()
 
-        with patch("nexa_cli.main.subprocess.Popen", side_effect=fake_popen):
+        with patch("openforge_cli.main.subprocess.Popen", side_effect=fake_popen):
             rc = main(["gateway", "start", "--port", "9000"])
         assert rc == 0
         assert "9000" in captured_args
@@ -66,7 +66,7 @@ class TestGatewayStopGraceful:
 
     def test_stop_uses_sigterm_first(self, tmp_path, monkeypatch) -> None:
         """gateway stop must send SIGTERM (15) before SIGKILL (9)."""
-        monkeypatch.setattr("nexa_cli.main.NEXA_HOME", tmp_path)
+        monkeypatch.setattr("openforge_cli.main.FORGE_HOME", tmp_path)
         (tmp_path / "gateway.pid").write_text("12345")
 
         sent_signals = []
@@ -74,7 +74,7 @@ class TestGatewayStopGraceful:
         def fake_kill(pid, sig):
             sent_signals.append((pid, sig))
 
-        with patch("nexa_cli.main.os.kill", side_effect=fake_kill):
+        with patch("openforge_cli.main.os.kill", side_effect=fake_kill):
             rc = main(["gateway", "stop"])
 
         assert rc == 0

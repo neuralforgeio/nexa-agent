@@ -94,7 +94,7 @@ body:
     id: nexa_version
     attributes:
       label: Nexa Agent version
-      description: Run `python -c "from nexa.config import NEXA_VERSION; print(NEXA_VERSION)"` and paste the output.
+      description: Run `python -c "from openforge.config import NEXA_VERSION; print(NEXA_VERSION)"` and paste the output.
       placeholder: 4.2.1
     validations:
       required: true

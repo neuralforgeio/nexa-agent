@@ -290,7 +290,7 @@ if [ -d "$INSTALL_DIR/nexa_web" ]; then
 fi
 
 # --- Step 7: Initialize ---
-step "Initializing ~/.nexa/ home directory..."
+step "Initializing ~/.openforge/ home directory..."
 "$INSTALL_DIR/.venv/bin/nexa" setup 2>/dev/null || \
   "$INSTALL_DIR/.venv/bin/python" -m nexa_cli setup 2>/dev/null || \
   warn "nexa setup not available yet (run it manually: nexa setup)"

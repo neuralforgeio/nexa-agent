@@ -4,7 +4,7 @@
 
 Panduan lengkap untuk menguji Nexa Agent secara manual: instalasi, provider config, CLI, TUI, Web UI, terminal security, dan skenario end-to-end.
 
-Implicitly the v4 line adds: persona-driven orchestrator (NEXA_ORCHESTRATOR=1),
+Implicitly the v4 line adds: persona-driven orchestrator (FORGE_ORCHESTRATOR=1),
 expanded provider catalog (24), hardened AST gate for user tools, atomic
 write_file, FTS5 message triggers, and the v4.2.1 path-hygiene fix.
 
@@ -25,7 +25,7 @@ nexa provider use ornith
 nexa-chat
 ```
 
-That's it! Provider tersimpan di `~/.nexa/secrets/providers.json` dan bertahan antar restart.
+That's it! Provider tersimpan di `~/.openforge/secrets/providers.json` dan bertahan antar restart.
 
 ---
 
@@ -111,17 +111,17 @@ TUI slash commands:
 
 ```bash
 # Izinkan akses ke file workspace
-nexa > read file nexa-workspace/notes.txt
+nexa > read file forge-workspace/notes.txt
 ✓ read_file (12ms): "Hello from Nexa!"
 
-# Block akses ke ~/.nexa (protected)
-nexa > cat ~/.nexa/.env
-ValueError: command accesses protected NEXA_HOME path (~/.nexa/)
-nexa > cat ~/.nexa/secrets/providers.json
+# Block akses ke ~/.openforge (protected)
+nexa > cat ~/.openforge/.env
+ValueError: command accesses protected FORGE_HOME path (~/.openforge/)
+nexa > cat ~/.openforge/secrets/providers.json
 Same — blocked.
 
 # Terminal allowed workspace files
-nexa > ls nexa-workspace/
+nexa > ls forge-workspace/
 ✓ run_terminal_command (45ms): ["file.txt", "notes.txt"]
 ```
 

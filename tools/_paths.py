@@ -3,7 +3,7 @@ Nexa Agent — Shared Path Helpers
 ================================
 
 Shared helpers for resolving user-supplied paths safely inside the
-``NEXA_WORKSPACE`` directory. Used by every filesystem tool to prevent
+``FORGE_WORKSPACE`` directory. Used by every filesystem tool to prevent
 arbitrary host access.
 
 This module exists to eliminate the DRY violation where
@@ -16,7 +16,7 @@ SPDX-License-Identifier: MIT
 
 from pathlib import Path
 
-from nexa.config import NEXA_WORKSPACE
+from openforge.config import FORGE_WORKSPACE
 
 #: Maximum file size the tools will read/write (1 MB).
 MAX_FILE_SIZE: int = 1_048_576
@@ -66,7 +66,7 @@ def resolve_in_workspace(raw: str) -> Path:
         if ".." in decoded.replace("\\", "/"):
             raise ValueError(f"encoded traversal in path: '{raw}'")
 
-    base = NEXA_WORKSPACE.resolve()
+    base = FORGE_WORKSPACE.resolve()
     resolved = (base / raw).resolve()
     try:
         resolved.relative_to(base)

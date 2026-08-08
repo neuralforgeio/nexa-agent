@@ -15,7 +15,7 @@ Why TF-IDF instead of embeddings?
 
 Storage:
     - Documents (memories + past messages) are stored as JSONL in
-      ``~/.nexa/memory/semantic.jsonl``.
+      ``~/.openforge/memory/semantic.jsonl``.
     - The TF-IDF index is built in-memory on load + updated on add.
 
 Usage:
@@ -40,11 +40,11 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from nexa.config import NEXA_HOME
+from openforge.config import FORGE_HOME
 
 
 #: Default storage path.
-DEFAULT_SEMANTIC_PATH: Path = NEXA_HOME / "memory" / "semantic.jsonl"
+DEFAULT_SEMANTIC_PATH: Path = FORGE_HOME / "memory" / "semantic.jsonl"
 
 #: Stopwords for TF-IDF tokenization (English + common code tokens).
 _STOPWORDS = frozenset({
@@ -125,7 +125,7 @@ class SemanticMemory:
     """
     TF-IDF + cosine similarity semantic memory store.
 
-    Documents are persisted to ``~/.nexa/memory/semantic.jsonl`` (append-only).
+    Documents are persisted to ``~/.openforge/memory/semantic.jsonl`` (append-only).
     The TF-IDF index is rebuilt in-memory on load.
     """
 
@@ -134,7 +134,7 @@ class SemanticMemory:
         Initialize the semantic memory store.
 
         Args:
-            path: Override for the storage path (default NEXA_HOME/memory/semantic.jsonl).
+            path: Override for the storage path (default FORGE_HOME/memory/semantic.jsonl).
         """
         self.path: Path = path or DEFAULT_SEMANTIC_PATH
         self.path.parent.mkdir(parents=True, exist_ok=True)

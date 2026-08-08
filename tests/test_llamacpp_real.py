@@ -101,11 +101,11 @@ def _llamacpp_reachable(host: str = "127.0.0.1", port: int = 8080, timeout: floa
 
 
 def _build_agent():
-    """Build a NexaAgent pointed at the local llamacpp server."""
+    """Build a OpenForgeAgent pointed at the local llamacpp server."""
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-    from src.run_agent import NexaAgent
+    from src.run_agent import OpenForgeAgent
 
-    return NexaAgent(
+    return OpenForgeAgent(
         provider_name="llamacpp",
         model=os.environ.get("NEXA_MODEL", "Ornith-1.0-9b-Q4_K_M.gguf"),
         api_key="dummy",
@@ -135,9 +135,9 @@ class TestMockedProviderLoop:
                 yield ("token", "ok")
                 yield ("done", None)
 
-        from src.run_agent import NexaAgent
+        from src.run_agent import OpenForgeAgent
 
-        agent = NexaAgent(provider_name="ollama")  # any valid provider stub
+        agent = OpenForgeAgent(provider_name="ollama")  # any valid provider stub
         agent.provider = _Fake()  # swap
 
         captured: List[Tuple[str, Any]] = []
@@ -277,7 +277,7 @@ class TestRealLlamaCppServer:
         assert chunks, "no SSE chunks streamed"
 
     def test_run_agent_end_to_end_against_llamacpp(self):
-        """Full NexaAgent smoke: ask a trivial question, expect at least a
+        """Full OpenForgeAgent smoke: ask a trivial question, expect at least a
         response (may stream reasoning before the answer)."""
         self._boot_or_skip()
         agent = _build_agent()
@@ -315,23 +315,23 @@ class TestRealLlamaCppServer:
         self._boot_or_skip()
         # Point the workspace boundary at a temp dir so write_file lands
         # somewhere we assert directly on.
-        monkeypatch.setenv("NEXA_WORKSPACE", str(tmp_path))
+        monkeypatch.setenv("FORGE_WORKSPACE", str(tmp_path))
 
         # Mimic what the model + provider would do via write_file:
         from tools.file_tools import write_file
-        result = asyncio.run(write_file(path="agent_out/hello_from_nexa.txt", content="hello from nexa\n"))
+        result = asyncio.run(write_file(path="agent_out/hello_from_nexa.txt", content="hello from openforge\n"))
 
-        # write_file resolves the CWD/NEXA_WORKSPACE at call time; the file
+        # write_file resolves the CWD/FORGE_WORKSPACE at call time; the file
         # may land under the test's tmp_path or in the production workspace.
         # Walk both possibilities.
         candidates = [
             tmp_path / "agent_out" / "hello_from_nexa.txt",
         ]
-        # And also check the production NEXA_WORKSPACE in case we got
+        # And also check the production FORGE_WORKSPACE in case we got
         # routed there.
         try:
-            from nexa.config import NEXA_WORKSPACE
-            candidates.append(Path(NEXA_WORKSPACE) / "agent_out" / "hello_from_nexa.txt")
+            from openforge.config import FORGE_WORKSPACE
+            candidates.append(Path(FORGE_WORKSPACE) / "agent_out" / "hello_from_nexa.txt")
         except Exception:
             pass
 

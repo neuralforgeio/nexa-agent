@@ -69,7 +69,7 @@ async def web_search(query: str, num_results: int = MAX_RESULTS, **_: Any) -> st
                 SEARCH_URL,
                 data={"q": query},
                 headers={
-                    "User-Agent": "NexaAgent/1.0 (Python web search tool)",
+                    "User-Agent": "OpenForgeAgent/1.0 (Python web search tool)",
                 },
             )
             response.raise_for_status()

@@ -466,7 +466,7 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
           )}
 
           <div style={{ marginTop: 16, fontSize: 11, color: "#6A6A6A", textAlign: "center" }}>
-            API keys are stored in ~/.nexa/secrets/providers.json (chmod 600).
+            API keys are stored in ~/.openforge/secrets/providers.json (chmod 600).
           </div>
         </>
       )}

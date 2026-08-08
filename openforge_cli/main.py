@@ -34,8 +34,8 @@ from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
 
-from nexa.constants import NEXA_NAME, NEXA_VERSION, ensure_nexa_home
-from nexa.config import NEXA_HOME, NEXA_WORKSPACE
+from openforge.constants import NEXA_NAME, NEXA_VERSION, ensure_nexa_home
+from openforge.config import FORGE_HOME, FORGE_WORKSPACE
 
 console = Console()
 
@@ -71,7 +71,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # setup
-    subparsers.add_parser("setup", help="Initialize ~/.nexa/ and configure provider")
+    subparsers.add_parser("setup", help="Initialize ~/.openforge/ and configure provider")
 
     # model
     model_parser = subparsers.add_parser("model", help="Show or set the current model")
@@ -155,7 +155,7 @@ def main(argv: Optional[List[str]] = None) -> int:
 
 
 def _cmd_plugin_install(url: str) -> int:
-    """Clone a plugin repo into ~/.nexa/plugins/<name>/ and register it. (S-09)"""
+    """Clone a plugin repo into ~/.openforge/plugins/<name>/ and register it. (S-09)"""
     import re
     from pathlib import Path
 
@@ -182,7 +182,7 @@ def _print_rich_help() -> None:
     table.add_column("Example", style="dim")
 
     rows = [
-        ("setup", "Initialize ~/.nexa/ and configure provider", "nexa setup"),
+        ("setup", "Initialize ~/.openforge/ and configure provider", "nexa setup"),
         ("model", "Show or set the current model", "nexa model llama3.2"),
         ("gateway start", "Start the gateway server", "nexa gateway start --port 8000"),
         ("gateway stop", "Stop the gateway server (graceful SIGTERM)", "nexa gateway stop"),
@@ -208,16 +208,16 @@ def _print_rich_help() -> None:
 
 def _cmd_setup() -> int:
     """
-    Initialize ~/.nexa/ directory structure.
+    Initialize ~/.openforge/ directory structure.
 
     Returns:
         0 on success.
     """
     ensure_nexa_home()
     console.print(Panel(
-        f"[green]Home directory initialized:[/green] {NEXA_HOME}\n"
-        f"[green]Workspace:[/green] {NEXA_WORKSPACE}\n"
-        f"Setup complete. Edit ~/.nexa/.env to configure your provider.",
+        f"[green]Home directory initialized:[/green] {FORGE_HOME}\n"
+        f"[green]Workspace:[/green] {FORGE_WORKSPACE}\n"
+        f"Setup complete. Edit ~/.openforge/.env to configure your provider.",
         border_style="green",
         title="[green]Nexa Setup[/green]",
     ))
@@ -234,10 +234,10 @@ def _cmd_model(name: Optional[str]) -> int:
     Returns:
         0 on success.
     """
-    from nexa.config import NEXA_MODEL
+    from openforge.config import NEXA_MODEL
 
     if name:
-        env_path = NEXA_HOME / ".env"
+        env_path = FORGE_HOME / ".env"
         if env_path.exists():
             content = env_path.read_text()
             if "NEXA_MODEL=" in content:
@@ -276,11 +276,11 @@ def _cmd_gateway(action: str, port: int = DEFAULT_GATEWAY_PORT) -> int:
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
-        (NEXA_HOME / "gateway.pid").write_text(str(proc.pid))
+        (FORGE_HOME / "gateway.pid").write_text(str(proc.pid))
         console.print(f"[green]Gateway started[/green] (PID: {proc.pid}, port: {port})")
         return 0
     elif action == "stop":
-        pid_file = NEXA_HOME / "gateway.pid"
+        pid_file = FORGE_HOME / "gateway.pid"
         if pid_file.exists():
             pid = int(pid_file.read_text().strip())
             try:
@@ -351,10 +351,10 @@ def _cmd_provider(
         >>> _cmd_provider("add", name="tokenrouter")  # doctest: +SKIP
         ? API key (tr_...): ********
         ? Model ID [auto:balance]:
-        ✓ Saved tokenrouter to ~/.nexa/secrets/providers.json
+        ✓ Saved tokenrouter to ~/.openforge/secrets/providers.json
     """
     import asyncio
-    from nexa.provider_registry import (
+    from openforge.provider_registry import (
         ProviderRegistry,
         StoredProviderConfig,
     )
@@ -432,7 +432,7 @@ def _cmd_provider(
             model=default_model,
         )
         reg.add(name, cfg)
-        console.print(f"[green]✓ Saved[/green] {name} to ~/.nexa/secrets/providers.json")
+        console.print(f"[green]✓ Saved[/green] {name} to ~/.openforge/secrets/providers.json")
         console.print(f"  base_url: [cyan]{default_base}[/cyan]")
         console.print(f"  model:    [green]{default_model}[/green]")
         console.print(f"  api_key:  [dim]{cfg.masked_api_key()}[/dim]")
@@ -491,7 +491,7 @@ def _cmd_doctor() -> int:
         0 if healthy, 1 if issues found.
     """
     import asyncio
-    from nexa.state import ConversationDB
+    from openforge.state import ConversationDB
     from agent.core.self_health import SelfHealth
 
     async def run():

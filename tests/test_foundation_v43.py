@@ -2,7 +2,7 @@
 Tests for the new Foundation layer (v4.3.0).
 
 Covers:
-  * ``nexa.tool_api`` registration, unregistration, listing, event bus.
+  * ``openforge.tool_api`` registration, unregistration, listing, event bus.
   * ``gateways.base`` lifecycle and session mapping.
   * Both work cleanly under `pytest -q`.
 """
@@ -79,7 +79,7 @@ class TestToolAPIRegistration:
 # ---------------------------------------------------------------------------
 class TestWorkspaceHelpers:
     def test_write_read_cycle(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("NEXA_WORKSPACE", str(tmp_path))
+        monkeypatch.setenv("FORGE_WORKSPACE", str(tmp_path))
         asyncio.run(write_workspace_file("notes.md", "hello"))
         content = asyncio.run(read_workspace_file("notes.md"))
         assert "hello" in content

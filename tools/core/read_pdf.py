@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from nexa.config import NEXA_WORKSPACE
+from openforge.config import FORGE_WORKSPACE
 from tools._paths import resolve_in_workspace
 
 try:

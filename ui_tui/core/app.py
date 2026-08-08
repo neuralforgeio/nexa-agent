@@ -35,7 +35,7 @@ from rich.console import Group
 from rich.live import Live
 from rich.text import Text
 
-from nexa.constants import NEXA_NAME, NEXA_VERSION
+from openforge.constants import NEXA_NAME, NEXA_VERSION
 
 from ui_tui.input.keys import bind_state, kb
 from ui_tui.render.layout import build_layout
@@ -176,7 +176,7 @@ async def run_tui(agent, conv_id: str, history: Optional[List[Dict[str, Any]]] =
       - ``ServerHealthPoller``          — background /api/health updates
 
     Args:
-        agent:    A :class:`run_agent.NexaAgent` instance.
+        agent:    A :class:`run_agent.OpenForgeAgent` instance.
         conv_id:  Conversation ID for persistence.
         history:  Prior messages to preload (optional).
     """
@@ -284,9 +284,9 @@ async def run_tui(agent, conv_id: str, history: Optional[List[Dict[str, Any]]] =
 
 def main() -> int:
     """TUI entry point (``nexa-tui`` or ``python -m ui_tui.app``)."""
-    from src.run_agent import NexaAgent, set_active_agent
+    from src.run_agent import OpenForgeAgent, set_active_agent
 
-    agent = NexaAgent()
+    agent = OpenForgeAgent()
     set_active_agent(agent)
 
     async def run() -> None:

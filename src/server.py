@@ -43,12 +43,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, JSONResponse
 from pydantic import BaseModel
 
-from nexa import bootstrap as nexa_bootstrap  # noqa: F401 — must be imported first for UTF-8 stdio.
+from openforge import bootstrap as nexa_bootstrap  # noqa: F401 — must be imported first for UTF-8 stdio.
 from agent.core.self_health import SelfHealth
-from nexa.config import NEXA_NAME, NEXA_VERSION
-from nexa.provider_failover import is_failover_enabled
-from src.run_agent import NexaAgent
-from nexa.state import ConversationDB
+from openforge.config import NEXA_NAME, NEXA_VERSION
+from openforge.provider_failover import is_failover_enabled
+from src.run_agent import OpenForgeAgent
+from openforge.state import ConversationDB
 
 
 # ---------------------------------------------------------------------------
@@ -56,11 +56,11 @@ from nexa.state import ConversationDB
 # ---------------------------------------------------------------------------
 def _generate_api_token() -> str:
     """Return (and print) the API token, generating a random one if unset."""
-    token = os.environ.get("NEXA_API_TOKEN", "").strip()
+    token = os.environ.get("FORGE_API_TOKEN", "").strip()
     if not token:
         token = secrets.token_urlsafe(32)
         # Print once at startup so the operator can store it in the frontend.
-        print(f"\n[{NEXA_NAME}] NEXA_API_TOKEN not set — generated one:")
+        print(f"\n[{NEXA_NAME}] FORGE_API_TOKEN not set — generated one:")
         print(f"[{NEXA_NAME}]   {token}\n", flush=True)
     return token
 
@@ -69,16 +69,16 @@ def _generate_api_token() -> str:
 _API_TOKEN = _generate_api_token()
 
 #: Auth gate toggle. Defaults OFF for backwards-compatible local usage;
-#: set NEXA_REQUIRE_AUTH=1 in production/exposed deployments to enforce
+#: set FORGE_REQUIRE_AUTH=1 in production/exposed deployments to enforce
 #: Bearer-token auth on every /api/* route and the /ws/terminal socket.
-_REQUIRE_AUTH = os.environ.get("NEXA_REQUIRE_AUTH", "0").lower() in (
+_REQUIRE_AUTH = os.environ.get("FORGE_REQUIRE_AUTH", "0").lower() in (
     "1", "true", "yes",
 )
 
 
 def _allowed_origins() -> List[str]:
-    """Return the CORS allow-list, overridable via NEXA_ALLOWED_ORIGINS."""
-    raw = os.environ.get("NEXA_ALLOWED_ORIGINS", "").strip()
+    """Return the CORS allow-list, overridable via FORGE_ALLOWED_ORIGINS."""
+    raw = os.environ.get("FORGE_ALLOWED_ORIGINS", "").strip()
     if raw:
         return [o.strip() for o in raw.split(",") if o.strip()]
     return ["http://localhost:3000", "http://127.0.0.1:3000"]
@@ -97,7 +97,7 @@ async def verify_token(authorization: Optional[str] = Header(None)) -> None:
 
     No-op when :data:`_REQUIRE_AUTH` is ``False`` (default), so local
     single-user setups keep working without a token. Set
-    ``NEXA_REQUIRE_AUTH=1`` to enforce.
+    ``FORGE_REQUIRE_AUTH=1`` to enforce.
 
     Raises:
         HTTPException: 401 JSON ``{"error": "unauthorized"}`` on mismatch.
@@ -123,7 +123,7 @@ def verify_token_ws(token: Optional[str]) -> None:
 from src.run_agent import set_active_agent  # for the delegate tool
 
 _db: ConversationDB = ConversationDB()
-_agent: NexaAgent = NexaAgent(db=_db)
+_agent: OpenForgeAgent = OpenForgeAgent(db=_db)
 # Register the singleton as the active agent so tools like ``delegate`` and
 # ``terminal_exec`` can find the running instance at runtime.
 set_active_agent(_agent)
@@ -224,7 +224,7 @@ async def auth_gate(request: Request, call_next):
     """
     Bearer-token gate for every ``/api/*`` route.
 
-    Active only when :data:`_REQUIRE_AUTH` is true (``NEXA_REQUIRE_AUTH=1``).
+    Active only when :data:`_REQUIRE_AUTH` is true (``FORGE_REQUIRE_AUTH=1``).
     The health endpoint stays open so load balancers / uptime checks still
     work; everything else returns ``401 {"error": "unauthorized"}``.
     """
@@ -345,10 +345,10 @@ async def chat_stream(request: Request, req: ChatStreamRequest) -> StreamingResp
         # v4.1.0: announce which virtual-agent persona is driving this turn
         # (Planner/Explorer/Coder/Reviewer) so the UI can render the badge
         # above the reasoning bubble. Only emitted when the orchestrator
-        # protocol is activated via NEXA_ORCHESTRATOR=1.
+        # protocol is activated via FORGE_ORCHESTRATOR=1.
         import os as _os_orch
         if _agent.persona_manager is not None and _os_orch.environ.get(
-            "NEXA_ORCHESTRATOR", "0"
+            "FORGE_ORCHESTRATOR", "0"
         ).lower() in ("1", "true", "yes"):
             try:
                 badge = _agent.persona_manager.badge()
@@ -884,7 +884,7 @@ async def reformulate_endpoint(req: Dict[str, Any]) -> Dict[str, Any]:
 @app.get("/api/provider")
 async def provider_list() -> Dict[str, Any]:
     """List all providers and return the active one."""
-    from nexa.provider_registry import ProviderRegistry
+    from openforge.provider_registry import ProviderRegistry
     reg = ProviderRegistry()
     all_providers = reg.list_all()
     active = reg.get_active()
@@ -910,7 +910,7 @@ async def provider_add(req: Dict[str, Any]) -> Dict[str, Any]:
 
     Body: ``{"name": "...", "base_url": "...", "api_key": "...", "model": "...", "activate": true}``
     """
-    from nexa.provider_registry import ProviderRegistry, StoredProviderConfig
+    from openforge.provider_registry import ProviderRegistry, StoredProviderConfig
     reg = ProviderRegistry()
     name = (req.get("name") or "").strip()
     if not name:
@@ -946,7 +946,7 @@ async def provider_add(req: Dict[str, Any]) -> Dict[str, Any]:
 @app.delete("/api/provider")
 async def provider_remove(req: Dict[str, Any]) -> Dict[str, Any]:
     """Remove a provider by name. Body: ``{"name": "..."}``."""
-    from nexa.provider_registry import ProviderRegistry
+    from openforge.provider_registry import ProviderRegistry
     reg = ProviderRegistry()
     name = (req.get("name") or "").strip()
     if not name:
@@ -965,7 +965,7 @@ async def provider_use(req: Dict[str, Any]) -> Dict[str, Any]:
     connection test, the request is rejected (HTTP 400) and the previously
     active provider is left untouched (no blind hot-swap).
     """
-    from nexa.provider_registry import ProviderRegistry
+    from openforge.provider_registry import ProviderRegistry
     reg = ProviderRegistry()
     name = (req.get("name") or "").strip()
     if not name:
@@ -991,8 +991,8 @@ async def provider_use(req: Dict[str, Any]) -> Dict[str, Any]:
 
     # H-06: record usage + audit (observability).
     try:
-        from nexa.cost_tracker import record_usage  # noqa: F401
-        from nexa.audit import AuditLog
+        from openforge.cost_tracker import record_usage  # noqa: F401
+        from openforge.audit import AuditLog
         AuditLog().append("system", "provider_use", {"name": name, "base_url": cfg.base_url if cfg else None})
     except Exception:
         pass
@@ -1008,7 +1008,7 @@ async def provider_use(req: Dict[str, Any]) -> Dict[str, Any]:
 @app.post("/api/provider/test")
 async def provider_test(req: Dict[str, Any]) -> Dict[str, Any]:
     """Health-check a provider by name. Body: ``{"name": "..."}``."""
-    from nexa.provider_registry import ProviderRegistry
+    from openforge.provider_registry import ProviderRegistry
     reg = ProviderRegistry()
     name = (req.get("name") or "").strip()
     if not name:
@@ -1035,7 +1035,7 @@ async def ws_terminal(websocket) -> None:
     Falls back to command-based execution if PTY deps are unavailable.
 
     All commands still go through the v3.0.0 security boundary
-    (~/.nexa/ access blocked). The ``cwd`` is always ``NEXA_WORKSPACE``.
+    (~/.openforge/ access blocked). The ``cwd`` is always ``FORGE_WORKSPACE``.
 
     Message formats (server → client):
         ``{"type": "output", "data": "..."}`` — raw PTY output (ANSI included).
@@ -1048,7 +1048,7 @@ async def ws_terminal(websocket) -> None:
     import asyncio
     import json
 
-    from nexa.config import NEXA_WORKSPACE
+    from openforge.config import FORGE_WORKSPACE
 
     # v4.1.0: validate token BEFORE accepting the socket (raise on failure).
     try:
@@ -1059,15 +1059,15 @@ async def ws_terminal(websocket) -> None:
 
     await websocket.accept()
 
-    # v4.1.0: PTY mode is opt-in via NEXA_ENABLE_PTY=1 (default off —
+    # v4.1.0: PTY mode is opt-in via FORGE_ENABLE_PTY=1 (default off —
     # command-mode fallback has the v3.0.0 blocklist already). When PTY is
     # enabled we scrub the environment and pin cwd so the shell cannot leak
     # ``*_API_KEY`` / ``*_TOKEN`` secrets or escape the workspace.
-    pty_enabled = os.environ.get("NEXA_ENABLE_PTY", "0").lower() in ("1", "true", "yes")
+    pty_enabled = os.environ.get("FORGE_ENABLE_PTY", "0").lower() in ("1", "true", "yes")
     pty = None
     if pty_enabled:
         print(
-            f"[{NEXA_NAME}] WARNING: PTY terminal mode ENABLED (NEXA_ENABLE_PTY=1) "
+            f"[{NEXA_NAME}] WARNING: PTY terminal mode ENABLED (FORGE_ENABLE_PTY=1) "
             "— command blocklist bypassed; env secrets scrubbed.",
             flush=True,
         )
@@ -1089,7 +1089,7 @@ async def ws_terminal(websocket) -> None:
                 if k.upper() in allowed
                 and not k.upper().endswith(("_API_KEY", "_TOKEN", "_SECRET"))
             }
-            env["HOME"] = str(NEXA_WORKSPACE)
+            env["HOME"] = str(FORGE_WORKSPACE)
             env["NEXA_SANDBOXED"] = "1"
             return env
 
@@ -1098,7 +1098,7 @@ async def ws_terminal(websocket) -> None:
                 from winpty import PtyProcess  # type: ignore[import-not-found]
                 pty = PtyProcess.spawn(
                     ["cmd.exe", "/k"],
-                    cwd=str(NEXA_WORKSPACE),
+                    cwd=str(FORGE_WORKSPACE),
                     dimensions=(24, 80),
                     env=_scrub_env(),
                 )
@@ -1109,7 +1109,7 @@ async def ws_terminal(websocket) -> None:
                 import ptyprocess
                 pty = ptyprocess.PtyProcess.spawn(
                     ["/bin/bash"],
-                    cwd=str(NEXA_WORKSPACE),
+                    cwd=str(FORGE_WORKSPACE),
                     dimensions=(24, 80),
                     env=_scrub_env(),
                 )
@@ -1117,8 +1117,8 @@ async def ws_terminal(websocket) -> None:
                 pty = None
 
     if pty is None:
-        # No PTY (or disabled via NEXA_ENABLE_PTY=0) — command-based fallback.
-        reason = "disabled (NEXA_ENABLE_PTY=0)" if not pty_enabled else "not available on this system"
+        # No PTY (or disabled via FORGE_ENABLE_PTY=0) — command-based fallback.
+        reason = "disabled (FORGE_ENABLE_PTY=0)" if not pty_enabled else "not available on this system"
         await websocket.send_text(json.dumps({
             "type": "output",
             "data": f"PTY {reason}. Using guarded command mode.\r\n$ ",
@@ -1222,7 +1222,7 @@ async def api_usage(session: Optional[str] = None, days: int = 7) -> Dict[str, A
     stats = await _db.usage_stats(session_id=session, days=days)
     # H-04: emit a trace/audit hit for observability.
     try:
-        from nexa.audit import AuditLog
+        from openforge.audit import AuditLog
         AuditLog().append("system", "usage_query", {"session": session, "days": days})
     except Exception:
         pass
@@ -1232,7 +1232,7 @@ async def api_usage(session: Optional[str] = None, days: int = 7) -> Dict[str, A
 @app.get("/api/audit")
 async def api_audit_verify() -> Dict[str, Any]:
     """Verify the tamper-evident audit log chain (H-08)."""
-    from nexa.audit import AuditLog
+    from openforge.audit import AuditLog
     ok = AuditLog().verify()
     return {"ok": ok, "chain_valid": ok}
 
@@ -1252,7 +1252,7 @@ async def ws_approval(websocket):
 
 
 # Dev note (H-02): to test this endpoint outside of the TestClient, ensure
-# NEXA_API_TOKEN is NOT set (auth gate disabled) or the client sends the
+# FORGE_API_TOKEN is NOT set (auth gate disabled) or the client sends the
 # correct Bearer header — the WS route inherits the global /api/* gate when
 # require-auth is enabled.
 
@@ -1307,7 +1307,7 @@ from pathlib import Path as _Path
 
 from fastapi.responses import HTMLResponse as _HTMLResponse
 
-from nexa.config import NEXA_WORKSPACE as _WORKSPACE
+from openforge.config import FORGE_WORKSPACE as _WORKSPACE
 
 # Extensions the sandbox can render natively in a browser <iframe>.
 _PREVIEWABLE = {
@@ -1339,7 +1339,7 @@ _FRAMEWORK_MARKERS = {
 
 def _resolve_in_sandbox(rel_path: str) -> _Path:
     """
-    Resolve ``rel_path`` inside :data:`NEXA_WORKSPACE`, rejecting traversal.
+    Resolve ``rel_path`` inside :data:`FORGE_WORKSPACE`, rejecting traversal.
 
     Raises:
         ValueError: If the path escapes the workspace or is absolute.
@@ -1385,7 +1385,7 @@ async def upload_file(file: UploadFile = File(...)) -> Dict[str, Any]:
     """
     Accept a single multipart file upload and store it in the workspace.
 
-    Saves to ``NEXA_WORKSPACE/uploads/<sanitized-name>`` and returns a
+    Saves to ``FORGE_WORKSPACE/uploads/<sanitized-name>`` and returns a
     workspace-relative ``path`` the assistant can inspect with read tools.
     """
     data = await file.read()
@@ -1635,7 +1635,7 @@ _provider_lock = False  # simple once-guard
 def _get_skill_provider():
     """Return (and cache) a provider for skill execution, or None if unavailable."""
     global _provider_lock
-    from nexa.provider import LLMProvider
+    from openforge.provider import LLMProvider
 
     if _provider_lock and hasattr(_get_skill_provider, "_cache"):
         return _get_skill_provider._cache
@@ -1723,7 +1723,7 @@ if __name__ == "__main__":
 
     import uvicorn
 
-    from nexa.process_manager import SingletonConflict, acquire_singleton
+    from openforge.process_manager import SingletonConflict, acquire_singleton
 
     try:
         _server_lock = acquire_singleton("server", label="server.py:8000")

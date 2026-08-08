@@ -17,8 +17,8 @@ Notes:
   * Assertions are schema-level, not content-literal: the model must return an
     output that passes the manifest's output_schema. We do not demand exact
     wording from a nondeterministic model — that would be a dishonest test.
-  * Workspace-pointing skills are given a real temp file; NEXA_WORKSPACE and
-    tools._paths.NEXA_WORKSPACE are both repointed (captured at import time).
+  * Workspace-pointing skills are given a real temp file; FORGE_WORKSPACE and
+    tools._paths.FORGE_WORKSPACE are both repointed (captured at import time).
 """
 
 from __future__ import annotations
@@ -52,7 +52,7 @@ def _reachable(host: str = "127.0.0.1", port: int = 8080, timeout: float = 2.0) 
 
 def _provider():
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-    from nexa.provider import LLMProvider
+    from openforge.provider import LLMProvider
 
     return LLMProvider(
         api_key="dummy",
@@ -82,9 +82,9 @@ def div(a, b):
 @pytest.fixture
 def ws(tmp_path, monkeypatch):
     (tmp_path / "app.py").write_text(CODE, encoding="utf-8")
-    monkeypatch.setenv("NEXA_WORKSPACE", str(tmp_path))
+    monkeypatch.setenv("FORGE_WORKSPACE", str(tmp_path))
     monkeypatch.chdir(tmp_path)
-    monkeypatch.setattr("tools._paths.NEXA_WORKSPACE", tmp_path)
+    monkeypatch.setattr("tools._paths.FORGE_WORKSPACE", tmp_path)
     return tmp_path
 
 

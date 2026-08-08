@@ -21,7 +21,7 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
-from nexa.constants import NEXA_NAME, NEXA_VERSION, NEXA_AUTHOR
+from openforge.constants import NEXA_NAME, NEXA_VERSION, NEXA_AUTHOR
 
 from ui_tui.core.theme import PALETTE, ACCENT, ACCENT_DIM, BG, BORDER, ERROR
 from ui_tui.core.theme import TEXT, MUTED, SUCCESS, SURFACE, SURFACE_HI, WARNING

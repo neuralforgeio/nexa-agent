@@ -27,7 +27,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
-from nexa.constants import NEXA_NAME
+from openforge.constants import NEXA_NAME
 
 from .orchestrator import AgentPhase, Orchestrator
 

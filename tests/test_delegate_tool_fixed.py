@@ -24,7 +24,7 @@ from tools.delegate_tool import (
     _has_pending_tool_calls,
     delegate,
 )
-from src.run_agent import NexaAgent, get_active_agent, set_active_agent
+from src.run_agent import OpenForgeAgent, get_active_agent, set_active_agent
 
 
 # ---------------------------------------------------------------------------
@@ -75,10 +75,10 @@ class _FakeResult:
         return {"tool": self.tool, "ok": self.ok, "output": self.output}
 
 
-def _make_agent(events: List[tuple]) -> NexaAgent:
-    """Build a NexaAgent with a fake provider yielding the given events."""
+def _make_agent(events: List[tuple]) -> OpenForgeAgent:
+    """Build a OpenForgeAgent with a fake provider yielding the given events."""
     # We bypass __init__ to avoid network/db setup.
-    agent = NexaAgent.__new__(NexaAgent)
+    agent = OpenForgeAgent.__new__(OpenForgeAgent)
     agent.provider = _FakeProvider(events)
     agent.registry = MagicMock()
     agent.registry.get_openai_schemas.return_value = []
@@ -102,7 +102,7 @@ class TestActiveAgentSingleton:
         # Note: depends on test isolation; we don't reset, but the contract
         # is "returns None if not set" — tested by checking the type.
         agent = get_active_agent()
-        assert agent is None or isinstance(agent, NexaAgent)
+        assert agent is None or isinstance(agent, OpenForgeAgent)
 
 
 # ---------------------------------------------------------------------------

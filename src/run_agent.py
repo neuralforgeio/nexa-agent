@@ -2,14 +2,14 @@
 Nexa Agent — Agent Runner
 =========================
 
-This module defines :class:`NexaAgent`, the main agent class that ties
+This module defines :class:`OpenForgeAgent`, the main agent class that ties
 together the LLM provider, tool registry, and storage layer. It also
 provides a ``main()`` entry point for running the agent standalone.
 
 Usage as a library::
 
-    from src.run_agent import NexaAgent
-    agent = NexaAgent(provider_name="ollama", model="llama3.2")
+    from src.run_agent import OpenForgeAgent
+    agent = OpenForgeAgent(provider_name="ollama", model="llama3.2")
     async for event in agent.run_streaming("Hello", conv_id="..."):
         print(event)
 
@@ -28,10 +28,10 @@ from typing import Any, AsyncGenerator, Dict, List, Optional
 
 from agent.core.conversation_loop import run_conversation
 from agent.prompt.prompt_builder import build_system_prompt
-from nexa.constants import NEXA_MAX_CONTEXT_MESSAGES, NEXA_NAME
-from nexa.provider import LLMProvider
+from openforge.constants import FORGE_MAX_CONTEXT_MESSAGES, NEXA_NAME
+from openforge.provider import LLMProvider
 from providers.catalog import resolve_provider
-from nexa.state import ConversationDB
+from openforge.state import ConversationDB
 from tools.registry import ToolRegistry, create_default_registry
 
 
@@ -43,10 +43,10 @@ from tools.registry import ToolRegistry, create_default_registry
 # This avoids passing the agent through every tool call (which would break
 # the tool registry's flat ``**kwargs`` interface) while still allowing
 # tools to discover the active agent at runtime.
-_agent_singleton: Optional["NexaAgent"] = None
+_agent_singleton: Optional["OpenForgeAgent"] = None
 
 
-def set_active_agent(agent: "NexaAgent") -> None:
+def set_active_agent(agent: "OpenForgeAgent") -> None:
     """
     Register the currently-active agent instance.
 
@@ -54,23 +54,23 @@ def set_active_agent(agent: "NexaAgent") -> None:
     ``delegate`` can discover the agent at runtime.
 
     Args:
-        agent: The :class:`NexaAgent` instance to register.
+        agent: The :class:`OpenForgeAgent` instance to register.
     """
     global _agent_singleton
     _agent_singleton = agent
 
 
-def get_active_agent() -> Optional["NexaAgent"]:
+def get_active_agent() -> Optional["OpenForgeAgent"]:
     """
     Return the currently-active agent instance, or ``None`` if none set.
 
     Returns:
-        The registered :class:`NexaAgent`, or ``None``.
+        The registered :class:`OpenForgeAgent`, or ``None``.
     """
     return _agent_singleton
 
 
-class NexaAgent:
+class OpenForgeAgent:
     """
     The core Nexa Agent — orchestrates LLM calls, tool execution, and storage.
 
@@ -104,7 +104,7 @@ class NexaAgent:
         # v4.1.0: first try the ProviderRegistry (custom providers like 'ornith'),
         # then fall back to the catalog (openai, ollama, etc.).
         if provider_name:
-            from nexa.provider_registry import ProviderRegistry
+            from openforge.provider_registry import ProviderRegistry
             reg = ProviderRegistry()
             custom = reg.get(provider_name)
             if custom is not None:
@@ -125,11 +125,11 @@ class NexaAgent:
         self.registry = registry or create_default_registry()
         self.db = db or ConversationDB()
 
-        # v4.1.0: build a failover chain if NEXA_FAILOVER_ENABLED=1.
+        # v4.1.0: build a failover chain if FORGE_FAILOVER_ENABLED=1.
         # The chain lets the conversation loop swap providers on failure.
         self.failover_chain = None
         try:
-            from nexa.provider_failover import (
+            from openforge.provider_failover import (
                 build_default_chain,
                 is_failover_enabled,
             )
@@ -163,7 +163,7 @@ class NexaAgent:
             self.healer = SelfHealer()
             self.error_memory = ErrorMemory()
             # Virtual multi-agent (sequential): orchestrator + persona mgr.
-            # fresh=True ensures each new NexaAgent starts at PLANNING (not
+            # fresh=True ensures each new OpenForgeAgent starts at PLANNING (not
             # wherever the previous session left off on disk).
             self.orchestrator = Orchestrator(fresh=True)
             self.persona_manager = PersonaManager(self.orchestrator)
@@ -203,7 +203,7 @@ class NexaAgent:
         Returns:
             The full transcript ready for the LLM API call.
         """
-        # v4.1.0: load long-term memory + user profile from ~/.nexa/memory/.
+        # v4.1.0: load long-term memory + user profile from ~/.openforge/memory/.
         memory_digest = ""
         user_profile = ""
         learning_stats = None
@@ -273,7 +273,7 @@ class NexaAgent:
             # normally without wearing a persona.
             import os as _os
             if self.orchestrator is not None and _os.environ.get(
-                "NEXA_ORCHESTRATOR", "0"
+                "FORGE_ORCHESTRATOR", "0"
             ).lower() in ("1", "true", "yes"):
                 virtual_agent_block = base_persona_block(self.orchestrator.current_phase)
         except Exception:
@@ -313,7 +313,7 @@ class NexaAgent:
         # entries inside the loaded history are skipped below so nothing but
         # index 0 ever carries role == "system".
         transcript: List[Dict[str, Any]] = [{"role": "system", "content": system_prompt}]
-        for msg in history[-NEXA_MAX_CONTEXT_MESSAGES:]:
+        for msg in history[-FORGE_MAX_CONTEXT_MESSAGES:]:
             if msg.get("role") == "system":
                 continue
             transcript.append({"role": msg["role"], "content": msg["content"]})
@@ -423,10 +423,10 @@ class NexaAgent:
         import os
 
         # Gate the FSM: only drive phase transitions when the user has
-        # activated the multi-agent protocol (NEXA_ORCHESTRATOR=1). Without
+        # activated the multi-agent protocol (FORGE_ORCHESTRATOR=1). Without
         # this env flag the orchestrator stays parked at PLANNING forever,
         # preserving v4.0-compatible single-agent behavior for casual chat.
-        if os.environ.get("NEXA_ORCHESTRATOR", "0").lower() not in ("1", "true", "yes"):
+        if os.environ.get("FORGE_ORCHESTRATOR", "0").lower() not in ("1", "true", "yes"):
             return
 
         from agent.persona.orchestrator import AgentPhase
@@ -452,12 +452,12 @@ class NexaAgent:
             )
 
 
-async def _run_single_turn(agent: NexaAgent, message: str) -> None:
+async def _run_single_turn(agent: OpenForgeAgent, message: str) -> None:
     """
     Run a single non-interactive turn and print events to stdout.
 
     Args:
-        agent:  The :class:`NexaAgent` instance.
+        agent:  The :class:`OpenForgeAgent` instance.
         message: The user message.
     """
     await agent.db.init()
@@ -497,7 +497,7 @@ def main() -> None:
         parser.print_help()
         sys.exit(1)
 
-    agent = NexaAgent(
+    agent = OpenForgeAgent(
         provider_name=args.provider,
         model=args.model,
         api_key=args.api_key,

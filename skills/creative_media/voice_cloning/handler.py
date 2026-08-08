@@ -8,7 +8,7 @@ voice similarity score (``similarity_score``).
 
 Permissions used:
   * ``filesystem:workspace`` — ``sample_audio_path`` is resolved through
-    :func:`agent.tool_api.workspace_path` (sandboxed to ``NEXA_WORKSPACE``)
+    :func:`agent.tool_api.workspace_path` (sandboxed to ``FORGE_WORKSPACE``)
     and checked for real existence on disk.
   * ``network:*`` — declared by the manifest; nothing is fetched by this
     handler.

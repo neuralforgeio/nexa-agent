@@ -2,7 +2,7 @@
 Tests for the ``data_analysis`` skill (data_analytics).
 
 Real file reads and statistics computed in code run against a temp workspace
-(``NEXA_WORKSPACE`` -> ``tmp_path``). The LLM boundary uses a scripted provider;
+(``FORGE_WORKSPACE`` -> ``tmp_path``). The LLM boundary uses a scripted provider;
 every async test is marked (pytest-asyncio strict).
 """
 
@@ -38,9 +38,9 @@ GOOD_REPLY = (
 def ws(tmp_path, monkeypatch):
     (tmp_path / "data").mkdir()
     (tmp_path / "data" / "sales.csv").write_text(CSV, encoding="utf-8")
-    monkeypatch.setenv("NEXA_WORKSPACE", str(tmp_path))
+    monkeypatch.setenv("FORGE_WORKSPACE", str(tmp_path))
     monkeypatch.chdir(tmp_path)
-    monkeypatch.setattr("tools._paths.NEXA_WORKSPACE", tmp_path)
+    monkeypatch.setattr("tools._paths.FORGE_WORKSPACE", tmp_path)
     return tmp_path
 
 

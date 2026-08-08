@@ -16,7 +16,7 @@ sys.path.insert(0, str(__file__.replace("\\", "/").replace("/tests/", "/")))
 
 from fastapi.testclient import TestClient
 
-os.environ.setdefault("NEXA_API_TOKEN", "test-token-123")
+os.environ.setdefault("FORGE_API_TOKEN", "test-token-123")
 
 # Import AFTER setting env so the app picks up a static token.
 import src.server as server  # noqa: E402

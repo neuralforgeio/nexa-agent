@@ -6,7 +6,7 @@ Because local LLMs like llama.cpp can only run one inference slot at a
 time, we emulate a multi-agent setup via a **state machine**: a single
 process whose *system prompt* is swapped between phases (Planner →
 Explorer → Coder → Reviewer → Done), with file-backed shared memory in
-``~/.nexa/workspace/`` so phases can communicate without overflowing the
+``~/.openforge/workspace/`` so phases can communicate without overflowing the
 context window.
 
 The Orchestrator is a *planner*, not a *runner*. It doesn't call tools or
@@ -15,7 +15,7 @@ tells the conversation loop which phase we should be in next. The
 conversation loop wires the events; the backend persists the state so a
 later turn can resume a half-finished plan.
 
-File-backed shared memory (per ``~/.nexa/workspace/``):
+File-backed shared memory (per ``~/.openforge/workspace/``):
 
 - ``task.md``     — the Planner's structured plan.
 - ``context.md``  — the Explorer's summary of what's already known.
@@ -35,7 +35,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from nexa.config import NEXA_HOME
+from openforge.config import FORGE_HOME
 
 
 # ---------------------------------------------------------------------------
@@ -92,7 +92,7 @@ class OrchestratorState:
 # ---------------------------------------------------------------------------
 # Shared workspace helpers
 # ---------------------------------------------------------------------------
-_WORKSPACE_DIR = NEXA_HOME / "workspace"
+_WORKSPACE_DIR = FORGE_HOME / "workspace"
 
 
 def _workspace_dir() -> Path:
@@ -111,7 +111,7 @@ def read_workspace_file(rel: str) -> str:
 
 
 def write_workspace_file(rel: str, content: str) -> Path:
-    """Atomically write a shared-memory file inside ``~/.nexa/workspace/``."""
+    """Atomically write a shared-memory file inside ``~/.openforge/workspace/``."""
     p = _workspace_dir() / rel
     tmp = p.with_suffix(p.suffix + ".tmp")
     tmp.write_text(content, encoding="utf-8")
@@ -335,9 +335,9 @@ class Orchestrator:
             A Markdown system-prompt segment.
         """
         phase = phase or self._state.phase
-        plan = f"~/.nexa/workspace/{self._state.plan_path}"
-        ctx = f"~/.nexa/workspace/{self._state.context_path}"
-        errors = f"~/.nexa/workspace/{self._state.errors_path}"
+        plan = f"~/.openforge/workspace/{self._state.plan_path}"
+        ctx = f"~/.openforge/workspace/{self._state.context_path}"
+        errors = f"~/.openforge/workspace/{self._state.errors_path}"
 
         if phase == AgentPhase.PLANNING:
             return (

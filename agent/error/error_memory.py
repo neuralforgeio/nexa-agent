@@ -8,7 +8,7 @@ same mistake** — when the same error signature recurs, the memory
 returns the previous remediation so the agent can apply it instantly
 instead of re-diagnosing from scratch.
 
-Storage: a single JSON file under ``~/.nexa/memory/errors.json``.
+Storage: a single JSON file under ``~/.openforge/memory/errors.json``.
 
 Copyright (c) 2026 Dearly Febriano Irwansyah
 SPDX-License-Identifier: MIT
@@ -81,10 +81,10 @@ class ErrorMemory:
         Initialize the memory.
 
         Args:
-            path: Path to the JSON file (default ``~/.nexa/memory/errors.json``).
+            path: Path to the JSON file (default ``~/.openforge/memory/errors.json``).
         """
         self.path: Path = path or (
-            Path(os.environ.get("NEXA_HOME", Path.home() / ".nexa"))
+            Path(os.environ.get("FORGE_HOME", Path.home() / ".nexa"))
             / "memory"
             / "errors.json"
         )

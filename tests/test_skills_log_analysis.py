@@ -54,9 +54,9 @@ def ws(tmp_path, monkeypatch):
     logs = tmp_path / "logs"
     logs.mkdir()
     (logs / "nexa-agent.log").write_text(LOG_TEXT, encoding="utf-8")
-    monkeypatch.setenv("NEXA_WORKSPACE", str(tmp_path))
+    monkeypatch.setenv("FORGE_WORKSPACE", str(tmp_path))
     monkeypatch.chdir(tmp_path)
-    monkeypatch.setattr("tools._paths.NEXA_WORKSPACE", tmp_path)
+    monkeypatch.setattr("tools._paths.FORGE_WORKSPACE", tmp_path)
     return tmp_path
 
 

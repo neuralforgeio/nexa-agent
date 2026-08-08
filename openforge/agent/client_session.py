@@ -8,7 +8,7 @@ from __future__ import annotations
 import asyncio
 from dataclasses import dataclass, field
 from typing import Any, AsyncGenerator, Dict, Optional
-from .config import NEXA_HOME, open_irc
+from .config import FORGE_HOME, open_irc
 from .session_store import SessionStore
 
 

@@ -25,21 +25,21 @@ import pytest
 sys.path.insert(0, str(__file__.replace("\\", "/").replace("/tests/", "/")))
 
 import src.server as server  # noqa: E402
-from nexa.state import ConversationDB  # noqa: E402
+from openforge.state import ConversationDB  # noqa: E402
 
 
 @pytest.fixture()
 def client(tmp_path, monkeypatch):
-    nexa_home = tmp_path / ".nexa"
-    nexa_home.mkdir(parents=True, exist_ok=True)
-    import nexa.config as cfg
-    import nexa.state as st
+    forge_home = tmp_path / ".nexa"
+    forge_home.mkdir(parents=True, exist_ok=True)
+    import openforge.config as cfg
+    import openforge.state as st
 
-    monkeypatch.setenv("NEXA_HOME", str(nexa_home))
-    monkeypatch.setattr(cfg, "NEXA_HOME", nexa_home)
-    monkeypatch.setattr(cfg, "NEXA_DB_PATH", nexa_home / "nexa.db")
-    monkeypatch.setattr(st, "NEXA_HOME", nexa_home)
-    monkeypatch.setattr(st, "NEXA_DB_PATH", nexa_home / "nexa.db")
+    monkeypatch.setenv("FORGE_HOME", str(forge_home))
+    monkeypatch.setattr(cfg, "FORGE_HOME", forge_home)
+    monkeypatch.setattr(cfg, "FORGE_DB_PATH", forge_home / "openforge.db")
+    monkeypatch.setattr(st, "FORGE_HOME", forge_home)
+    monkeypatch.setattr(st, "FORGE_DB_PATH", forge_home / "openforge.db")
     monkeypatch.setattr(server, "_db", ConversationDB())
 
     import anyio
@@ -114,7 +114,7 @@ class TestB04_Preflight:
 
     def test_unreachable_provider_refused_400(self, client, monkeypatch):
         """A provider that fails its health test must NOT be activated."""
-        from nexa.provider_registry import ProviderRegistry
+        from openforge.provider_registry import ProviderRegistry
 
         async def _fail(self, name):  # noqa: ANN001, ANN202
             return False

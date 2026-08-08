@@ -10,7 +10,7 @@ Environment variables:
     OPENAI_API_KEY   — Your OpenAI (or OpenAI-compatible) API key.
     OPENAI_BASE_URL  — Optional custom base URL (e.g. OpenRouter).
     NEXA_MODEL       — The model identifier to use (default: gpt-4o).
-    NEXA_HOME        — The runtime home directory (default: ~/.nexa).
+    FORGE_HOME        — The runtime home directory (default: ~/.openforge).
 
 Copyright (c) 2026 Dearly Febriano Irwansyah
 SPDX-License-Identifier: MIT
@@ -112,44 +112,44 @@ NEXA_TAGLINE: str = "The advanced AI agent by Dearly Febriano Irwansyah"
 # ---------------------------------------------------------------------------
 # Runtime paths
 # ---------------------------------------------------------------------------
-NEXA_HOME: Path = Path(os.environ.get("NEXA_HOME", Path.home() / ".nexa"))
+FORGE_HOME: Path = Path(os.environ.get("FORGE_HOME", Path.home() / ".nexa"))
 """
 The logical home directory for Nexa runtime artifacts (sessions, memory,
-logs). Defaults to ``~/.nexa/``. Created on first use.
+logs). Defaults to ``~/.openforge/``. Created on first use.
 """
 
-NEXA_WORKSPACE: Path = Path(
-    os.environ.get("NEXA_WORKSPACE", Path.cwd() / "nexa-workspace")
+FORGE_WORKSPACE: Path = Path(
+    os.environ.get("FORGE_WORKSPACE", Path.cwd() / "forge-workspace")
 )
 """
 The filesystem sandbox for file & terminal tools. All file operations
 are confined here to prevent arbitrary access to the host filesystem.
 """
 
-NEXA_DB_PATH: Path = NEXA_HOME / "nexa.db"
+FORGE_DB_PATH: Path = FORGE_HOME / "openforge.db"
 """The path to the SQLite database used for conversation persistence."""
 
-NEXA_SECRETS_DIR: Path = NEXA_HOME / "secrets"
+FORGE_SECRETS_DIR: Path = FORGE_HOME / "secrets"
 """
 Directory for storing sensitive credentials (API keys, tokens) separately
 from the main ``.env`` file. Files here are created with mode 0o600
 (best-effort on Unix). v3.0.0 introduced this as part of the terminal
-security hardening — ``run_terminal_command`` blocks access to ``~/.nexa/``
+security hardening — ``run_terminal_command`` blocks access to ``~/.openforge/``
 entirely, so credentials live here safely.
 """
 
 
 def _ensure_secrets_dir() -> None:
     """
-    Create :data:`NEXA_SECRETS_DIR` and tighten its permissions.
+    Create :data:`FORGE_SECRETS_DIR` and tighten its permissions.
 
     On Unix, the directory is set to mode 0o700 (owner-only). On Windows,
     permissions are inherited from the parent — this is best-effort.
     """
-    NEXA_SECRETS_DIR.mkdir(parents=True, exist_ok=True)
+    FORGE_SECRETS_DIR.mkdir(parents=True, exist_ok=True)
     if os.name == "posix":
         try:
-            os.chmod(NEXA_SECRETS_DIR, 0o700)
+            os.chmod(FORGE_SECRETS_DIR, 0o700)
         except OSError:
             pass
 
@@ -186,13 +186,13 @@ The model identifier sent to the provider. Defaults to ``gpt-4o``.
 # ---------------------------------------------------------------------------
 # Agent loop safeguards
 # ---------------------------------------------------------------------------
-NEXA_MAX_TOOL_ITERATIONS: int = 8
+FORGE_MAX_TOOL_ITERATIONS: int = 8
 """
 Maximum number of LLM round-trips in a single conversation turn.
 Prevents infinite tool-calling loops.
 """
 
-NEXA_MAX_CONTEXT_MESSAGES: int = 30
+FORGE_MAX_CONTEXT_MESSAGES: int = 30
 """
 Maximum number of historical messages carried into the system prompt
 window. Older messages are truncated to fit the context budget.
@@ -204,14 +204,14 @@ window. Older messages are truncated to fit the context budget.
 # ---------------------------------------------------------------------------
 def ensure_nexa_home() -> None:
     """
-    Ensure that the ``NEXA_HOME`` directory and its subdirectories exist.
+    Ensure that the ``FORGE_HOME`` directory and its subdirectories exist.
 
-    Creates ``~/.nexa/`` along with ``sessions``, ``memory``, ``logs``
-    subdirectories, and the ``NEXA_WORKSPACE`` sandbox directory.
+    Creates ``~/.openforge/`` along with ``sessions``, ``memory``, ``logs``
+    subdirectories, and the ``FORGE_WORKSPACE`` sandbox directory.
 
     This function is safe to call multiple times — it uses
     ``parents=True, exist_ok=True``.
     """
     for subdir in ("sessions", "memory", "logs"):
-        (NEXA_HOME / subdir).mkdir(parents=True, exist_ok=True)
-    NEXA_WORKSPACE.mkdir(parents=True, exist_ok=True)
+        (FORGE_HOME / subdir).mkdir(parents=True, exist_ok=True)
+    FORGE_WORKSPACE.mkdir(parents=True, exist_ok=True)

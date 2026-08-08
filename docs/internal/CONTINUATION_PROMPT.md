@@ -22,13 +22,13 @@ Anda adalah "Nexa Autonomous Principal Engineer". Anda akan melanjutkan pengemba
 - **Agent modules**: 36 (33 asli + orchestrator + persona_manager + memory_files v4.1)
 - **Providers**: 8 (openai, openrouter, ollama, llamacpp, lmstudio, vllm, tokenrouter, databricks) + custom endpoints
 - **Python packages**: nexa/, agent/, tools/, providers/, nexa_cli/, ui_tui/, tui_gateway/
-- **User-tools**: `~/.nexa/tools/*.py` auto-loaded (see `tools/registry.py::load_user_tools`)
+- **User-tools**: `~/.openforge/tools/*.py` auto-loaded (see `tools/registry.py::load_user_tools`)
 
 ## v4.1.0–v4.1.6 HEADLINES
 
 - **v4.1.0** introduced the Virtual Multi-Agent Orchestrator (Planner → Explorer → Coder
   → Reviewer) with five persona badges, the shared workspace state files in
-  `~/.nexa/workspace/`, an `agent_persona` SSE event, and full intelligence-mesh
+  `~/.openforge/workspace/`, an `agent_persona` SSE event, and full intelligence-mesh
   wiring in `run_agent.py`'s transcript builder. New modules:
   `agent/orchestrator.py`, `agent/persona_manager.py`.
 
@@ -37,8 +37,8 @@ Anda adalah "Nexa Autonomous Principal Engineer". Anda akan melanjutkan pengemba
   - AST sandbox was blind to `__builtins__.open()` and `__builtins__['open']` —
     now rejected.
   - Orchestrator `decide_next` returned a stale phase when the cap triggered.
-  - `terminal_exec` was calling `run_terminal_command` with `NEXA_HOME` as cwd
-    instead of `NEXA_WORKSPACE` and swallowing errors into dicts.
+  - `terminal_exec` was calling `run_terminal_command` with `FORGE_HOME` as cwd
+    instead of `FORGE_WORKSPACE` and swallowing errors into dicts.
   - Subprocess env leaks: `HOME` redirected to the workspace so
     `chr(126)+chr(47)+chr(46)+chr(110)...`-style exfiltration is neutralised.
   - `pyproject.toml` now explicitly declares `fastapi`, `uvicorn`, `websockets`,
@@ -49,7 +49,7 @@ Anda adalah "Nexa Autonomous Principal Engineer". Anda akan melanjutkan pengemba
 - **Sandbox Panel** (web UI): right sidebar with Preview-over-Terminal split, draggable divider, dev-server autodetect, static-file fallback via `/api/sandbox/preview`.
 - **Working Process dropdown**: nested thinking traces that auto-collapse on completion (one-line summary left behind).
 - **20 planning tools** (see `.plans/PLANNING_TOOLS_20.md`).
-- **`create_tool`** — the agent can extend itself; anything dropped into `~/.nexa/tools/` becomes callable on the next turn.
+- **`create_tool`** — the agent can extend itself; anything dropped into `~/.openforge/tools/` becomes callable on the next turn.
 - **Bug fixes**: llama.cpp auto-cancel via capability negotiation + SSE keepalive, double-process guard via `nexa/process_manager.py`, terminal_exec dataclass import.
 - **Singleton enforcement**: starting `server.py` twice on the same user raises a clear `SingletonConflict` instead of double-binding port 8000.
 
@@ -94,7 +94,7 @@ payload — no more auto-cancel by llama-server.
 - **P1.1 delegate_tool.py FIX**: ditambah `set_active_agent()`/`get_active_agent()` singleton di `run_agent.py`. delegate sekarang benar-benar berfungsi: bisa loop tool calls, clamps max_iterations ke [1,8]. 22 tests pass.
 - **P1.2 code_execution_tool.py REWRITE**: Project-Scoped Boundary + HITL.
   - Pakai `sys.executable` (bukan `python3`) — cross-platform ✓
-  - cwd default `NEXA_WORKSPACE`, validasi `Path.is_relative_to()` — tolak `/etc`, `C:\Windows`, `../../` ✓
+  - cwd default `FORGE_WORKSPACE`, validasi `Path.is_relative_to()` — tolak `/etc`, `C:\Windows`, `../../` ✓
   - Parameter `requires_approval: bool = True` + `approval_callback(code) -> bool` di schema ✓
   - Headless (callback=None) = auto-deny, timeout 30s = deny ✓
   - Robust kill: `start_new_session=True` (Unix) + `os.killpg`, `taskkill /F /T /PID` (Windows) ✓
@@ -216,7 +216,7 @@ tool-results/              # runtime artifacts
 7. **VERSIONING**: MAJOR (vX.0.0) = arsitektur besar, MINOR (vX.Y.0) = fitur baru, PATCH (vX.Y.Z) = bugfix. Target saat ini: v2.1.0 (MINOR — Production Readiness: TUI baru + hardening).
 8. **PATH MUTLAK**: `C:\Users\Dearly Febriano\nexa-agent`. JANGAN gunakan `Documents/Prism-Agent` (diblokir CFA).
 9. **CROSS-PLATFORM**: JANGAN hardcode `python3` — pakai `sys.executable`. Build scripts frontend jangan pakai `cp -r`/`tee` (Unix-only) — pakai Node scripts atau `shx`.
-10. **PROJECT-SCOPED BOUNDARY** (bukan sandbox isolasi penuh): Validasi path via `Path.resolve().is_relative_to(NEXA_WORKSPACE)`. Untuk `code_execution`, tambah HITL approval callback.
+10. **PROJECT-SCOPED BOUNDARY** (bukan sandbox isolasi penuh): Validasi path via `Path.resolve().is_relative_to(FORGE_WORKSPACE)`. Untuk `code_execution`, tambah HITL approval callback.
 11. **UPDATE CONTINUATION_PROMPT.md SETIAP FEATURE BARU**: Setelah menyelesaikan setiap sub-task (P1.1, P1.2, dst), UPDATE file ini agar user bisa switch chat tanpa kehilangan context.
 12. **BRANCH + TAG + RELEASE DISCIPLINE** (mandatory, effective v4.1.6):
     - Setiap pekerjaan baru: `git checkout -b nexa-demo-<8-hex>` dari `main`.

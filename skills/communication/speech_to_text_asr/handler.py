@@ -12,7 +12,7 @@ Permissions
 -----------
 Declared: ``filesystem:workspace`` (the audio file referenced by
 ``audio_path`` is resolved and inspected through
-:func:`agent.tool_api.workspace_path`, sandboxed to ``NEXA_WORKSPACE``) and
+:func:`agent.tool_api.workspace_path`, sandboxed to ``FORGE_WORKSPACE``) and
 ``network:*`` (ASR backends normally live behind a service; declared by the
 manifest — no network call is made in this build).
 

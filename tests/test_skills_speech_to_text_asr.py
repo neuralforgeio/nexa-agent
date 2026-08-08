@@ -8,7 +8,7 @@ honestly-empty result — it never fabricates a transcript for audio it
 cannot decode, and it never raises just because no backend exists.
 
 The workspace file check runs for real against a temporary workspace
-(``NEXA_WORKSPACE`` pointed at ``tmp_path``).
+(``FORGE_WORKSPACE`` pointed at ``tmp_path``).
 
 Note: pytest-asyncio runs in STRICT mode in this repo, so every coroutine
 test is explicitly decorated with ``@pytest.mark.asyncio``.
@@ -27,12 +27,12 @@ from tests._skill_helpers import ScriptedProvider
 @pytest.fixture
 def ws(tmp_path, monkeypatch):
     (tmp_path / "standup.mp3").write_bytes(b"\x00" * 16)
-    monkeypatch.setenv("NEXA_WORKSPACE", str(tmp_path))
+    monkeypatch.setenv("FORGE_WORKSPACE", str(tmp_path))
     monkeypatch.chdir(tmp_path)
-    # nexa.config.NEXA_WORKSPACE is captured at import time, so the env var
+    # openforge.config.FORGE_WORKSPACE is captured at import time, so the env var
     # alone is not enough — repoint the already-imported reference used by
     # tools._paths.resolve_in_workspace (same pattern as test_file_tools_*).
-    monkeypatch.setattr("tools._paths.NEXA_WORKSPACE", tmp_path)
+    monkeypatch.setattr("tools._paths.FORGE_WORKSPACE", tmp_path)
     return tmp_path
 
 

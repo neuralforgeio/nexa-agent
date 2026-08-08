@@ -67,7 +67,7 @@ def test_voice_and_tts_mentions_present():
     """Smoke: Composer exposes the mic button; MessageBubble exposes TTS."""
     from pathlib import Path
 
-    composer = (Path("nexa_web") / "components" / "Composer.tsx").read_text(encoding="utf-8")
-    bubble = (Path("nexa_web") / "components" / "MessageBubble.tsx").read_text(encoding="utf-8")
+    composer = (Path("openforge_web") / "components" / "Composer.tsx").read_text(encoding="utf-8")
+    bubble = (Path("openforge_web") / "components" / "MessageBubble.tsx").read_text(encoding="utf-8")
     assert "voice-input" in composer and "toggleListening" in composer  # C-04
     assert "speechSynthesis" in bubble and "toggleSpeak" in bubble and "Volume2" in bubble  # C-05

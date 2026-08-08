@@ -6,7 +6,7 @@ A lightweight on-disk cache for facts the agent learns from the web.
 The cache avoids redundant web searches for the same entity and gives
 the autonomous learner a place to persist what it has discovered.
 
-Storage format: one JSON file per entity under ``~/.nexa/knowledge/``.
+Storage format: one JSON file per entity under ``~/.openforge/knowledge/``.
 Each entry stores the summary, source, confidence, and a TTL.
 
 The cache is intentionally **dependency-free** (stdlib only) so it works
@@ -94,12 +94,12 @@ class KnowledgeCache:
         Initialize the cache.
 
         Args:
-            cache_dir:   Directory for cache files (default ``~/.nexa/knowledge``).
+            cache_dir:   Directory for cache files (default ``~/.openforge/knowledge``).
             ttl_seconds: Default TTL for new entries.
             max_entries: Soft cap on entries (LRU eviction).
         """
         self.cache_dir: Path = cache_dir or (
-            Path(os.environ.get("NEXA_HOME", Path.home() / ".nexa")) / "knowledge"
+            Path(os.environ.get("FORGE_HOME", Path.home() / ".nexa")) / "knowledge"
         )
         self.ttl_seconds: int = ttl_seconds
         self.max_entries: int = max_entries

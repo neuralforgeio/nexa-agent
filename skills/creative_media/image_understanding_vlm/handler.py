@@ -9,7 +9,7 @@ vision-language model. Returns per-question ``answers``, plus optional
 Permissions used:
   * ``filesystem:workspace`` — when ``image_path`` is given it is resolved
     through :func:`agent.tool_api.workspace_path` (sandboxed to
-    ``NEXA_WORKSPACE``) and checked for real existence on disk.
+    ``FORGE_WORKSPACE``) and checked for real existence on disk.
   * ``network:*`` — declared by the manifest for the ``image_url`` variant;
     nothing is fetched by this handler.
 

@@ -7,8 +7,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from nexa.embeddings import embed_text
-from nexa.vector_db import VectorStore
+from openforge.embeddings import embed_text
+from openforge.vector_db import VectorStore
 
 SEMANTIC_SEARCH_SCHEMA = {
     "type": "object",

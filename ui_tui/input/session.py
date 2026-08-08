@@ -47,7 +47,7 @@ class NexaPromptSession:
     Prompt session tuned for the TUI.
 
     Uses ``prompt_toolkit.PromptSession`` with:
-      - ``FileHistory``  — persists across restarts (``~/.nexa/tui_history``)
+      - ``FileHistory``  — persists across restarts (``~/.openforge/tui_history``)
       - ``patch_stdout`` — lets ``rich.live.Live`` paint while user types
       - ``multiline``    — Enter submits, Escape+Enter inserts a newline
     """

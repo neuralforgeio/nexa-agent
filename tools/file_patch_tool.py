@@ -26,7 +26,7 @@ import tempfile
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from nexa.config import NEXA_WORKSPACE
+from openforge.config import FORGE_WORKSPACE
 from tools._paths import resolve_in_workspace
 
 # Re-export for backward compatibility.

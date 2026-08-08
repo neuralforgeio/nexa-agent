@@ -93,9 +93,9 @@ class TestCodeExecution:
     @pytest.mark.asyncio
     async def test_simple_print(self) -> None:
         """Executing a simple print statement must capture output."""
-        result = await code_execution('print("hello from nexa")', requires_approval=False)
+        result = await code_execution('print("hello from openforge")', requires_approval=False)
         assert "exit code: 0" in result
-        assert "hello from nexa" in result
+        assert "hello from openforge" in result
 
     @pytest.mark.asyncio
     async def test_math_computation(self) -> None:

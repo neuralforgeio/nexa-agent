@@ -222,7 +222,7 @@ class ProviderHealthTracker:
             return None
         if prefer == "cheap":
             try:
-                from nexa.cost_tracker import _PRICING
+                from openforge.cost_tracker import _PRICING
             except Exception:
                 _PRICING = {}
             return min(candidates, key=lambda p: _PRICING.get(p.name, 0.001))
@@ -381,7 +381,7 @@ def build_default_chain(
 
     Failover providers come from:
         1. ``failover_names`` argument (if given).
-        2. ``NEXA_FAILOVER_CHAIN`` env var (comma-separated names).
+        2. ``FORGE_FAILOVER_CHAIN`` env var (comma-separated names).
         3. Empty (no failover — primary only).
 
     Local providers (ollama, llamacpp, lmstudio, vllm) are auto-appended
@@ -415,7 +415,7 @@ def build_default_chain(
 
     # Resolve failover providers.
     if failover_names is None:
-        env_chain = os.environ.get("NEXA_FAILOVER_CHAIN", "")
+        env_chain = os.environ.get("FORGE_FAILOVER_CHAIN", "")
         failover_names = (
             [n.strip().lower() for n in env_chain.split(",") if n.strip()]
             if env_chain
@@ -447,4 +447,4 @@ def build_default_chain(
 
 def is_failover_enabled() -> bool:
     """Return ``True`` if failover is enabled via env (default: off)."""
-    return os.environ.get("NEXA_FAILOVER_ENABLED", "0").lower() in ("1", "true", "yes")
+    return os.environ.get("FORGE_FAILOVER_ENABLED", "0").lower() in ("1", "true", "yes")

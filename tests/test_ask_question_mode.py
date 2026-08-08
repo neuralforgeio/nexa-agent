@@ -6,7 +6,7 @@ Verifies:
     - should_use_quick_mode returns False for tool-needing messages.
     - should_use_quick_mode respects the ``force`` override.
     - build_quick_system_prompt strips the "# Available Tools" section.
-    - is_quick_mode_enabled reads NEXA_QUICK_MODE env.
+    - is_quick_mode_enabled reads FORGE_QUICK_MODE env.
 
 Copyright (c) 2026 Dearly Febriano Irwansyah
 SPDX-License-Identifier: MIT
@@ -39,7 +39,7 @@ class TestShouldUseQuickMode:
     def test_action_verbs_not_quick(self) -> None:
         """Messages with action verbs (fix, write, read) bypass quick mode."""
         assert should_use_quick_mode("fix the bug") is False
-        assert should_use_quick_mode("read nexa-workspace/file.txt") is False
+        assert should_use_quick_mode("read forge-workspace/file.txt") is False
         assert should_use_quick_mode("search the web for AI news") is False
         assert should_use_quick_mode("create a new file") is False
 
@@ -110,20 +110,20 @@ class TestIsQuickModeEnabled:
 
     def test_default_off(self, monkeypatch) -> None:
         """Quick mode is off by default."""
-        monkeypatch.delenv("NEXA_QUICK_MODE", raising=False)
+        monkeypatch.delenv("FORGE_QUICK_MODE", raising=False)
         assert is_quick_mode_enabled() is False
 
     def test_enabled_when_set(self, monkeypatch) -> None:
-        """NEXA_QUICK_MODE=1 enables it."""
-        monkeypatch.setenv("NEXA_QUICK_MODE", "1")
+        """FORGE_QUICK_MODE=1 enables it."""
+        monkeypatch.setenv("FORGE_QUICK_MODE", "1")
         assert is_quick_mode_enabled() is True
 
     def test_enabled_when_true(self, monkeypatch) -> None:
-        """NEXA_QUICK_MODE=true enables it."""
-        monkeypatch.setenv("NEXA_QUICK_MODE", "true")
+        """FORGE_QUICK_MODE=true enables it."""
+        monkeypatch.setenv("FORGE_QUICK_MODE", "true")
         assert is_quick_mode_enabled() is True
 
     def test_disabled_when_zero(self, monkeypatch) -> None:
-        """NEXA_QUICK_MODE=0 disables it."""
-        monkeypatch.setenv("NEXA_QUICK_MODE", "0")
+        """FORGE_QUICK_MODE=0 disables it."""
+        monkeypatch.setenv("FORGE_QUICK_MODE", "0")
         assert is_quick_mode_enabled() is False

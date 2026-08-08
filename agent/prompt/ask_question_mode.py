@@ -13,7 +13,7 @@ When ``quick_mode=True``:
     - Memory + user_profile are still injected (personalization preserved).
 
 This module exposes a thin helper + config flag. The actual integration
-lives in ``run_agent.NexaAgent.run_streaming`` and
+lives in ``run_agent.OpenForgeAgent.run_streaming`` and
 ``agent.conversation_loop.run_conversation``.
 
 Copyright (c) 2026 Dearly Febriano Irwansyah
@@ -51,7 +51,7 @@ def should_use_quick_mode(message: str, *, force: Optional[bool] = None) -> bool
     Example:
         >>> should_use_quick_mode("What is the capital of France?")
         True
-        >>> should_use_quick_mode("Read nexa-workspace/notes.txt and summarize")
+        >>> should_use_quick_mode("Read forge-workspace/notes.txt and summarize")
         False
         >>> should_use_quick_mode("Fix the bug", force=True)
         True
@@ -114,6 +114,6 @@ def build_quick_system_prompt(base_prompt: str) -> str:
 
 
 def is_quick_mode_enabled() -> bool:
-    """Return True if quick mode is enabled via env (NEXA_QUICK_MODE=1)."""
+    """Return True if quick mode is enabled via env (FORGE_QUICK_MODE=1)."""
     import os
-    return os.environ.get("NEXA_QUICK_MODE", "0").lower() in ("1", "true", "yes")
+    return os.environ.get("FORGE_QUICK_MODE", "0").lower() in ("1", "true", "yes")

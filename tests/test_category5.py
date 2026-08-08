@@ -10,15 +10,15 @@ import src.server as server
 @pytest.fixture()
 def client(tmp_path, monkeypatch):
     import anyio
-    import nexa.config as cfg
-    import nexa.state as st
-    nexa_home = tmp_path / ".nexa"; nexa_home.mkdir(parents=True, exist_ok=True)
-    monkeypatch.setenv("NEXA_HOME", str(nexa_home))
-    monkeypatch.setattr(cfg, "NEXA_HOME", nexa_home)
-    monkeypatch.setattr(cfg, "NEXA_DB_PATH", nexa_home / "nexa.db")
-    monkeypatch.setattr(st, "NEXA_HOME", nexa_home)
-    monkeypatch.setattr(st, "NEXA_DB_PATH", nexa_home / "nexa.db")
-    from nexa.state import ConversationDB
+    import openforge.config as cfg
+    import openforge.state as st
+    forge_home = tmp_path / ".nexa"; forge_home.mkdir(parents=True, exist_ok=True)
+    monkeypatch.setenv("FORGE_HOME", str(forge_home))
+    monkeypatch.setattr(cfg, "FORGE_HOME", forge_home)
+    monkeypatch.setattr(cfg, "FORGE_DB_PATH", forge_home / "openforge.db")
+    monkeypatch.setattr(st, "FORGE_HOME", forge_home)
+    monkeypatch.setattr(st, "FORGE_DB_PATH", forge_home / "openforge.db")
+    from openforge.state import ConversationDB
     monkeypatch.setattr(server, "_db", ConversationDB())
     anyio.run(server._db.init)
     return TestClient(server.app, raise_server_exceptions=False)
@@ -48,7 +48,7 @@ def test_approval_ws_accepts_connection(client):
 
 def test_frontend_files_presence():
     from pathlib import Path
-    modal = Path("nexa_web/components/ApprovalModal.tsx").read_text(encoding="utf-8")
+    modal = Path("openforge_web/components/ApprovalModal.tsx").read_text(encoding="utf-8")
     assert "Esc" in modal and "Always Allow" in modal
-    diff = Path("nexa_web/components/DiffViewer.tsx").read_text(encoding="utf-8")
+    diff = Path("openforge_web/components/DiffViewer.tsx").read_text(encoding="utf-8")
     assert "+" in diff and "-" in diff  # unified diff markers

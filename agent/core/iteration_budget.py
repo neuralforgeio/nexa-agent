@@ -17,7 +17,7 @@ SPDX-License-Identifier: MIT
 from dataclasses import dataclass, field
 from typing import List
 
-from nexa.constants import NEXA_MAX_TOOL_ITERATIONS
+from openforge.constants import FORGE_MAX_TOOL_ITERATIONS
 
 
 @dataclass
@@ -31,7 +31,7 @@ class IterationBudget:
         history:        Record of each iteration's outcome.
     """
 
-    max_iterations: int = NEXA_MAX_TOOL_ITERATIONS
+    max_iterations: int = FORGE_MAX_TOOL_ITERATIONS
     used: int = 0
     history: List[str] = field(default_factory=list)
 

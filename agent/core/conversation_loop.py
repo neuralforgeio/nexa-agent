@@ -2,7 +2,7 @@
 Nexa Agent — Conversation Loop (v2.0 Enhanced)
 ================================================
 
-This module contains the core conversation loop for :class:`NexaAgent`,
+This module contains the core conversation loop for :class:`OpenForgeAgent`,
 now enhanced with:
 
     - Iteration budget tracking (prevents infinite tool loops).
@@ -55,14 +55,14 @@ from agent.understanding.proactive_suggester import ProactiveSuggester, suggesti
 from agent.reasoning.reasoning_chain import ReasoningChain
 from agent.error.self_healer import SelfHealer
 from agent.learning.self_improvement import SelfImprovementLoop
-from nexa.constants import NEXA_NAME
-from nexa.provider import LLMProvider
-from nexa.provider_failover import (
+from openforge.constants import NEXA_NAME
+from openforge.provider import LLMProvider
+from openforge.provider_failover import (
     FailoverChain,
     build_default_chain,
     is_failover_enabled,
 )
-from nexa.state import ConversationDB
+from openforge.state import ConversationDB
 from tools.registry import ToolRegistry
 
 
@@ -402,7 +402,7 @@ async def run_conversation(
                     "items": [s.to_dict() for s in suggestions],
                 }
 
-            # v4.1.0: persist error memory to ~/.nexa/memory/errors.json
+            # v4.1.0: persist error memory to ~/.openforge/memory/errors.json
             # so error records survive process restarts.
             try:
                 error_memory.save()

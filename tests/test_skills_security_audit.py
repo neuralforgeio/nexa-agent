@@ -4,7 +4,7 @@ Tests for the ``security_audit`` skill handler.
 The provider is a :class:`tests._skill_helpers.ScriptedProvider` — a scripted
 stand-in for the LLM boundary only. File reads (single-file AND directory
 scanning), prompt construction, schema validation, and the registry executor
-all run for real against a temporary workspace (``NEXA_WORKSPACE`` pointed at
+all run for real against a temporary workspace (``FORGE_WORKSPACE`` pointed at
 ``tmp_path``).
 """
 
@@ -63,10 +63,10 @@ DIR_REPLY = (
 def ws(tmp_path, monkeypatch):
     (tmp_path / "app.py").write_text(VULN_APP_PY, encoding="utf-8")
     (tmp_path / "utils.py").write_text(UTILS_PY, encoding="utf-8")
-    monkeypatch.setenv("NEXA_WORKSPACE", str(tmp_path))
+    monkeypatch.setenv("FORGE_WORKSPACE", str(tmp_path))
     monkeypatch.chdir(tmp_path)
-    # tools._paths captured NEXA_WORKSPACE at import time — repoint it.
-    monkeypatch.setattr("tools._paths.NEXA_WORKSPACE", tmp_path)
+    # tools._paths captured FORGE_WORKSPACE at import time — repoint it.
+    monkeypatch.setattr("tools._paths.FORGE_WORKSPACE", tmp_path)
     return tmp_path
 
 

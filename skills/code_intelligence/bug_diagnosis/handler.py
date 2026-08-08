@@ -9,7 +9,7 @@ concrete fix suggestion, and a confidence score between 0 and 1.
 Permissions used:
   * ``filesystem:workspace`` — each path in ``context_files`` is read
     through :func:`agent.tool_api.workspace_path`, i.e. sandboxed to
-    ``NEXA_WORKSPACE``. No file is needed when only a ``stack_trace`` is
+    ``FORGE_WORKSPACE``. No file is needed when only a ``stack_trace`` is
     supplied.
   * ``memory:read`` — declared by the manifest; this handler does not itself
     consult long-term memory.

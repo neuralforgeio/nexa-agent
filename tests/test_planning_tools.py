@@ -286,20 +286,20 @@ class TestProcessTools:
 
 
 # ---------------------------------------------------------------------------
-# Knowledge tools (use a temp NEXA_HOME via env)
+# Knowledge tools (use a temp FORGE_HOME via env)
 # ---------------------------------------------------------------------------
 class TestKnowledgeTools:
     @pytest.mark.asyncio
     async def test_memory_search_empty(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("NEXA_HOME", str(tmp_path))
-        # Re-import state to pick up the env var? state reads NEXA_HOME at import.
+        monkeypatch.setenv("FORGE_HOME", str(tmp_path))
+        # Re-import state to pick up the env var? state reads FORGE_HOME at import.
         # Instead we just confirm graceful handling of a fresh empty DB.
         out = await memory_search("anything")
         assert "No memories" in out or "matching" in out
 
     @pytest.mark.asyncio
     async def test_session_search_empty(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("NEXA_HOME", str(tmp_path))
+        monkeypatch.setenv("FORGE_HOME", str(tmp_path))
         out = await session_search("anything")
         assert isinstance(out, str)
 
@@ -315,7 +315,7 @@ class TestKnowledgeTools:
 class TestSelfExtend:
     @pytest.mark.asyncio
     async def test_create_tool_writes_and_loads(self, tmp_path, monkeypatch):
-        monkeypatch.setattr("tools.planning.self_extend._config.NEXA_HOME", tmp_path)
+        monkeypatch.setattr("tools.planning.self_extend._config.FORGE_HOME", tmp_path)
         out = await create_tool(
             name="greet",
             description="Greet someone",
@@ -329,16 +329,16 @@ class TestSelfExtend:
 
     @pytest.mark.asyncio
     async def test_create_tool_invalid_name(self, tmp_path, monkeypatch):
-        monkeypatch.setattr("tools.planning.self_extend._config.NEXA_HOME", tmp_path)
+        monkeypatch.setattr("tools.planning.self_extend._config.FORGE_HOME", tmp_path)
         out = await create_tool(name="not a python name!!", description="x")
         assert "Error" in out
 
     @pytest.mark.asyncio
     async def test_user_tool_loader_picks_up(self, tmp_path, monkeypatch):
         # Patch the config module FIRST — both self_extend and registry read
-        # NEXA_HOME from this module at call time. The monkeypatch fixture
+        # FORGE_HOME from this module at call time. The monkeypatch fixture
         # automatically restores the original value at test teardown.
-        monkeypatch.setattr("nexa.config.NEXA_HOME", tmp_path)
+        monkeypatch.setattr("openforge.config.FORGE_HOME", tmp_path)
         await create_tool(name="echo_test", description="echo", parameters=["msg"],
                           body='    return "echo: " + msg')
         import tools.registry as regmod

@@ -20,7 +20,7 @@ Read the contents of a text file from the Nexa workspace.
 |-----------|------|----------|-------------|
 | `path` | string | Yes | Relative path to the file |
 
-- **Sandbox**: Confined to `nexa-workspace/`
+- **Sandbox**: Confined to `forge-workspace/`
 - **Size limit**: 100KB max
 - **Truncation**: Content truncated to 4000 chars
 - **Errors**: Returns `ok=False` for missing files, directories, or path escapes
@@ -36,7 +36,7 @@ Write text content to a file in the Nexa workspace.
 
 - Creates parent directories if needed
 - Overwrites existing files
-- Sandboxed to `nexa-workspace/`
+- Sandboxed to `forge-workspace/`
 
 ### run_terminal_command
 
@@ -49,7 +49,7 @@ Execute a shell command in the Nexa workspace.
 - **Timeout**: 15 seconds
 - **Output cap**: stdout 2000 chars, stderr 1000 chars
 - **Blocked patterns**: `rm -rf /`, `mkfs`, `shutdown`, `reboot`, etc.
-- **Working directory**: `nexa-workspace/`
+- **Working directory**: `forge-workspace/`
 
 ### generate_uuid
 

@@ -75,7 +75,7 @@ fastest/best model per request.
 nexa provider add tokenrouter
 # ? API key (input hidden): tr_your_key_here
 # ? Model ID [auto:balance]:
-✓ Saved tokenrouter to ~/.nexa/secrets/providers.json
+✓ Saved tokenrouter to ~/.openforge/secrets/providers.json
 
 nexa provider use tokenrouter
 ✓ Switched to tokenrouter (auto:balance)
@@ -180,8 +180,8 @@ Add/remove/test providers without restarting the server.
 
 ## Security (v3.0.0)
 
-- API keys are stored in `~/.nexa/secrets/providers.json` (chmod 600 on Unix).
-- `run_terminal_command` blocks access to `~/.nexa/` entirely — the LLM cannot
+- API keys are stored in `~/.openforge/secrets/providers.json` (chmod 600 on Unix).
+- `run_terminal_command` blocks access to `~/.openforge/` entirely — the LLM cannot
   exfiltrate your API keys via shell commands.
 - `list_all()` masks API keys as `tr_...wxyz` in display.
 - The Web UI Settings panel never receives the full key back from the server
@@ -189,13 +189,13 @@ Add/remove/test providers without restarting the server.
 
 ## Failover (optional)
 
-Set `NEXA_FAILOVER_ENABLED=1` and `NEXA_FAILOVER_CHAIN=tokenrouter,openai` to
+Set `FORGE_FAILOVER_ENABLED=1` and `FORGE_FAILOVER_CHAIN=tokenrouter,openai` to
 enable automatic provider failover. When the active provider fails 3 times in
 a row, the agent switches to the next healthy provider in the chain.
 
 ```bash
-export NEXA_FAILOVER_ENABLED=1
-export NEXA_FAILOVER_CHAIN=tokenrouter,openai,ollama
+export FORGE_FAILOVER_ENABLED=1
+export FORGE_FAILOVER_CHAIN=tokenrouter,openai,ollama
 ```
 
 ## Environment Variables
@@ -209,9 +209,9 @@ export NEXA_FAILOVER_CHAIN=tokenrouter,openai,ollama
 | `NEXA_API_KEY` | (empty) | Universal API key fallback |
 | `<NAME>_API_KEY` | (empty) | Provider-specific key (e.g. TOKENROUTER_API_KEY) |
 | `DATABRICKS_TOKEN` | (empty) | Databricks PAT (alternative to DATABRICKS_API_KEY) |
-| `NEXA_FAILOVER_ENABLED` | 0 | Enable provider failover |
-| `NEXA_FAILOVER_CHAIN` | (empty) | Comma-separated provider names for failover |
-| `NEXA_AUTONOMOUS_LEARNING` | 0 | Enable autonomous web learning |
+| `FORGE_FAILOVER_ENABLED` | 0 | Enable provider failover |
+| `FORGE_FAILOVER_CHAIN` | (empty) | Comma-separated provider names for failover |
+| `FORGE_AUTONOMOUS_LEARNING` | 0 | Enable autonomous web learning |
 
 Copyright (c) 2026 Dearly Febriano Irwansyah
 SPDX-License-Identifier: MIT

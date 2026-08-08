@@ -13,7 +13,7 @@ Permissions used:
   * ``filesystem:workspace`` — the file or directory referenced by
     ``file_path`` / ``directory_path`` is resolved and read through
     :func:`agent.tool_api.workspace_path`, i.e. sandboxed to
-    ``NEXA_WORKSPACE``. Directory scans read at most ``_MAX_FILES`` files,
+    ``FORGE_WORKSPACE``. Directory scans read at most ``_MAX_FILES`` files,
     each truncated to ``_MAX_FILE_CHARS`` characters, to keep the prompt
     sane.
   * ``memory:read`` — declared by the manifest; this handler itself does not

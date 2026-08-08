@@ -9,8 +9,8 @@ Unlike ``run_terminal_command``, this tool also supports "attach" mode:
 if ``session_id`` is provided and the web UI is running, the command output
 is also written to the WebSocket terminal panel in real-time.
 
-Security: same boundary as ``run_terminal_command`` (NEXA_WORKSPACE cwd,
-~/.nexa/ blocked).
+Security: same boundary as ``run_terminal_command`` (FORGE_WORKSPACE cwd,
+~/.openforge/ blocked).
 
 Copyright (c) 2026 Dearly Febriano Irwansyah
 SPDX-License-Identifier: MIT
@@ -23,7 +23,7 @@ from dataclasses import dataclass, field
 from typing import Any, AsyncGenerator, Dict, List, Optional
 
 from tools.terminal_tool import run_terminal_command
-from nexa.config import NEXA_HOME, NEXA_WORKSPACE
+from openforge.config import FORGE_HOME, FORGE_WORKSPACE
 
 
 # ---------------------------------------------------------------------------
@@ -87,7 +87,7 @@ class TerminalExecTool:
         if session_id:
             if session_id not in self._sessions:
                 self._sessions[session_id] = TerminalSession(
-                    session_id=session_id, cwd=cwd or str(NEXA_WORKSPACE)
+                    session_id=session_id, cwd=cwd or str(FORGE_WORKSPACE)
                 )
             session = self._sessions[session_id]
 
@@ -144,7 +144,7 @@ TERMINAL_EXEC_SCHEMA: Dict[str, Any] = {
     "properties": {
         "command": {
             "type": "string",
-            "description": "The shell command to execute (in NEXA_WORKSPACE).",
+            "description": "The shell command to execute (in FORGE_WORKSPACE).",
         },
         "session_id": {
             "type": "string",

@@ -4,7 +4,7 @@ Tests for the ``code_review`` skill handler.
 The provider is a :class:`tests._skill_helpers.ScriptedProvider` — a scripted
 stand-in for the LLM boundary only. File reads, prompt construction, schema
 validation, and the registry executor all run for real against a temporary
-workspace (``NEXA_WORKSPACE`` pointed at ``tmp_path``).
+workspace (``FORGE_WORKSPACE`` pointed at ``tmp_path``).
 """
 
 from __future__ import annotations
@@ -38,12 +38,12 @@ class ReplyProvider(ScriptedProvider):
 @pytest.fixture
 def ws(tmp_path, monkeypatch):
     (tmp_path / "app.py").write_text(APP_PY, encoding="utf-8")
-    monkeypatch.setenv("NEXA_WORKSPACE", str(tmp_path))
+    monkeypatch.setenv("FORGE_WORKSPACE", str(tmp_path))
     monkeypatch.chdir(tmp_path)
-    # nexa.config.NEXA_WORKSPACE is captured at import time, so the env var
+    # openforge.config.FORGE_WORKSPACE is captured at import time, so the env var
     # alone is not enough — repoint the already-imported reference used by
     # tools._paths.resolve_in_workspace (same pattern as test_file_tools_*).
-    monkeypatch.setattr("tools._paths.NEXA_WORKSPACE", tmp_path)
+    monkeypatch.setattr("tools._paths.FORGE_WORKSPACE", tmp_path)
     return tmp_path
 
 

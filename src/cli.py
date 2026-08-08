@@ -10,7 +10,7 @@ Features:
     - Streaming token rendering with rich markdown.
     - Tool-call visualization (collapsible cards with rich panels).
     - Slash commands (/help, /clear, /model, /provider, /history, /exit).
-    - Conversation history (FileHistory at ~/.nexa/history).
+    - Conversation history (FileHistory at ~/.openforge/history).
     - Ctrl+C interrupt support.
 
 Run with::
@@ -28,7 +28,7 @@ import os
 import sys
 
 # Bootstrap UTF-8 stdio FIRST (before any rich imports that may print).
-from nexa import bootstrap as nexa_bootstrap  # noqa: F401
+from openforge import bootstrap as nexa_bootstrap  # noqa: F401
 
 from rich.console import Console
 from rich.markdown import Markdown
@@ -36,10 +36,10 @@ from rich.panel import Panel
 from rich.text import Text
 
 from agent.core.self_health import SelfHealth
-from nexa.constants import NEXA_AUTHOR, NEXA_NAME, NEXA_VERSION
+from openforge.constants import NEXA_AUTHOR, NEXA_NAME, NEXA_VERSION
 from providers.catalog import list_providers, resolve_provider
-from src.run_agent import NexaAgent
-from nexa.state import ConversationDB
+from src.run_agent import OpenForgeAgent
+from openforge.state import ConversationDB
 
 console = Console()
 
@@ -78,12 +78,12 @@ def print_banner() -> None:
     console.print("[dim]Type your message and press Enter. Type /help for commands.[/dim]\n")
 
 
-def print_help(agent: NexaAgent) -> None:
+def print_help(agent: OpenForgeAgent) -> None:
     """
     Print available slash commands and current provider info.
 
     Args:
-        agent: The active :class:`NexaAgent` instance.
+        agent: The active :class:`OpenForgeAgent` instance.
     """
     console.print(Panel("[bold]Commands[/bold]", border_style="cyan"))
     for cmd, desc in SLASH_COMMANDS.items():
@@ -96,13 +96,13 @@ def print_help(agent: NexaAgent) -> None:
     console.print(f"\n[dim]Current: provider=[green]{agent.provider.base_url}[/green] model=[green]{agent.provider.model}[/green]\n")
 
 
-def _print_tools(agent: NexaAgent) -> None:
+def _print_tools(agent: OpenForgeAgent) -> None:
     """
     Display all registered tools with their names, descriptions, and parameter
     schemas in a rich-formatted table.
 
     Args:
-        agent: The active :class:`NexaAgent` instance with a tool registry.
+        agent: The active :class:`OpenForgeAgent` instance with a tool registry.
     """
     from rich.table import Table
 
@@ -136,7 +136,7 @@ def _print_tools(agent: NexaAgent) -> None:
                   f"The agent can call any of these via function-calling.[/dim]\n")
 
 
-async def handle_slash_command(cmd: str, agent: NexaAgent, db: ConversationDB) -> bool:
+async def handle_slash_command(cmd: str, agent: OpenForgeAgent, db: ConversationDB) -> bool:
     """
     Handle a slash command. Returns True if the app should continue.
 
@@ -188,7 +188,7 @@ async def handle_slash_command(cmd: str, agent: NexaAgent, db: ConversationDB) -
     elif command == "/provider":
         # v4.1.0: extended /provider command with list/use/add/remove/test subcommands.
         # Backward compat: `/provider <name>` still switches to a catalog provider.
-        from nexa.provider_registry import ProviderRegistry, StoredProviderConfig
+        from openforge.provider_registry import ProviderRegistry, StoredProviderConfig
         reg = ProviderRegistry()
         parts = (arg or "").split()
         sub = parts[0].lower() if parts else ""
@@ -230,7 +230,7 @@ async def handle_slash_command(cmd: str, agent: NexaAgent, db: ConversationDB) -
                 console.print(f"[red]Unknown provider:[/red] {name}. Try /provider list\n")
         elif sub == "add":
             # Defer to nexa_cli _cmd_provider for the interactive logic.
-            from nexa_cli.main import _cmd_provider
+            from openforge_cli.main import _cmd_provider
             console.print("[cyan]Add a new provider. Press Ctrl+C to abort.[/cyan]")
             try:
                 rc = _cmd_provider("add")
@@ -358,18 +358,18 @@ async def handle_slash_command(cmd: str, agent: NexaAgent, db: ConversationDB) -
                         lines.append(f"<details><summary>🔧 {m.get('tool_name', 'tool')}</summary>\n\n```\n{content[:500]}\n```\n</details>\n")
                 export_text = "\n".join(lines)
                 # Write to workspace
-                from nexa.config import NEXA_WORKSPACE
-                export_path = NEXA_WORKSPACE / f"export_{target[:12]}.md"
+                from openforge.config import FORGE_WORKSPACE
+                export_path = FORGE_WORKSPACE / f"export_{target[:12]}.md"
                 export_path.write_text(export_text, encoding="utf-8")
                 console.print(f"[green]Exported to:[/green] {export_path}\n")
                 console.print(f"[dim]{len(msgs)} messages exported.[/dim]\n")
     elif command == "/config":
-        from nexa.config import NEXA_HOME, NEXA_WORKSPACE, NEXA_MODEL
+        from openforge.config import FORGE_HOME, FORGE_WORKSPACE, NEXA_MODEL
         parts = (arg or "").split(maxsplit=2)
         if not arg or parts[0] == "show":
             console.print(Panel("[bold]Nexa Agent Configuration[/bold]", border_style="cyan"))
-            console.print(f"  [cyan]NEXA_HOME[/cyan]:      {NEXA_HOME}")
-            console.print(f"  [cyan]NEXA_WORKSPACE[/cyan]: {NEXA_WORKSPACE}")
+            console.print(f"  [cyan]FORGE_HOME[/cyan]:      {FORGE_HOME}")
+            console.print(f"  [cyan]FORGE_WORKSPACE[/cyan]: {FORGE_WORKSPACE}")
             console.print(f"  [cyan]Provider[/cyan]:       {agent.provider.base_url}")
             console.print(f"  [cyan]Model[/cyan]:          {agent.provider.model}")
             console.print(f"  [cyan]API Key[/cyan]:        {'✓ set' if agent.provider.api_key else '✗ not set'}")
@@ -466,12 +466,12 @@ async def handle_slash_command(cmd: str, agent: NexaAgent, db: ConversationDB) -
     return True
 
 
-async def run_turn(agent: NexaAgent, message: str, conv_id: str, history: list) -> None:
+async def run_turn(agent: OpenForgeAgent, message: str, conv_id: str, history: list) -> None:
     """
     Run a single conversation turn and render streaming output.
 
     Args:
-        agent:   The :class:`NexaAgent` instance.
+        agent:   The :class:`OpenForgeAgent` instance.
         message: The user's message.
         conv_id: The conversation ID.
         history: The conversation history (mutated in place).
@@ -526,12 +526,12 @@ async def run_turn(agent: NexaAgent, message: str, conv_id: str, history: list) 
     history.append({"role": "assistant", "content": accumulated})
 
 
-async def interactive_loop(agent: NexaAgent) -> None:
+async def interactive_loop(agent: OpenForgeAgent) -> None:
     """
     Run the interactive prompt loop.
 
     Args:
-        agent: The :class:`NexaAgent` instance.
+        agent: The :class:`OpenForgeAgent` instance.
     """
     db = agent.db
     await db.init()
@@ -581,7 +581,7 @@ def main() -> None:
     parser.add_argument("--api-key", default=None, help="API key override")
     args = parser.parse_args()
 
-    agent = NexaAgent(
+    agent = OpenForgeAgent(
         provider_name=args.provider,
         model=args.model,
         api_key=args.api_key,

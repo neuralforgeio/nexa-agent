@@ -3,7 +3,7 @@ Tests for the hardened code_execution_tool (Project-Scoped Boundary + HITL).
 
 Verifies:
     - Uses ``sys.executable`` (NOT hardcoded ``python3``).
-    - Project-scoped cwd: defaults to NEXA_WORKSPACE, rejects outside paths.
+    - Project-scoped cwd: defaults to FORGE_WORKSPACE, rejects outside paths.
     - HITL approval callback is invoked; denied → returns message.
     - Headless mode (no callback) auto-denies.
     - Approval timeout (30s) → deny.
@@ -67,8 +67,8 @@ class TestCrossPlatformExecutable:
     @pytest.mark.asyncio
     async def test_uses_sys_executable(self, tmp_path: Path, monkeypatch) -> None:
         """The subprocess must be invoked with sys.executable."""
-        # Patch NEXA_WORKSPACE to tmp_path so cwd validation passes.
-        monkeypatch.setattr("tools.code_execution_tool.NEXA_WORKSPACE", tmp_path)
+        # Patch FORGE_WORKSPACE to tmp_path so cwd validation passes.
+        monkeypatch.setattr("tools.code_execution_tool.FORGE_WORKSPACE", tmp_path)
         # Capture the subprocess args.
         captured_args = []
         captured_cwd = []
@@ -111,8 +111,8 @@ class TestProjectScopedCwd:
 
     @pytest.mark.asyncio
     async def test_rejects_cwd_outside_workspace_unix(self, tmp_path: Path, monkeypatch) -> None:
-        """A cwd outside NEXA_WORKSPACE must be rejected (Unix path)."""
-        monkeypatch.setattr("tools.code_execution_tool.NEXA_WORKSPACE", tmp_path)
+        """A cwd outside FORGE_WORKSPACE must be rejected (Unix path)."""
+        monkeypatch.setattr("tools.code_execution_tool.FORGE_WORKSPACE", tmp_path)
         with pytest.raises(ValueError, match="escapes|outside|workspace"):
             await code_execution(
                 "print('hi')",
@@ -122,8 +122,8 @@ class TestProjectScopedCwd:
 
     @pytest.mark.asyncio
     async def test_rejects_cwd_outside_workspace_windows(self, tmp_path: Path, monkeypatch) -> None:
-        """A Windows path outside NEXA_WORKSPACE must be rejected."""
-        monkeypatch.setattr("tools.code_execution_tool.NEXA_WORKSPACE", tmp_path)
+        """A Windows path outside FORGE_WORKSPACE must be rejected."""
+        monkeypatch.setattr("tools.code_execution_tool.FORGE_WORKSPACE", tmp_path)
         with pytest.raises(ValueError, match="escapes|outside|workspace"):
             await code_execution(
                 "print('hi')",
@@ -134,7 +134,7 @@ class TestProjectScopedCwd:
     @pytest.mark.asyncio
     async def test_rejects_cwd_traversal(self, tmp_path: Path, monkeypatch) -> None:
         """A cwd with .. traversal must be rejected."""
-        monkeypatch.setattr("tools.code_execution_tool.NEXA_WORKSPACE", tmp_path)
+        monkeypatch.setattr("tools.code_execution_tool.FORGE_WORKSPACE", tmp_path)
         with pytest.raises(ValueError, match="escapes|outside|workspace"):
             await code_execution(
                 "print('hi')",
@@ -152,7 +152,7 @@ class TestApprovalCallback:
     @pytest.mark.asyncio
     async def test_approval_callback_invoked(self, tmp_path: Path, monkeypatch) -> None:
         """The approval_callback is invoked with the code."""
-        monkeypatch.setattr("tools.code_execution_tool.NEXA_WORKSPACE", tmp_path)
+        monkeypatch.setattr("tools.code_execution_tool.FORGE_WORKSPACE", tmp_path)
         called_with = []
 
         async def approve(code):
@@ -179,7 +179,7 @@ class TestApprovalCallback:
     @pytest.mark.asyncio
     async def test_approval_denied_returns_message(self, tmp_path: Path, monkeypatch) -> None:
         """When the approval_callback returns False, a deny message is returned."""
-        monkeypatch.setattr("tools.code_execution_tool.NEXA_WORKSPACE", tmp_path)
+        monkeypatch.setattr("tools.code_execution_tool.FORGE_WORKSPACE", tmp_path)
 
         async def deny(code):
             return False
@@ -194,7 +194,7 @@ class TestApprovalCallback:
     @pytest.mark.asyncio
     async def test_headless_auto_deny_when_no_callback(self, tmp_path: Path, monkeypatch) -> None:
         """When approval_callback is None, the code is auto-denied (headless mode)."""
-        monkeypatch.setattr("tools.code_execution_tool.NEXA_WORKSPACE", tmp_path)
+        monkeypatch.setattr("tools.code_execution_tool.FORGE_WORKSPACE", tmp_path)
         result = await code_execution(
             "print('test')",
             approval_callback=None,
@@ -212,7 +212,7 @@ class TestOutputCapture:
     @pytest.mark.asyncio
     async def test_captures_stdout(self, tmp_path: Path, monkeypatch) -> None:
         """stdout from the subprocess is returned."""
-        monkeypatch.setattr("tools.code_execution_tool.NEXA_WORKSPACE", tmp_path)
+        monkeypatch.setattr("tools.code_execution_tool.FORGE_WORKSPACE", tmp_path)
 
         class FakeProc:
             returncode = 0
@@ -235,7 +235,7 @@ class TestOutputCapture:
     @pytest.mark.asyncio
     async def test_captures_stderr(self, tmp_path: Path, monkeypatch) -> None:
         """stderr from the subprocess is returned."""
-        monkeypatch.setattr("tools.code_execution_tool.NEXA_WORKSPACE", tmp_path)
+        monkeypatch.setattr("tools.code_execution_tool.FORGE_WORKSPACE", tmp_path)
 
         class FakeProc:
             returncode = 1
@@ -258,7 +258,7 @@ class TestOutputCapture:
     @pytest.mark.asyncio
     async def test_output_truncated_at_max(self, tmp_path: Path, monkeypatch) -> None:
         """Output exceeding MAX_OUTPUT is truncated."""
-        monkeypatch.setattr("tools.code_execution_tool.NEXA_WORKSPACE", tmp_path)
+        monkeypatch.setattr("tools.code_execution_tool.FORGE_WORKSPACE", tmp_path)
 
         big_stdout = b"x" * (MAX_OUTPUT + 1000)
 
@@ -282,7 +282,7 @@ class TestOutputCapture:
     @pytest.mark.asyncio
     async def test_no_output_message(self, tmp_path: Path, monkeypatch) -> None:
         """When stdout and stderr are both empty, a 'no output' message is shown."""
-        monkeypatch.setattr("tools.code_execution_tool.NEXA_WORKSPACE", tmp_path)
+        monkeypatch.setattr("tools.code_execution_tool.FORGE_WORKSPACE", tmp_path)
 
         class FakeProc:
             returncode = 0

@@ -16,7 +16,7 @@ How it works:
     4. :func:`enrich_with_learned_facts` injects relevant cached facts into
        the system prompt so the LLM has grounded context.
 
-The learner is **opt-in** via ``NEXA_AUTONOMOUS_LEARNING=1`` and is throttled
+The learner is **opt-in** via ``FORGE_AUTONOMOUS_LEARNING=1`` and is throttled
 by a configurable per-session budget so it never floods the user with
 unexpected network calls.
 
@@ -66,7 +66,7 @@ class LearningBudget:
     max_searches: int = DEFAULT_SESSION_BUDGET
     used: int = 0
     last_search_at: float = 0.0
-    enabled: bool = field(default_factory=lambda: _env_flag("NEXA_AUTONOMOUS_LEARNING"))
+    enabled: bool = field(default_factory=lambda: _env_flag("FORGE_AUTONOMOUS_LEARNING"))
 
     @property
     def remaining(self) -> int:

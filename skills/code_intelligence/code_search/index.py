@@ -2,7 +2,7 @@
 Nexa Agent — workspace code index for the ``code_search`` skill (v4.4.0)
 =========================================================================
 
-A small, honest, on-disk index under ``$NEXA_WORKSPACE/.nexa/index/code_fts.db``
+A small, honest, on-disk index under ``$FORGE_WORKSPACE/.nexa/index/code_fts.db``
 (SQLite). Uses FTS5 when available and falls back to a deterministic
 substring/substring-score scan when it is not — so the skill always returns a
 real index done over real files, never a stub.

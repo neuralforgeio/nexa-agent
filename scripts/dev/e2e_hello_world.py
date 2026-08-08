@@ -17,13 +17,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-os.environ.setdefault("NEXA_QUICK_MODE", "0")  # ensure tools engage
+os.environ.setdefault("FORGE_QUICK_MODE", "0")  # ensure tools engage
 
 
 async def main() -> int:
-    from run_agent import NexaAgent
+    from run_agent import OpenForgeAgent
 
-    agent = NexaAgent(provider_name="ornith")
+    agent = OpenForgeAgent(provider_name="ornith")
     conv = await agent.db.create_conversation(title="e2e-hello-world")
 
     prompt = (
@@ -57,7 +57,7 @@ async def main() -> int:
     print(f"Final answer (first 300 chars): {final_answer[:300]}")
 
     # Validate everything we expect from the hello-world scenario.
-    ws = ROOT / "nexa-workspace"
+    ws = ROOT / "forge-workspace"
     target = ws / "hello_e2e.py"
     file_exists = target.exists()
     content_mentions = (

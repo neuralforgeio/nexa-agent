@@ -3,7 +3,7 @@ Nexa Agent — File Tools (Hardened v2.1.0)
 =========================================
 
 Filesystem tools (``read_file``, ``write_file``) sandboxed to the
-``NEXA_WORKSPACE`` directory to prevent arbitrary host access.
+``FORGE_WORKSPACE`` directory to prevent arbitrary host access.
 
 Hardening (v2.1.0):
     - Uses the shared :func:`tools._paths.resolve_in_workspace` helper (DRY).
@@ -21,7 +21,7 @@ import os
 from pathlib import Path
 from typing import Any
 
-from nexa.config import NEXA_WORKSPACE
+from openforge.config import FORGE_WORKSPACE
 from tools._paths import MAX_FILE_SIZE, resolve_in_workspace
 
 # Re-export for backward compatibility (file_tools._resolve_in_workspace).

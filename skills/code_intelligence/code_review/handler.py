@@ -10,7 +10,7 @@ message, and a concrete suggestion — plus a human-readable summary.
 Permissions used:
   * ``filesystem:workspace`` — the file referenced by ``file_path`` is read
     through :func:`agent.tool_api.workspace_path`, i.e. sandboxed to
-    ``NEXA_WORKSPACE``.
+    ``FORGE_WORKSPACE``.
   * ``memory:read`` / ``memory:write`` — declared by the manifest; this
     handler itself does not touch memory.
 

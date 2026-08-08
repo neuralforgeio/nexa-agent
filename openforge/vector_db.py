@@ -6,19 +6,19 @@ import sqlite3
 from contextlib import contextmanager
 from typing import Any, Dict, List, Optional
 
-from nexa.config import NEXA_HOME
+from openforge.config import FORGE_HOME
 
 try:
     import sqlite_vec
 except Exception:  # pragma: no cover
     sqlite_vec = None  # type: ignore[assignment]
 
-_DB = NEXA_HOME / "vector_store.db"
+_DB = FORGE_HOME / "vector_store.db"
 
 
 @contextmanager
 def _conn():
-    NEXA_HOME.mkdir(parents=True, exist_ok=True)
+    FORGE_HOME.mkdir(parents=True, exist_ok=True)
     con = sqlite3.connect(str(_DB))
     con.row_factory = sqlite3.Row
     if sqlite_vec is not None:

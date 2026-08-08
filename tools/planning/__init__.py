@@ -92,7 +92,7 @@ PLANNING_TOOLS = [
     ("session_search",   session_search,   "FTS5 search over past conversation messages.", SESSION_SEARCH_SCHEMA),
     ("web_fetch",        web_fetch,        "Fetch a URL and extract its readable text (32 KB cap).", WEB_FETCH_SCHEMA),
     # Self-extension
-    ("create_tool",      create_tool,      "Write a brand-new Nexa tool into ~/.nexa/tools/ (usable next turn).", CREATE_TOOL_SCHEMA),
+    ("create_tool",      create_tool,      "Write a brand-new Nexa tool into ~/.openforge/tools/ (usable next turn).", CREATE_TOOL_SCHEMA),
     ("plan_and_delegate", plan_and_delegate, "Plan a goal AND emit a ready delegate-prompt per step.", PLAN_AND_DELEGATE_SCHEMA),
 ]
 

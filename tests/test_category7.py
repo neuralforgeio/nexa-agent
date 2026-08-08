@@ -11,7 +11,7 @@ def test_dockerfile_exists():
 def test_homebrew_formula_parseable():
     from pathlib import Path
     text = Path("packaging/homebrew/nexa-agent.rb").read_text(encoding="utf-8")
-    assert "class NexaAgent < Formula" in text and "license" in text
+    assert "class OpenForgeAgent < Formula" in text and "license" in text
 
 
 def test_inno_setup_script_sane():
@@ -36,6 +36,6 @@ def test_jetbrains_plugin_xml():
 def test_pwa_manifest_and_sw():
     import json
     from pathlib import Path
-    m = json.loads(Path("nexa_web/public/manifest.json").read_text(encoding="utf-8"))
+    m = json.loads(Path("openforge_web/public/manifest.json").read_text(encoding="utf-8"))
     assert m["name"] == "Nexa Agent"
-    assert Path("nexa_web/public/sw.js").exists()
+    assert Path("openforge_web/public/sw.js").exists()

@@ -8,7 +8,7 @@ with a **project-scoped boundary** and an opt-in **Human-in-the-Loop
 
 Design decisions (honest, not over-claimed):
     - **Project-scoped, NOT a fully isolated sandbox**: code runs in a
-      subprocess whose ``cwd`` is constrained to ``NEXA_WORKSPACE``.
+      subprocess whose ``cwd`` is constrained to ``FORGE_WORKSPACE``.
       Paths outside the workspace are rejected. The subprocess still has
       host/network access — this is a boundary, not a sandbox.
     - **Cross-platform executable**: uses :data:`sys.executable` so the
@@ -36,7 +36,7 @@ import tempfile
 from pathlib import Path
 from typing import Any, Awaitable, Callable, Dict, Optional
 
-from nexa.config import NEXA_WORKSPACE
+from openforge.config import FORGE_WORKSPACE
 
 #: Maximum execution time in seconds.
 DEFAULT_CODE_TIMEOUT: float = 10.0
@@ -68,7 +68,7 @@ async def code_execution(
     Execute a Python code snippet in a project-scoped subprocess.
 
     The code runs in a subprocess whose ``cwd`` is constrained to
-    :data:`NEXA_WORKSPACE`. When ``requires_approval`` is ``True``, the
+    :data:`FORGE_WORKSPACE`. When ``requires_approval`` is ``True``, the
     ``approval_callback`` is invoked with the code; if it returns ``False``
     (or times out, or is ``None`` in headless mode), the code is denied.
 
@@ -81,8 +81,8 @@ async def code_execution(
         approval_callback:  Async callable ``async (code: str) -> bool``.
                             ``None`` means headless mode → auto-deny.
         cwd:                Optional override for the working directory.
-                            Must be inside ``NEXA_WORKSPACE``; defaults to
-                            ``NEXA_WORKSPACE`` itself.
+                            Must be inside ``FORGE_WORKSPACE``; defaults to
+                            ``FORGE_WORKSPACE`` itself.
 
     Returns:
         A formatted string with the exit code, stdout, and stderr. On
@@ -111,7 +111,7 @@ async def code_execution(
         raise ValueError(f"timeout {timeout}s exceeds maximum {MAX_CODE_TIMEOUT}s")
 
     # --- Resolve cwd (project-scoped boundary) -----------------------------
-    workspace = NEXA_WORKSPACE.resolve()
+    workspace = FORGE_WORKSPACE.resolve()
     resolved_cwd = _validate_cwd(cwd, workspace)
 
     # --- HITL approval -----------------------------------------------------
@@ -203,8 +203,8 @@ def _validate_cwd(cwd: Optional[str], workspace: Path) -> Path:
         ValueError: If ``cwd`` is outside the workspace.
 
     Example:
-        >>> _validate_cwd(None, NEXA_WORKSPACE.resolve())  # doctest: +SKIP
-        PosixPath('.../nexa-workspace')
+        >>> _validate_cwd(None, FORGE_WORKSPACE.resolve())  # doctest: +SKIP
+        PosixPath('.../forge-workspace')
     """
     if cwd is None:
         return workspace

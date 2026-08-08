@@ -16,7 +16,7 @@ from unittest.mock import patch, MagicMock
 
 import pytest
 
-from nexa_cli.main import main
+from openforge_cli.main import main
 
 
 class TestRichHelp:
@@ -37,11 +37,11 @@ class TestRichHelp:
 
     def test_help_uses_rich_module(self) -> None:
         """The module should import rich (so it can render help tables)."""
-        import nexa_cli.main as m
+        import openforge_cli.main as m
         # Check the module imports rich somewhere.
         import inspect
         source = inspect.getsource(m)
-        assert "rich" in source, "nexa_cli.main should import rich for help tables"
+        assert "rich" in source, "openforge_cli.main should import rich for help tables"
 
 
 class TestGatewayStartUsesSysExecutable:
@@ -49,8 +49,8 @@ class TestGatewayStartUsesSysExecutable:
 
     def test_start_uses_sys_executable(self, tmp_path, monkeypatch) -> None:
         """gateway start must spawn sys.executable, not 'python3'."""
-        # Point NEXA_HOME to tmp_path so the pid file lands there.
-        monkeypatch.setattr("nexa_cli.main.NEXA_HOME", tmp_path)
+        # Point FORGE_HOME to tmp_path so the pid file lands there.
+        monkeypatch.setattr("openforge_cli.main.FORGE_HOME", tmp_path)
         # Capture the subprocess.Popen args.
         captured_args = []
 
@@ -61,7 +61,7 @@ class TestGatewayStartUsesSysExecutable:
             captured_args.extend(args)
             return FakeProc()
 
-        with patch("nexa_cli.main.subprocess.Popen", side_effect=fake_popen):
+        with patch("openforge_cli.main.subprocess.Popen", side_effect=fake_popen):
             rc = main(["gateway", "start"])
         assert rc == 0
         # The first arg must be sys.executable (not "python3").
@@ -72,7 +72,7 @@ class TestGatewayStartUsesSysExecutable:
 
     def test_start_accepts_port_flag(self, tmp_path, monkeypatch) -> None:
         """gateway start must accept a --port flag."""
-        monkeypatch.setattr("nexa_cli.main.NEXA_HOME", tmp_path)
+        monkeypatch.setattr("openforge_cli.main.FORGE_HOME", tmp_path)
         captured_args = []
 
         class FakeProc:
@@ -82,7 +82,7 @@ class TestGatewayStartUsesSysExecutable:
             captured_args.extend(args)
             return FakeProc()
 
-        with patch("nexa_cli.main.subprocess.Popen", side_effect=fake_popen):
+        with patch("openforge_cli.main.subprocess.Popen", side_effect=fake_popen):
             rc = main(["gateway", "start", "--port", "9000"])
         assert rc == 0
         # The port should appear in the args.
@@ -94,7 +94,7 @@ class TestGatewayStopGraceful:
 
     def test_stop_uses_sigterm_first(self, tmp_path, monkeypatch) -> None:
         """gateway stop must send SIGTERM (15) before SIGKILL (9)."""
-        monkeypatch.setattr("nexa_cli.main.NEXA_HOME", tmp_path)
+        monkeypatch.setattr("openforge_cli.main.FORGE_HOME", tmp_path)
         # Create a fake pid file.
         (tmp_path / "gateway.pid").write_text("12345")
 
@@ -103,7 +103,7 @@ class TestGatewayStopGraceful:
         def fake_kill(pid, sig):
             sent_signals.append((pid, sig))
 
-        with patch("nexa_cli.main.os.kill", side_effect=fake_kill):
+        with patch("openforge_cli.main.os.kill", side_effect=fake_kill):
             rc = main(["gateway", "stop"])
         assert rc == 0
         # The first signal sent should be SIGTERM (15), not SIGKILL (9).
@@ -118,7 +118,7 @@ class TestSetupAndDoctor:
 
     def test_setup_returns_zero(self, tmp_path, monkeypatch) -> None:
         """setup command returns 0."""
-        monkeypatch.setattr("nexa_cli.main.NEXA_HOME", tmp_path)
+        monkeypatch.setattr("openforge_cli.main.FORGE_HOME", tmp_path)
         rc = main(["setup"])
         assert rc == 0
 
@@ -129,6 +129,6 @@ class TestSetupAndDoctor:
 
     def test_model_set_returns_zero(self, tmp_path, monkeypatch) -> None:
         """model set returns 0 and writes to .env."""
-        monkeypatch.setattr("nexa_cli.main.NEXA_HOME", tmp_path)
+        monkeypatch.setattr("openforge_cli.main.FORGE_HOME", tmp_path)
         rc = main(["model", "llama3.2"])
         assert rc == 0

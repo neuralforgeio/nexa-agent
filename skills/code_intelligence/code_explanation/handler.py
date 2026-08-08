@@ -9,7 +9,7 @@ step-by-step flow of the code, and the file's key dependencies.
 Permissions used:
   * ``filesystem:workspace`` — the file referenced by ``file_path`` is read
     through :func:`agent.tool_api.workspace_path`, i.e. sandboxed to
-    ``NEXA_WORKSPACE``.
+    ``FORGE_WORKSPACE``.
 
 Honesty note: the explanation, flow steps, and dependencies come from the
 model's reply to a prompt that embeds the *actual* file contents read from

@@ -17,7 +17,7 @@ node_modules/
 !.env.example
 
 # Runtime
-nexa-workspace/
+forge-workspace/
 *.db
 *.db-journal
 *.db-wal
@@ -111,3 +111,6 @@ tests/real_integration_e2e.py
 .nexa-local/
 
 # === End AI assistant exclusions ===
+
+nexa-workspace/
+

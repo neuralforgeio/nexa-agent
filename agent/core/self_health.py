@@ -8,7 +8,7 @@ Provides health-check diagnostics for the agent's subsystems. Inspired by
 Checks:
     - Database connectivity and integrity.
     - Provider endpoint reachability (HTTP HEAD/GET).
-    - Disk space for the NEXA_HOME and NEXA_WORKSPACE directories.
+    - Disk space for the FORGE_HOME and FORGE_WORKSPACE directories.
     - Memory store size and staleness.
     - Learning graph coverage.
 
@@ -25,8 +25,8 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List
 from urllib.parse import urlparse
 
-from nexa.config import NEXA_DB_PATH, NEXA_HOME, NEXA_WORKSPACE
-from nexa.state import ConversationDB
+from openforge.config import FORGE_DB_PATH, FORGE_HOME, FORGE_WORKSPACE
+from openforge.state import ConversationDB
 
 
 @dataclass
@@ -122,20 +122,20 @@ class SelfHealth:
 
     def check_disk_space(self) -> HealthCheck:
         """
-        Check available disk space for NEXA_HOME and NEXA_WORKSPACE.
+        Check available disk space for FORGE_HOME and FORGE_WORKSPACE.
 
         Returns:
             A :class:`HealthCheck` with disk usage info.
         """
         try:
-            usage = shutil.disk_usage(str(NEXA_HOME))
+            usage = shutil.disk_usage(str(FORGE_HOME))
             free_gb = usage.free / (1024 ** 3)
             healthy = free_gb > 0.5  # Warn if less than 500MB free.
             return HealthCheck(
                 name="disk_space",
                 healthy=healthy,
                 detail=f"{'OK' if healthy else 'LOW'} — {free_gb:.1f} GB free "
-                f"at {NEXA_HOME}",
+                f"at {FORGE_HOME}",
             )
         except Exception as e:
             return HealthCheck(

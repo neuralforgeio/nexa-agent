@@ -29,12 +29,12 @@ def ws(tmp_path, monkeypatch):
     (tmp_path / "apps" / "web-dashboard" / "package.json").write_text(
         '{"name": "web-dashboard"}\n', encoding="utf-8"
     )
-    monkeypatch.setenv("NEXA_WORKSPACE", str(tmp_path))
+    monkeypatch.setenv("FORGE_WORKSPACE", str(tmp_path))
     monkeypatch.chdir(tmp_path)
-    # nexa.config.NEXA_WORKSPACE is captured at import time, so the env var
+    # openforge.config.FORGE_WORKSPACE is captured at import time, so the env var
     # alone is not enough — repoint the already-imported reference used by
     # tools._paths.resolve_in_workspace (same pattern as test_skills_code_*).
-    monkeypatch.setattr("tools._paths.NEXA_WORKSPACE", tmp_path)
+    monkeypatch.setattr("tools._paths.FORGE_WORKSPACE", tmp_path)
     return tmp_path
 
 

@@ -10,7 +10,7 @@ number, plus a boolean ``applied`` flag.
 Permissions used:
   * ``filesystem:workspace`` — the file referenced by ``file_path`` is read
     through :func:`agent.tool_api.workspace_path`, i.e. sandboxed to
-    ``NEXA_WORKSPACE``.
+    ``FORGE_WORKSPACE``.
   * ``filesystem:workspace:write`` — declared in the manifest for future
     opt-in auto-apply; the current handler never writes.
 

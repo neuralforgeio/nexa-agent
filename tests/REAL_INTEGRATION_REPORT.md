@@ -4,7 +4,7 @@
 > - **Local LLM**: Ornith-1.0-9b-Q4_K_M via llama.cpp server at `http://127.0.0.1:8080` (9B parameter model, running locally)
 > - **Nexa backend**: `server.py` (FastAPI) at `http://127.0.0.1:8000`
 > - **Web UI**: Next.js dev server at `http://127.0.0.1:3000`
-> - **Workspace**: `C:\Users\Dearly Febriano\nexa-agent\nexa-workspace`
+> - **Workspace**: `C:\Users\Dearly Febriano\nexa-agent\forge-workspace`
 
 ---
 

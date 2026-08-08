@@ -2,7 +2,7 @@
 Tests for the hardened terminal_tool (cwd validation + Windows blocklist + process group kill).
 
 Verifies the hardening added in v2.1.0:
-    - cwd is validated against NEXA_WORKSPACE (rejects /etc, C:\\Windows, ..).
+    - cwd is validated against FORGE_WORKSPACE (rejects /etc, C:\\Windows, ..).
     - Windows-native dangerous patterns are blocked (del /s, format, Remove-Item -Recurse, rmdir /s).
     - Timeout kills the entire process tree (process group on Unix, taskkill /F /T on Windows).
     - Background process registry prunes completed entries (no memory leak).
@@ -42,29 +42,29 @@ class TestCwdValidation:
 
     @pytest.mark.asyncio
     async def test_rejects_cwd_outside_workspace_unix(self, tmp_path: Path, monkeypatch) -> None:
-        """A cwd outside NEXA_WORKSPACE must be rejected (Unix path)."""
-        monkeypatch.setattr("tools.terminal_tool.NEXA_WORKSPACE", tmp_path)
+        """A cwd outside FORGE_WORKSPACE must be rejected (Unix path)."""
+        monkeypatch.setattr("tools.terminal_tool.FORGE_WORKSPACE", tmp_path)
         with pytest.raises(ValueError, match="escapes|outside|workspace"):
             await run_terminal_command("echo hi", cwd="/etc")
 
     @pytest.mark.asyncio
     async def test_rejects_cwd_outside_workspace_windows(self, tmp_path: Path, monkeypatch) -> None:
-        """A Windows path outside NEXA_WORKSPACE must be rejected."""
-        monkeypatch.setattr("tools.terminal_tool.NEXA_WORKSPACE", tmp_path)
+        """A Windows path outside FORGE_WORKSPACE must be rejected."""
+        monkeypatch.setattr("tools.terminal_tool.FORGE_WORKSPACE", tmp_path)
         with pytest.raises(ValueError, match="escapes|outside|workspace"):
             await run_terminal_command("echo hi", cwd="C:\\Windows\\System32")
 
     @pytest.mark.asyncio
     async def test_rejects_cwd_traversal(self, tmp_path: Path, monkeypatch) -> None:
         """A cwd with .. traversal must be rejected."""
-        monkeypatch.setattr("tools.terminal_tool.NEXA_WORKSPACE", tmp_path)
+        monkeypatch.setattr("tools.terminal_tool.FORGE_WORKSPACE", tmp_path)
         with pytest.raises(ValueError, match="escapes|outside|workspace"):
             await run_terminal_command("echo hi", cwd="../../etc")
 
     @pytest.mark.asyncio
     async def test_accepts_cwd_inside_workspace(self, tmp_path: Path, monkeypatch) -> None:
-        """A cwd inside NEXA_WORKSPACE is accepted (and the command runs)."""
-        monkeypatch.setattr("tools.terminal_tool.NEXA_WORKSPACE", tmp_path)
+        """A cwd inside FORGE_WORKSPACE is accepted (and the command runs)."""
+        monkeypatch.setattr("tools.terminal_tool.FORGE_WORKSPACE", tmp_path)
         sub = tmp_path / "sub"
         sub.mkdir()
 
@@ -132,7 +132,7 @@ class TestProcessGroupKill:
     @pytest.mark.asyncio
     async def test_timeout_kills_process_tree_unix(self, tmp_path: Path, monkeypatch) -> None:
         """On timeout, the process group is killed (Unix)."""
-        monkeypatch.setattr("tools.terminal_tool.NEXA_WORKSPACE", tmp_path)
+        monkeypatch.setattr("tools.terminal_tool.FORGE_WORKSPACE", tmp_path)
 
         kill_called = []
         killpg_called = []

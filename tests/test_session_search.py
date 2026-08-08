@@ -14,10 +14,10 @@ SPDX-License-Identifier: MIT
 import pytest
 import pytest_asyncio
 
-import nexa.config as _nexa_config
-import nexa.state as _nexa_state
+import openforge.config as _nexa_config
+import openforge.state as _nexa_state
 from agent.memory.session_search import search_sessions, format_search_results
-from nexa.state import ConversationDB
+from openforge.state import ConversationDB
 
 
 @pytest_asyncio.fixture
@@ -25,19 +25,19 @@ async def db_with_data(tmp_path, monkeypatch):
     """Provide a DB with seeded conversations for search testing.
 
     v4.15.1: isolate the DB inside the fixture. ``ConversationDB`` reads
-    ``nexa.state.NEXA_DB_PATH`` while :func:`search_sessions` reads
-    ``nexa.config.NEXA_DB_PATH`` (both are by-value snapshot imports taken
+    ``nexa.state.FORGE_DB_PATH`` while :func:`search_sessions` reads
+    ``nexa.config.FORGE_DB_PATH`` (both are by-value snapshot imports taken
     at module import time), so BOTH module namespaces must be re-pointed to
-    ``tmp_path``. Without this the fixture opens the real ``~/.nexa/nexa.db``
+    ``tmp_path``. Without this the fixture opens the real ``~/.openforge/openforge.db``
     and fails with ``sqlite3.OperationalError`` whenever another test has
-    left the global NEXA_HOME/NEXA_DB_PATH in a polluted state.
+    left the global FORGE_HOME/FORGE_DB_PATH in a polluted state.
     """
-    nexa_home = tmp_path / ".nexa"
-    db_path = nexa_home / "nexa.db"
-    monkeypatch.setattr(_nexa_config, "NEXA_HOME", nexa_home)
-    monkeypatch.setattr(_nexa_config, "NEXA_DB_PATH", db_path)
-    monkeypatch.setattr(_nexa_state, "NEXA_HOME", nexa_home)
-    monkeypatch.setattr(_nexa_state, "NEXA_DB_PATH", db_path)
+    forge_home = tmp_path / ".nexa"
+    db_path = forge_home / "openforge.db"
+    monkeypatch.setattr(_nexa_config, "FORGE_HOME", forge_home)
+    monkeypatch.setattr(_nexa_config, "FORGE_DB_PATH", db_path)
+    monkeypatch.setattr(_nexa_state, "FORGE_HOME", forge_home)
+    monkeypatch.setattr(_nexa_state, "FORGE_DB_PATH", db_path)
 
     db = ConversationDB()
     await db.init()

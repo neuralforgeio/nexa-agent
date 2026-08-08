@@ -2,7 +2,7 @@
 Nexa Agent — Memory File Manager
 ================================
 
-Manages persistent memory files at ``~/.nexa/memory/``:
+Manages persistent memory files at ``~/.openforge/memory/``:
 
     - ``MEMORY.md`` — Agent notes and accumulated insights.
     - ``USER.md``   — User profile (preferences, facts about the user).
@@ -27,11 +27,11 @@ SPDX-License-Identifier: MIT
 from pathlib import Path
 from typing import Any, Dict, List
 
-from nexa.config import NEXA_HOME
+from openforge.config import FORGE_HOME
 
 
 #: The directory where memory files live.
-MEMORY_DIR: Path = NEXA_HOME / "memory"
+MEMORY_DIR: Path = FORGE_HOME / "memory"
 
 #: The agent notes file (insights, skills, general knowledge).
 MEMORY_FILE: Path = MEMORY_DIR / "MEMORY.md"
@@ -39,18 +39,18 @@ MEMORY_FILE: Path = MEMORY_DIR / "MEMORY.md"
 #: The user profile file (preferences, facts about the user).
 USER_FILE: Path = MEMORY_DIR / "USER.md"
 
-#: Optional root-level USER.md at ``~/.nexa/USER.md`` overrides the
+#: Optional root-level USER.md at ``~/.openforge/USER.md`` overrides the
 #: per-memory copy if present (v4.1.0). Users can edit the root file for
 #: quick tweaks without digging into the memory subdirectory.
-USER_FILE_ROOT: Path = NEXA_HOME / "USER.md"
+USER_FILE_ROOT: Path = FORGE_HOME / "USER.md"
 
-#: Optional root-level procedures playbook at ``~/.nexa/PROCEDURES.md``.
-PROCEDURES_FILE: Path = NEXA_HOME / "PROCEDURES.md"
+#: Optional root-level procedures playbook at ``~/.openforge/PROCEDURES.md``.
+PROCEDURES_FILE: Path = FORGE_HOME / "PROCEDURES.md"
 
 
 def ensure_memory_dir() -> Path:
     """
-    Ensure the ``~/.nexa/memory/`` directory exists.
+    Ensure the ``~/.openforge/memory/`` directory exists.
 
     Returns:
         The :class:`~pathlib.Path` to the memory directory.
@@ -77,9 +77,9 @@ def read_user_file() -> str:
     Read the contents of ``USER.md``.
 
     Resolution order (v4.1.0):
-      1. ``~/.nexa/USER.md`` (root-level, easier for users to edit), if
+      1. ``~/.openforge/USER.md`` (root-level, easier for users to edit), if
          it exists and is non-empty.
-      2. ``~/.nexa/memory/USER.md``.
+      2. ``~/.openforge/memory/USER.md``.
 
     Returns:
         The file content as a string, or an empty string if the file
@@ -96,7 +96,7 @@ def read_user_file() -> str:
 
 def read_procedures_file() -> str:
     """
-    Read the user's procedures playbook at ``~/.nexa/PROCEDURES.md``.
+    Read the user's procedures playbook at ``~/.openforge/PROCEDURES.md``.
 
     Returns:
         The file contents (empty string if not present). Injected into
@@ -174,7 +174,7 @@ class FileBasedMemory:
 
     All methods are thin wrappers — no new logic. This exists so callers who
     prefer ``mem.add_note(...)`` over ``append_to_memory(...)`` have a stable
-    interface, and so tests can inject a fake NEXA_HOME without touching the
+    interface, and so tests can inject a fake FORGE_HOME without touching the
     module-level ``MEMORY_DIR``.
     """
 

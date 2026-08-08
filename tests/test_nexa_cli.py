@@ -2,7 +2,7 @@
 Tests for the nexa_cli subcommand module.
 
 Verifies:
-    - CLI setup command creates ~/.nexa/ directory
+    - CLI setup command creates ~/.openforge/ directory
     - CLI model command shows and sets model
     - CLI gateway status command works
     - CLI doctor command runs diagnostics
@@ -13,7 +13,7 @@ SPDX-License-Identifier: MIT
 """
 
 import pytest
-from nexa_cli.main import main
+from openforge_cli.main import main
 
 
 class TestCLISetup:
@@ -25,10 +25,10 @@ class TestCLISetup:
         assert result == 0
 
     def test_setup_creates_home(self, tmp_path, monkeypatch) -> None:
-        """setup must create the NEXA_HOME directory."""
-        import nexa.config as cfg
-        monkeypatch.setattr(cfg, "NEXA_HOME", tmp_path / ".nexa")
-        monkeypatch.setattr("nexa.constants.NEXA_HOME", tmp_path / ".nexa")
+        """setup must create the FORGE_HOME directory."""
+        import openforge.config as cfg
+        monkeypatch.setattr(cfg, "FORGE_HOME", tmp_path / ".nexa")
+        monkeypatch.setattr("openforge.constants.FORGE_HOME", tmp_path / ".nexa")
         result = main(["setup"])
         assert result == 0
 
@@ -43,8 +43,8 @@ class TestCLIModel:
 
     def test_model_set_returns_zero(self, tmp_path, monkeypatch) -> None:
         """model command with name must return 0."""
-        import nexa.config as cfg
-        monkeypatch.setattr(cfg, "NEXA_HOME", tmp_path / ".nexa")
+        import openforge.config as cfg
+        monkeypatch.setattr(cfg, "FORGE_HOME", tmp_path / ".nexa")
         (tmp_path / ".nexa").mkdir()
         result = main(["model", "test-model-123"])
         assert result == 0

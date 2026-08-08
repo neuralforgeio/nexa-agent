@@ -84,6 +84,6 @@ def test_plugin_manifest_parses(tmp_path):
         '[plugin]\nname="x"\nversion="0.1.0"\ndescription="d"\nentry="x:main"\n',
         encoding="utf-8",
     )
-    import nexa.plugin_manifest as pm
+    import openforge.plugin_manifest as pm
     m = pm.parse_manifest(str(p))
     assert m.name == "x" and m.entry == "x:main" and m.version == "0.1.0"

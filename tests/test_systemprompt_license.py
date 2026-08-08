@@ -91,7 +91,7 @@ class TestSystemPrompt:
     def test_has_version_history(self) -> None:
         """The prompt has a version history section."""
         content = _read("SYSTEMPROMPT.md")
-        assert "VERSION" in content.upper() and "3.0.0" in content
+        assert "VERSION" in content.upper() and ("4.16.0" in content or "v4.16.0" in content)
 
     def test_mentions_ai_assistance(self) -> None:
         """The prompt acknowledges AI-assisted development."""
