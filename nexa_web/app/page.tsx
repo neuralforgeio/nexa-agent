@@ -1,5 +1,5 @@
 /**
- * Nexa Agent — Main Chat Page (v4.1.0 — Security + Virtual Multi-Agent)
+ * OpenForge — Main Chat Page (v4.16.0 — rebrand from Nexa Agent)
  *
  * Layout:
  *   [Sidebar | Chat | Sandbox(right, resizable 50/50 preview+terminal)]
@@ -416,7 +416,7 @@ export default function Page() {
           >
             {sidebarMode === "open" ? <X size={18} /> : <Menu size={18} />}
           </button>
-          <span style={{ fontSize: 14, fontWeight: 700, color: "var(--nexa-text, #ECECEC)" }}>Nexa Agent</span>
+          <span style={{ fontSize: 14, fontWeight: 700, color: "var(--nexa-text, #ECECEC)" }}>OpenForge</span>
           <span style={{ fontSize: 11, color: "var(--nexa-mute, #6A6A6A)" }}>v{appVersion}</span>
           <div style={{ marginLeft: "auto", display: "flex", gap: 4, alignItems: "center" }}>
             <ModelPicker
@@ -474,7 +474,7 @@ export default function Page() {
                       <span key={i} style={{ width: 5, height: 5, borderRadius: "50%", background: "#4A9EFF", animation: `nexa-blink 1.2s ease-in-out ${i * 0.15}s infinite` }} />
                     ))}
                   </span>
-                  Nexa is thinking…
+                  OpenForge is thinking…
                 </div>
               )}
               <div ref={scrollRef} />
@@ -505,7 +505,7 @@ function EmptyState({ version, onPick }: { version: string; onPick: (text: strin
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", padding: 24 }}>
       <div style={{ width: 80, height: 80, borderRadius: 20, marginBottom: 24, overflow: "hidden", border: "1px solid rgba(74, 158, 255, 0.3)" }}>
-        <img src="/nexa-agent.png" alt="Nexa Agent" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        <img src="/icon_shape_open_forge.png" alt="OpenForge" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
       </div>
       <h1 style={{ fontSize: 28, fontWeight: 700, color: "#ECECEC", margin: 0, letterSpacing: -0.5 }}>
         What can I build for you?
@@ -515,7 +515,7 @@ function EmptyState({ version, onPick }: { version: string; onPick: (text: strin
       </p>
       <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 14, marginBottom: 28 }}>
         <Zap size={14} color="#4A9EFF" />
-        <span style={{ fontSize: 13, color: "#6A6A6A" }}>Powered by Nexa Agent v{version}</span>
+        <span style={{ fontSize: 13, color: "#6A6A6A" }}>Powered by OpenForge v{version}</span>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 10, maxWidth: 480, width: "100%" }}>
         {chips.map((chip) => (

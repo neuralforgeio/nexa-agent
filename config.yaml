@@ -1,60 +1,68 @@
-# Nexa Agent — central configuration (single source of truth)
+# OpenForge — central configuration (single source of truth)
 # Edit this file when version metadata, branding, or status changes.
 # Everything else should either read it from here or from the source of truth.
 
 project:
-  name: "Nexa Agent"
-  tagline: "The Ultimate Local AI Agent Enterprise"
+  name: "OpenForge"
+  tagline: "Forge intelligent code, locally."
   description: >
-    A local-first AI agent with iterative tool-calling, multi-provider support,
-    a self-improvement memory system, an interactive TUI, and a full Web UI
-    (Next.js + React) with a sandbox panel, terminal, and work-process trace.
+    A local-first AI agent with iterative tool-calling, multi-provider support
+    (25 providers + custom endpoints), a self-improvement memory system, a full
+    library of 44 skills across 6 categories, 43 built-in tools, 41 intelligence
+    modules under agent/, a reactive TUI, and a full Web UI (Next.js + React).
   creator: "Dearly Febriano Irwansyah"
   creator_url: "https://github.com/neuralforgeio"
   license: "MIT"
   license_file: "LICENSE"
-  repository: "neuralforgeio/nexa-agent"
+  repository: "neuralforgeio/openforge"
 
 version:
-  current: "4.15.0"
-  codename: "Security Hardening — FINAL STABLE"
-  released: "2026-08-07"
+  current: "4.16.0"
+  codename: "OpenForge — The Great Consolidation"
+  released: "2026-08-08"
   semver_scheme: "MAJOR.MINOR.PATCH"
   notes: |
-    PATCH (v4.1.X) = N bug fixes.
-    MINOR (v4.X.0) = new feature(s), backwards compatible.
-    MAJOR (v5.0.0) = architecture or breaking change.
+    Migrated to Semantic Versioning 2.0.0 (semver.org) policy.
+    PATCH (x.y.Z) = backward-compatible bug fixes / tests / docs / refactor.
+    MINOR (x.Y.0) = backward-compatible new features (tools, skills, UX, rename+unified-arch via auto-migration).
+    MAJOR (X.0.0) = backward-incompatible breaking change ONLY on explicit user request.
 
 features:
-  providers: 8
-  tools_total: 33
-  planning_tools: 20
-  agent_modules: 36
+  providers: 25
+  builtin_tools: 43
+  skills_categories: 6
+  skills_files: 44
+  agent_modules: 41
   personas: 5
+  planning_tools: 20
   intelligence_mesh_v2_wired: true
   virtual_multi_agent: true
   security_hardening_v4_1: true
+  unified_forge_home: true
 
 active_envvars:
   # auth / access
-  - NEXA_API_TOKEN
-  - NEXA_REQUIRE_AUTH
-  - NEXA_ALLOWED_ORIGINS
+  - FORGE_API_TOKEN
+  - FORGE_REQUIRE_AUTH
+  - FORGE_ALLOWED_ORIGINS
   # terminal sandbox
-  - NEXA_ENABLE_PTY
+  - FORGE_ENABLE_PTY
   # feature gates
-  - NEXA_ORCHESTRATOR
-  - NEXA_QUICK_MODE
+  - FORGE_ORCHESTRATOR
+  - FORGE_QUICK_MODE
   # capacity tuning
-  - NEXA_LLM_TIMEOUT
-  - NEXA_MAX_CONTEXT_MESSAGES
+  - FORGE_LLM_TIMEOUT
+  - FORGE_MAX_CONTEXT_MESSAGES
 
 security_notes: |
-  - API token auth is opt-in; enable with NEXA_REQUIRE_AUTH=1 in production.
-  - PTY terminal is opt-in; enable with NEXA_ENABLE_PTY=1.
-  - User tools under ~/.nexa/tools/ are scanned via AST and blocked on
+  - API token auth is opt-in; enable with FORGE_REQUIRE_AUTH=1 in production.
+  - PTY terminal is opt-in; enable with FORGE_ENABLE_PTY=1.
+  - User tools under ~/.openforge/tools/ are scanned via AST and blocked on
     os/subprocess/socket/builtins/eval/exec/__import__.
-  - HOME/NEXA_HOME/NEXA_WORKSPACE are overridden to the workspace inside
+  - ~/.openforge/lib/ (the agent's own code) is READ-ONLY (chmod 555) and is
+    shielded from write_file/file_patch/run_terminal_command by the
+    path-protection layer + a SHA256 LOCK integrity manifest.
+  - HOME/FORGE_HOME/FORGE_WORKSPACE are overridden to the workspace inside
     run_terminal_command subprocesses so chr(126)+...-style path tricks land
     inside the sandbox, not the real ~/.
   - Chat tools call endpoints have a Content-Security-Policy header.
@@ -78,6 +86,6 @@ hygiene_watchlist:
   - LICENSE
   - scripts/install.ps1
   - scripts/install.sh
-  - nexa_web/package.json
-  - nexa_web/app/page.tsx
+  - openforge_web/package.json
+  - openforge_web/app/page.tsx
   - docs/MANUAL_TESTING_GUIDE.md

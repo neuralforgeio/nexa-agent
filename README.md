@@ -1,95 +1,76 @@
-# Nexa Agent
+# OpenForge
 
-> **The Ultimate Local AI Agent Enterprise — by Dearly Febriano Irwansyah**
-> **Version 4.6.4** · MIT License · [SYSTEMPROMPT.md](./SYSTEMPROMPT.md)
+> **Forge intelligent code, locally.** — by Dearly Febriano Irwansyah
+> **Version 4.16.0** · MIT License · [SYSTEMPROMPT.md](./SYSTEMPROMPT.md)
 
-A terminal-first local AI agent with iterative tool-calling, multi-provider
-support (24 providers + custom endpoints), a self-improvement memory system,
-an interactive TUI (Textual-style multi-pane, built with prompt_toolkit + rich),
-and a full Web UI (Next.js + React).
+OpenForge is a local-first, terminal-first AI agent with iterative tool-calling,
+multi-provider support (25 providers + custom endpoints), a self-improvement
+memory system, a large first-party skills library, a reactive TUI, and a full
+Web UI (Next.js + React) with a sandbox panel and a work-process trace.
 
-**v4.5.0 highlights**
+Everything lives under one unified home: **`~/.openforge/`**.
 
-- **40 AI Skills system** (`skills/`): 6 categories × 40 = 240 files
-  (40 handlers + 40 manifest.yaml + 40 __init__.py × 6) covering
-  Code Intelligence, Web & Research, Creative & Media, Communication,
-  Data & Analytics, DevOps & Operations. Real implementations where possible
-  (SQLite code_search index, real DB queries, real stats), honest stubs where
-  not (no external service = clearly marked "not configured").
-- **TUI redesign**: 4-panel live terminal UI; `/skills` browser with search;
-  `/tools` lists all 40 skills; `/sessions` manager; `/memory` editor;
-  `/doctor` + `/export` + `/persona`/`/config`/`/history` — all 18 slash commands.
-- **Server API**: `GET /api/skills` + `POST /api/skills/{name}/execute` for
-  the web UI or scripts to call skills directly.
-- **Tests**: **980 passed** (957 pre-skills with 24 skill programs + 33 TUI checks).
+---
 
-**v4.4.0 highlights** (Batch 8 — Skills System)
+## Highlights (current)
 
-- 40 skills across 6 categories — mest all specs: manifest + handler +
-  handler.py + tests (input validation, happy path, executor, prompt
-  fidelity, failure propagation).
-- **llama.cpp**: Real-LLM E2E tests against Ornith (local 9B model) via
-  `NEXA_E2E_LLAMACPP=1`; tested 10 skills end-to-end.
-- **Frontend**: SettingsPanel now has a Skills tab w/ category filter + search
-  + execute button + result viewer.
-- **code_search**: Real SQLite FTS5 index (not a stub).
-- **database_querying**: Real SQLite row execution (list of dicts).
-- **data_analysis**: Real CSV stats; spreadsheet uses openpyxl if installed.
+- **43 built-in tools** (filesystem, terminal, git, planning, research,
+  knowledge, multimodal, self-extension, MCP, delegation) — see
+  `tools/registry.py :: create_default_registry()` for the ground truth.
+- **44 skills across 6 categories** (`skills/`): Code Intelligence,
+  Web & Research, Creative & Media, Communication, Data & Analytics,
+  DevOps & Operations. Real implementations where possible (SQLite FTS5
+  code_search, real DB queries, real stats); honest "not configured" stubs
+  where an external service is missing.
+- **41 intelligence modules** (`agent/`) — self-improvement, self-healing,
+  autonomous web learning, knowledge cache, confidence scoring, intent
+  classification, pattern recognition, adaptive persona, reasoning chain,
+  context enrichment, memory consolidation, trajectory recording, and more.
+- **25 providers + custom endpoints** — OpenAI, Anthropic, OpenRouter,
+  Ollama, llama.cpp (local), LM Studio, vLLM, TokenRouter, Databricks, Groq,
+  Mistral, Together, Fireworks, Cohere, Perplexity, DeepSeek, xAI, Gemini,
+  Azure OpenAI, HuggingFace, Cerebras, SambaNova, and any OpenAI-compatible
+  endpoint.
+- **Unified `~/.openforge/` home** — code (`lib/`, read-only), user data
+  (`memory/`, `secrets/`, `sessions/`, `logs/`, `cache/`), and the workspace
+  (`workspace/`) in one place. See [Unified home](#unified-home-openforge).
+- **Sandbox Panel (Web UI)** — 50/50 web preview + real PTY terminal.
+- **Security hardened** — tool sandbox blocks `~/.openforge/` internals,
+  AST-scan of user tools, opt-in auth/PTY, CSP headers.
+- **Producer-grade local LLM support** — llama.cpp `--jinja` template is
+  honored (single system message at index 0). Long local generations run with
+  no client-side cancellation ("auto stop" fixed; see v4.15.1/4.15.2 notes).
 
-**v4.1.0 highlights** (for context)
+---
 
-- **Sandbox Panel** — right-hand sidebar with a vertically-split
-  **Web Preview** (top half) and **real PTY Terminal** (bottom half).
-  Autodetects Next/Vite/Astro dev servers; for plain HTML/CSS/JS, falls back
-  to serving the workspace via `/api/sandbox/preview`.
-- **Working Process dropdown** — every reasoning step + tool call is shown
-  in a collapsible trace that auto-collapses once the answer lands (with a
-  one-line summary).
-- **30+ built-in tools** — the planning toolkit (task_plan, todo_write,
-  scratchpad, think, project_scaffold, git_checkpoint, list_ports,
-  process_snapshot, memory_search, session_search, web_fetch, create_tool,
-  plan_and_delegate, …) on top of the 13 core tools.
-- **`create_tool`** — the agent can literally extend *itself* by drafting a
-  new tool into `~/.nexa/tools/` (loaded automatically next turn).
-- **llama.cpp auto-cancel fixed** — SSE keepalive pings + capability
-  negotiation mean long prompt-processing no longer looks like a dropped
-  client (no more `srv stop: cancel task`).
-- **Double-process fix** — `nexa/process_manager.py` acquires a PID-
-  file singleton for `server.py`, so `python server.py` twice never
-  double-binds port 8000.
-- **33-agent intelligence mesh** — reasoning chains, memory curator, error
-  classifier, self-healer, prompt expander, intent classifier, persona
-  adapter, trajectory recorder, semantic memory… and the v4.0 planner
-  (now fully wired into the system prompt as of v4.1.0).
+## Versioning (Semantic Versioning 2.0.0)
 
-## Features
+OpenForge follows **Semantic Versioning 2.0.0** (see https://semver.org).
+This policy is in effect starting with the OpenForge consolidation line
+(v4.16.0 and later).
 
-- **24 Providers + Custom Endpoints** — Anthropic Claude, Google Gemini, Mistral, Groq,
-  Together, Fireworks, DeepSeek, xAI, Cohere, Perplexity, LocalAI, textgen, Jan,
-  KoboldCpp, LiteLLM, Helicone, plus the original OpenAI/OpenRouter/Ollama/llama.cpp/
-  LM Studio/vLLM/TokenRouter/Databricks, and any OpenAI-compatible custom endpoint.
-- **Local AI Architecture** — All user data, memory, and state stored in `~/.nexa/`
-- **Interactive TUI** — Streaming responses, slash commands, tool visualization,
-  multi-pane layout (status bar + chat + tool log + input)
-- **Web UI** — Next.js + React with collapsible sidebar (`Ctrl+B`), sandbox
-  (`Ctrl+J`), streaming chat, tool cards, SettingsPanel, TerminalPanel
-- **33 Tools** — 13 core (read_file, write_file, run_terminal_command,
-  delegate, code_execution, web_search, file_patch, …) + 20 planning tools
-  (added v4.0, hardened v4.1)
-- **30+ Intelligence Modules** — Self-improvement, self-healing, autonomous
-  web learning, knowledge cache, confidence scoring, intent classification,
-  pattern recognition, error memory, adaptive persona, reasoning chain,
-  fact validator, context enricher, memory consolidator, query reformulator
-- **File-Based Memory** — `~/.nexa/memory/MEMORY.md` + `USER.md` (human-editable)
-  + `~/.nexa/PROCEDURES.md` playbook injected into the system prompt
-- **SQLite + FTS5** — Full-text search across all past conversations
-- **Provider Failover** — Automatic switch to the next healthy provider on failure
-- **Security Hardened** — Terminal blocks `~/.nexa/` access (API keys safe),
-  project-scoped sandbox, HITL approval for code execution
-- **Self-Health Diagnostics** — `/doctor` command checks DB, disk, memory, learning graph
-- **Learning Graph** — Tracks tool success rates for data-driven decisions
-- **User-Writable Tool Directory** — `~/.nexa/tools/*.py` files are auto-loaded
-  into the registry (self-extension pattern inspired by skill systems)
+```
+MAJOR.MINOR.PATCH
+```
+
+- **PATCH** (`x.y.Z+1`) — backward-compatible bug fixes, performance work,
+  docs, tests, non-behavioral refactors.
+- **MINOR** (`x.Y+1.0`) — backward-compatible new functionality: new tools,
+  new skills, new endpoints (none removed), new config options, UX changes,
+  and the OpenForge rename/unified-architecture (shipped with an
+  auto-migration layer so existing user data keeps working).
+- **MAJOR** (`X+1.0.0`) — backward-**incompatible** breaking change ONLY, and
+  only on explicit user request (e.g. a removal of an old API, a manual data
+  migration, an incompatible config format).
+
+Examples: `4.15.228 → 4.16.0` (feature/refactor, MINOR), `4.16.0 → 5.0.0`
+(breaking, MAJOR).
+
+Every release updates the version in `pyproject.toml`, `package.json`,
+`openforge_web/package.json`, and `config.yaml`, then tags git and creates a
+GitHub Release. We never push a tag without a matching release.
+
+---
 
 ## Quick Start
 
@@ -98,369 +79,181 @@ and a full Web UI (Next.js + React).
 **Linux / macOS:**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/neuralforgeio/nexa-agent/main/scripts/install/install.sh| bash
+curl -fsSL https://raw.githubusercontent.com/neuralforgeio/openforge/main/scripts/install/install.sh | bash
 ```
 
 **Windows (PowerShell):**
 
 ```powershell
-irm https://raw.githubusercontent.com/neuralforgeio/nexa-agent/main/scripts/install/install.ps1 | iex
+irm https://raw.githubusercontent.com/neuralforgeio/openforge/main/scripts/install/install.ps1 | iex
 ```
 
-The installer auto-detects/installs Python 3.11+, uv, clones the repo, creates
-a virtual environment, installs dependencies, and runs `nexa setup`. After it
-finishes, open a **new terminal** and run:
+The installer installs into `~/.openforge/lib/`, creates the venv, installs
+deps, and runs `openforge setup`. Then, in a new terminal:
 
 ```bash
-nexa provider list          # see all 24 providers
-nexa provider add tokenrouter   # interactive — prompts for API key + model
-nexa provider use tokenrouter   # activate
-nexa-chat                       # start chatting!
+openforge provider list
+openforge provider add tokenrouter
+openforge provider use tokenrouter
+openforge-chat
 ```
 
-### Manual Install (alternative)
+### Manual Install
 
 ```bash
-# Prerequisites: Python 3.11+ and git
-git clone https://github.com/neuralforgeio/nexa-agent.git
-cd nexa-agent
-
-# Create venv + install
+git clone https://github.com/neuralforgeio/openforge.git
+cd openforge
 python -m venv .venv
 # Linux/macOS:  source .venv/bin/activate
 # Windows:      .venv\Scripts\activate
 pip install -e ".[dev]"
-
-# Initialize
-nexa setup
-nexa provider list
+openforge setup
+openforge provider list
 ```
-
-### Configure a Provider
-
-**TokenRouter** (recommended — OpenAI-compatible routing gateway):
-
-```bash
-nexa provider add tokenrouter
-# ? API key (input hidden): tr_your_key_here
-# ? Model ID [auto:balance]:
-nexa provider use tokenrouter
-nexa provider test tokenrouter
-```
-
-**OpenAI** (direct):
-
-```bash
-export OPENAI_API_KEY="sk-..."        # Linux/macOS
-$env:OPENAI_API_KEY = "sk-..."        # Windows PowerShell
-nexa provider use openai
-```
-
-**Ollama** (local, free):
-
-```bash
-ollama pull llama3.2          # install Ollama first from ollama.com
-nexa provider add ollama
-nexa provider use ollama
-```
-
-**Custom endpoint** (any OpenAI-compatible):
-
-```bash
-nexa provider add my-llm \
-  --base-url "https://my-llm.example.com/v1" \
-  --api-key "sk-mykey" \
-  --model "my-model-v1"
-nexa provider use my-llm
-```
-
-See [docs/providers.md](./docs/providers.md) for the full provider guide.
 
 ### Running the Agent
 
 ```bash
-# Interactive chat REPL
-nexa-chat
-# Or with explicit provider:
-nexa-chat --provider ollama --model llama3.2
-
-# Single-turn (non-interactive)
-nexa-agent "Generate a UUID"
-
-# Multi-pane TUI (status bar + chat + tool log + input)
-python -m ui_tui.app
-
-# CLI subcommands
-nexa setup            # initialize ~/.nexa/
-nexa doctor           # self-health diagnostics
-nexa gateway start    # start backend (port 8000)
-nexa gateway status   # check if running
-nexa provider list    # list all 24 providers
-nexa provider test openai  # health check
-
-# Web UI server (backend on port 8000, frontend on port 3000)
-nexa gateway start                       # backend
-cd nexa_web && npm install && npm run dev  # frontend (Next.js)
-# Open http://localhost:3000 in your browser
+openforge-chat                      # interactive REPL
+openforge-agent "Generate a UUID"   # single-turn
+openforge --version                 # OpenForge v4.16.0
+openforge doctor                    # self-health diagnostics
+openforge gateway start             # backend on :8000
+cd openforge_web && npm run dev     # web UI on :3000
 ```
-
-See [docs/MANUAL_TESTING_GUIDE.md](./docs/MANUAL_TESTING_GUIDE.md) for the
-full manual testing walkthrough (CLI, TUI, Web UI, terminal security, E2E).
-
-## Providers
-
-Nexa Agent works with any OpenAI-compatible endpoint:
-
-| Provider | `--provider` | Base URL | Default Model | API Key |
-|----------|-------------|----------|---------------|---------|
-| OpenAI | `openai` | https://api.openai.com/v1 | gpt-4o | Required |
-| OpenRouter | `openrouter` | https://openrouter.ai/api/v1 | claude-3.5-sonnet | Required |
-| **Ollama** | `ollama` | http://localhost:11434/v1 | llama3.2 | Any string |
-| **llama.cpp** | `llamacpp` | http://localhost:8080/v1 | local-model | Any string |
-| LM Studio | `lmstudio` | http://localhost:1234/v1 | loaded-model | Any string |
-| vLLM | `vllm` | http://localhost:8000/v1 | Llama-3.1-8B-Instruct | Any string |
-
-### Using Ollama (Local AI)
-
-```bash
-# Install Ollama: https://ollama.com
-ollama pull llama3.2
-
-# Run Nexa with Ollama
-python cli.py --provider ollama --model llama3.2
-```
-
-### Using llama.cpp
-
-```bash
-# Start llama.cpp server
-./llama-server -m model.gguf --port 8080
-
-# Run Nexa
-python cli.py --provider llamacpp
-```
-
-## Tools
-
-### Core (13 tools)
-
-| Tool | Description |
-|------|-------------|
-| `read_file` | Read a file from the workspace |
-| `write_file` | Write/create a file in the workspace |
-| `run_terminal_command` | Execute a shell command (15s timeout, output cap) |
-| `generate_uuid` | Generate a UUID v4 |
-| `delegate` | Spawn a sub-agent for a focused subtask |
-| `list_background_processes` | List agent-spawned background processes |
-| `kill_background_process` | Terminate a background process |
-| `web_search` | DuckDuckGo search (no API key) |
-| `code_execution` | Run a Python snippet in a sandboxed subprocess |
-| `file_patch` | Apply a unified diff with atomic write + backup |
-| `revert_file` | Roll back to a previous version |
-| `deep_research` | Multi-source research with citations |
-| `terminal_exec` | Terminal command with session persistence |
-
-### Planning Toolkit (20 tools — added v4.0, hardened v4.1)
-
-**Planning & reasoning**
-
-| Tool | Description |
-|------|-------------|
-| `task_plan` | Decompose a goal into a dependency-aware plan (template-matched) |
-| `todo_write` | Create/update a named TODO list in `.nexa/todos/` |
-| `todo_read` | Read a TODO list (or list them all) |
-| `scratchpad_write` | Append/replace the workspace scratchpad |
-| `think` | Loop-back reasoning tool — narrate an internal step |
-
-**Filesystem**
-
-| Tool | Description |
-|------|-------------|
-| `list_directory` | Tree-style listing with sizes + glob excludes |
-| `search_files` | Recursive regex search over workspace text files |
-| `file_info` | Size, mtime, line count, MIME, sha256 |
-| `project_scaffold` | Starter code for next / vite-react / express / fastapi / static / python-cli |
-
-**Git (workspace-local)**
-
-| Tool | Description |
-|------|-------------|
-| `git_status` | Branch + porcelain status + last commit |
-| `git_diff` | Unified diff (working tree or staged) |
-| `git_log` | Recent commits (`hash · subject · age`) |
-| `git_checkpoint` | Stage-and-commit a snapshot for rollback |
-
-**Process & system**
-
-| Tool | Description |
-|------|-------------|
-| `list_ports` | Which dev-server ports are listening (+ PID on Windows) |
-| `process_snapshot` | Regex-filtered snapshot of user processes |
-
-**Knowledge**
-
-| Tool | Description |
-|------|-------------|
-| `memory_search` | FTS5 search over long-term memories |
-| `session_search` | FTS5 search over past conversation messages |
-| `web_fetch` | Fetch a URL and extract readable text (32 KB cap) |
-
-**Self-extension**
-
-| Tool | Description |
-|------|-------------|
-| `create_tool` | Write a new tool into `~/.nexa/tools/` (auto-loaded next turn) |
-| `plan_and_delegate` | Plan a goal AND emit a ready delegate-prompt per step |
-
-All file/terminal operations are sandboxed to `nexa-workspace/` (or the
-`NEXA_WORKSPACE` env var you've set). Read-only tools may read project
-files but never mutate anything outside the workspace.
-
-## Sandbox Panel (Web UI)
-
-The web UI at `http://localhost:3000` ships with a new right-hand sidebar
-called the **Sandbox**:
-
-```
-┌──────────── Chat ────────────┬── Sandbox (toggle with Ctrl+J) ──┐
-│                              │                                  │
-│  messages & streaming        │   ┌─ Web Preview ──────────────┐ │
-│  responses                   │   │  - recursive file tree     │ │
-│                              │   │  - iframe preview of your  │ │
-│  [Working Process ▾]         │   │    HTML/CSS/JS             │ │
-│   ├── step 1: thinking       │   │  - dev-server autodetect   │ │
-│   ├── step 2: tool call      │   └─────────────────────────────┘ │
-│   └── step 3: result         │   ════════  draggable divider ════ │
-│                              │   ┌─ Terminal (real PTY) ───────┐ │
-│  Ask Nexa anything…          │   │  $ npm install               │ │
-│                              │   │  $ npm run dev               │ │
-│                              │   └─────────────────────────────┘ │
-│                              │                                  │
-└──────────────────────────────┴──────────────────────────────────┘
-```
-
-- **Three pane modes** — `both` (preview over terminal 50/50), `preview-only`,
-  `terminal-only`. Drag the divider to resize; double-click to focus.
-- **Autodetect** — Nexa watches common dev ports (3000, 5173, 4321, 4200,
-  8080) and points the preview at the first one listening.
-- **Workspace fallback** — if no dev server is running, the preview can
-  render any file directly from `NEXA_WORKSPACE` (with syntax highlighting
-  for code, image rendering for assets, a simple shell for `.js` files).
-- **Real PTY terminal** — via xterm.js + WebSocket; shell starts inside
-  the workspace so `cd myproject` just works.
-
-## User-extensible tools (`~/.nexa/tools/`)
-
-Ask Nexa to make a tool and it will write a new Python module into
-`~/.nexa/tools/` using `create_tool` — then reload the *next* turn to
-use it immediately. Everything in that folder is user-editable (the
-runtime is read-only for you, but `~/.nexa/` is entirely yours).
 
 ---
 
-## TUI Commands
-
-| Command | Description |
-|---------|-------------|
-| `/help` | Show all commands and providers |
-| `/tools` | Show all available tools with schemas |
-| `/search <query>` | Search past conversations (FTS5 full-text) |
-| `/memory [show\|sync]` | View/sync memory files (MEMORY.md + USER.md) |
-| `/memories` | Show accumulated agent memories (learning store) |
-| `/model <name>` | Change the current model |
-| `/provider <name>` | Change the LLM provider |
-| `/history` | Show conversation history |
-| `/doctor` | Run self-health diagnostics |
-| `/clear` | Clear the current conversation |
-| `/exit` | Exit (or Ctrl+D) |
-
-## Architecture
+## Unified home (`~/.openforge/`)
 
 ```
-nexa-agent/
-├── cli.py                  # Interactive TUI (prompt_toolkit + rich)
-├── run_agent.py            # NexaAgent class + standalone runner
-├── server.py               # FastAPI SSE server for web UI
-├── nexa/                   # Core package
-│   ├── bootstrap.py        # UTF-8 stdio setup
-│   ├── constants.py        # NEXA_HOME, version, safeguards
-│   ├── config.py           # Environment variable loading
-│   ├── state.py            # SQLite + FTS5 persistence
-│   └── provider.py         # LLMProvider (AsyncOpenAI, streaming, tools)
-├── agent/                  # Agent engine
-│   ├── conversation_loop.py    # Core iterative tool-calling loop
-│   ├── prompt_builder.py       # Dynamic system prompt assembly
-│   ├── context_compressor.py   # Token budget management + summarization
-│   ├── memory_curator.py       # Self-improvement (extracts insights)
-│   ├── memory_files.py         # MEMORY.md + USER.md file management
-│   ├── learning_graph.py       # Tool success rate tracking
-│   ├── error_classifier.py     # API error categorization + retry
-│   ├── message_sanitizer.py    # JSON repair + message cleanup
-│   ├── iteration_budget.py     # Tool-call iteration limits
-│   ├── self_health.py          # Diagnostics (/doctor)
-│   └── session_search.py       # FTS5 full-text session search
-├── tools/                  # Tool implementations
-│   ├── registry.py         # ToolRegistry + OpenAI schemas
-│   ├── file_tools.py       # read_file, write_file
-│   ├── terminal_tool.py    # run_terminal_command, generate_uuid
-│   └── delegate_tool.py    # Sub-agent delegation
-├── providers/              # Provider catalog
-│   └── catalog.py          # OpenAI, Ollama, llama.cpp, vLLM, etc.
-├── tests/                  # pytest test suite (50+ tests)
-├── docs/                   # Documentation
-│   ├── tools.md            # Tool reference
-│   ├── architecture.md     # System design overview
-│   └── providers.md        # Provider setup guides
-├── requirements.txt
-├── pyproject.toml
-├── .env.example
-└── NEXA_MASTER_PLAN.md
+~/.openforge/
+├── lib/            # OpenForge code (READ-ONLY, chmod 555) — renamed from nexa/
+│   ├── openforge/  openforge_cli/  openforge_web/
+│   ├── agent/      skills/         tools/   providers/
+│   ├── ui_tui/     src/            config/  public/icons/
+│   ├── VERSION     LOCK (sha256)   CHANGELOG.md
+├── workspace/      # your project files (RW)
+├── memory/         # MEMORY.md, USER.md, PROCEDURES.md
+├── secrets/        # API keys (chmod 700/600)
+├── sessions/  tools/  extensions/  logs/  cache/  .permissions/
+├── .versions/      # previous lib snapshots (rollback)
+├── .backups/       # auto backups
+└── openforge.db    # SQLite + FTS5
 ```
 
-## ~/.nexa/ Directory Structure
+Path resolution is centralized in `openforge/path_resolver.py` (planned in
+Phase 3): no hardcoded paths, everything honors `FORGE_HOME` etc.
 
-```
-~/.nexa/
-├── nexa.db                 # SQLite database (conversations, messages, memories)
-├── memory/
-│   ├── MEMORY.md           # Agent notes (insights, skills)
-│   └── USER.md             # User profile (preferences, facts)
-├── sessions/               # Session data
-└── logs/                   # Application logs
-```
+### CLI commands (high level)
+
+| Command | Purpose |
+|---|---|
+| `openforge-chat` | Interactive chat REPL |
+| `openforge-agent "<task>"` | Single-turn task |
+| `openforge` | CLI with subcommands |
+| `openforge setup` | Initialize `~/.openforge/` |
+| `openforge doctor` | Self-health diagnostics (DB/disk/memory/LOCK) |
+| `openforge update` / `rollback` / `migrate` | Release management (Phase 3) |
+| `openforge-gateway` / `openforge-doctor` | Backend + health |
+
+---
+
+## Environment Variables (new `FORGE_*` prefix)
+
+| Variable | Default | Description |
+|---|---|---|
+| `FORGE_PROVIDER` | `openai` | Provider name |
+| `FORGE_MODEL` | provider-specific | Model identifier |
+| `FORGE_BASE_URL` | provider-specific | Custom endpoint URL |
+| `FORGE_API_TOKEN` | *(empty)* | Auth token (opt-in) |
+| `FORGE_REQUIRE_AUTH` | `0` | Require API token in production |
+| `FORGE_ENABLE_PTY` | `0` | Enable PTY terminal |
+| `FORGE_ORCHESTRATOR` | `0` | Virtual multi-agent persona |
+| `FORGE_QUICK_MODE` | `0` | No-tool instant answers |
+| `FORGE_FAILOVER_ENABLED` | `0` | Provider failover |
+| `FORGE_FAILOVER_CHAIN` | `openai,anthropic,ollama` | ordered failover list |
+| `FORGE_HOME` | `~/.openforge` | Runtime home root |
+| `FORGE_WORKSPACE` | `~/.openforge/workspace` | File/terminal sandbox |
+| `FORGE_LLM_TIMEOUT` | `600` | LLM call timeout (seconds) |
+| `FORGE_MAX_CONTEXT_MESSAGES` | `30` | Context window (messages) |
+| `FORGE_MAX_TOOL_ITERATIONS` | `25` | Tool-call iteration cap |
+
+> **Backward compatibility:** for one MINOR cycle, legacy `NEXA_*` env vars are
+> honored with a deprecation warning (see `openforge/config.py`). Set the new
+> `FORGE_*` names to silence it.
+
+---
+
+## Tools
+
+The default registry currently exposes **43 tools**, grouped as:
+
+- **Filesystem & patch**: `read_file`, `write_file`, `file_patch`, `file_info`,
+  `list_directory`, `search_files`, `revert_file`
+- **Execution & process**: `run_terminal_command`, `terminal_exec`,
+  `code_execution`, `list_background_processes`, `kill_background_process`,
+  `process_snapshot`, `list_ports`
+- **VCS & planning**: `git_status`, `git_diff`, `git_log`, `git_checkpoint`,
+  `todo_read`, `todo_write`, `task_plan`, `plan_and_delegate`,
+  `project_scaffold`, `scratchpad_write`, `think`
+- **Research & knowledge**: `web_search`, `web_fetch`, `deep_research`,
+  `read_pdf`, `read_docx`, `read_xlsx`, `read_pptx`, `semantic_search`,
+  `memory_search`, `session_search`
+- **Creative / multimodal**: `image_generation`, `image_understanding`, `browser`
+- **Self-extension & misc**: `delegate`, `create_tool`, `mcp_call`,
+  `mcp_list_servers`, `generate_uuid`
+
+Full schemas: `tools/registry.py`. Docs: `docs/tools.md`.
+
+## Skills (44 handlers, 6 categories)
+
+`skills/code_intelligence`, `skills/web_research`, `skills/creative_media`,
+`skills/communication`, `skills/data_analytics`, `skills/devops_operations`.
+Each skill is a provider-agnostic handler invoked via a shared LLM adapter.
+
+---
 
 ## Self-Improvement System
 
-Nexa Agent gets smarter the more you use it:
+OpenForge gets smarter the more you use it:
 
-1. **Memory Curator** — After each turn, analyzes the conversation and extracts:
-   - **Preferences** (e.g., "user prefers Python")
-   - **Facts** (e.g., "user's name is Dearly")
-   - **Insights** (e.g., "the key to fixing X is Y")
-   - **Skills** (e.g., "successfully used read_file tool")
-2. **File Persistence** — Memories are written to `MEMORY.md` and `USER.md` (human-readable, editable)
-3. **Learning Graph** — Tracks tool success/failure rates for smarter tool selection
-4. **Context Injection** — Memories are injected into the system prompt for cross-session recall
+1. **Memory Curator** extracts preferences, facts, insights, skills per turn.
+2. **File persistence** to `~/.openforge/memory/MEMORY.md` + `USER.md`
+   (human-readable, editable).
+3. **Learning Graph** tracks tool success/failure for smarter tool selection.
+4. **Context injection** — memories are injected into the system prompt.
+
+---
 
 ## Testing
 
 ```bash
-# Run all tests
-uv run pytest tests/ -v
-# Or:
-python -m pytest tests/ -v
+python -m pytest tests/ -q          # Python (1,000+ tests)
+cd openforge_web && npm run build   # Web UI build
+cd openforge_web && npx vitest run  # Web UI tests
+npx eslint .                        # Lint
 ```
 
-## Environment Variables
+Local LLM E2E (requires llama.cpp on `127.0.0.1:8080`):
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `NEXA_PROVIDER` | `openai` | Provider name |
-| `OPENAI_API_KEY` | *(required for OpenAI)* | API key |
-| `NEXA_MODEL` | provider-specific | Model identifier |
-| `NEXA_BASE_URL` | provider-specific | Custom endpoint URL |
-| `NEXA_HOME` | `~/.nexa` | Runtime home directory |
-| `NEXA_WORKSPACE` | `./nexa-workspace` | File/terminal tool sandbox |
+```bash
+$env:NEXA_E2E_LLAMACPP = "1"   # gate name kept for back-compat during migration
+python -m pytest tests/test_llamacpp_real.py -v
+```
+
+> The no-timeout live tests intentionally avoid `asyncio.wait_for`; llama.cpp
+> on a 9B Q4 model can legitimately take 5–10 minutes on slower hardware.
+
+---
+
+## History
+
+Earlier Nexa-era versions (v1.x–v4.15.x) built the foundation: Python backend,
+TUI, multi-provider, memory system, security hardening, cross-platform installer,
+sandbox panel, planning tools, virtual multi-agent orchestrator, and 85+
+tools/skills across 9 categories. See `AGENTS.md` and `worklog.md` for the full
+evolution.
 
 ## License
 

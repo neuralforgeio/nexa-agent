@@ -211,7 +211,6 @@ export function Composer({ onSend, onStop, disabled, thinking, showSuggestions }
                 }}
               >
                 {a.preview ? (
-                  // eslint-disable-next-line @next/next/no-img-element
                   <img src={a.preview} alt={a.name} style={{ width: 28, height: 28, objectFit: "cover", borderRadius: 4 }} />
                 ) : (
                   <Paperclip size={12} color="#8F8F8F" />

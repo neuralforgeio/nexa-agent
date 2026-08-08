@@ -121,7 +121,6 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
       // Restore focus to whatever opened the dialog.
       openerRef.current?.focus?.();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const SKILL_CATEGORIES = [

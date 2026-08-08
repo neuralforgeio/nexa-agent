@@ -1,7 +1,7 @@
 [project]
-name = "nexa-agent"
-version = "4.15.2"
-description = "Nexa Agent — The advanced AI agent by Dearly Febriano Irwansyah"
+name = "openforge"
+version = "4.16.0"
+description = "OpenForge — Forge intelligent code, locally."
 authors = [{ name = "Dearly Febriano Irwansyah" }]
 license = "MIT"
 requires-python = ">=3.11,<3.14"

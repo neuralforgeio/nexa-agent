@@ -1,5 +1,5 @@
 /**
- * Nexa Agent — Root Layout (Hardened v2.1.0)
+ * OpenForge — Root Layout (Hardened v2.1.0 → rebrand v4.16.0)
  *
  * Dark theme #141618. Uses system fonts (no next/font/google — avoids
  * network fetches at build time that fail in offline sandboxed environments).
@@ -12,10 +12,10 @@ import "./globals.css";
 import { ThemeProvider } from "../components/ThemeProvider";
 
 export const metadata: Metadata = {
-  title: "Nexa Agent — Advanced AI Agent",
-  description: "Local AI agent with tool-calling, memory, and streaming responses.",
+  title: "OpenForge — Forge intelligent code, locally.",
+  description: "Local-first AI agent with tool-calling, memory, and streaming responses.",
   manifest: "/manifest.json",
-  icons: { icon: "/nexa-agent.png", apple: "/nexa-agent.png" },
+  icons: { icon: "/icon_shape_open_forge.png", apple: "/icon_shape_open_forge.png" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

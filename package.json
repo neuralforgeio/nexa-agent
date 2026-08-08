@@ -1,6 +1,6 @@
 {
-  "name": "nexa-agent",
-  "version": "4.15.2",
+  "name": "openforge",
+  "version": "4.16.0",
   "private": true,
   "scripts": {
     "dev": "cd nexa_web && npx next dev -p 3000",
