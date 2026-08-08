@@ -1,0 +1,42 @@
+name: CI — Frontend
+
+on:
+  push:
+    branches: [main]
+    paths: ['openforge_web/**']
+  pull_request:
+    paths: ['openforge_web/**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: openforge_web
+
+jobs:
+  web:
+    runs-on: windows-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: openforge_web/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: ESLint
+        run: npx eslint .
+
+      - name: Build
+        run: npm run build
+
+      - name: Vitest
+        run: npx vitest run
