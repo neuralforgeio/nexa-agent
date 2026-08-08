@@ -202,7 +202,7 @@ window. Older messages are truncated to fit the context budget.
 # ---------------------------------------------------------------------------
 # Initialization helper
 # ---------------------------------------------------------------------------
-def ensure_nexa_home() -> None:
+def ensure_forge_home() -> None:
     """
     Ensure that the ``FORGE_HOME`` directory and its subdirectories exist.
 
@@ -215,3 +215,8 @@ def ensure_nexa_home() -> None:
     for subdir in ("sessions", "memory", "logs"):
         (FORGE_HOME / subdir).mkdir(parents=True, exist_ok=True)
     FORGE_WORKSPACE.mkdir(parents=True, exist_ok=True)
+
+
+def ensure_nexa_home() -> None:
+    """Legacy alias for ensure_forge_home (deprecated in v4.17)."""
+    ensure_forge_home()

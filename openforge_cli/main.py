@@ -1,8 +1,8 @@
 """
-Nexa Agent — CLI Entry Point (Polished v2.1.0)
-==============================================
+OpenForge — CLI Entry Point (Polished v2.1.0)
+===============================================
 
-Non-interactive CLI subcommands for Nexa Agent.
+Non-interactive CLI subcommands for OpenForge.
 
 Hardening (v2.1.0):
     - Uses :data:`sys.executable` for spawning subprocesses (cross-platform,
@@ -13,11 +13,11 @@ Hardening (v2.1.0):
       readability.
 
 Usage::
-    python -m nexa_cli setup
-    python -m nexa_cli model llama3.2
-    python -m nexa_cli gateway start --port 9000
-    python -m nexa_cli gateway stop
-    python -m nexa_cli doctor
+    python -m openforge_cli setup
+    python -m openforge_cli model llama3.2
+    python -m openforge_cli gateway start --port 9000
+    python -m openforge_cli gateway stop
+    python -m openforge_cli doctor
 
 Copyright (c) 2026 Dearly Febriano Irwansyah
 SPDX-License-Identifier: MIT
@@ -34,7 +34,7 @@ from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
 
-from openforge.constants import NEXA_NAME, NEXA_VERSION, ensure_nexa_home
+from openforge.constants import FORGE_NAME, NEXA_VERSION, ensure_forge_home
 from openforge.config import FORGE_HOME, FORGE_WORKSPACE
 
 console = Console()
@@ -45,7 +45,7 @@ DEFAULT_GATEWAY_PORT: int = 8000
 
 def main(argv: Optional[List[str]] = None) -> int:
     """
-    Main CLI entry point for nexa subcommands.
+    Main CLI entry point for openforge subcommands.
 
     Args:
         argv: Command-line arguments (defaults to ``sys.argv[1:]``).
@@ -58,15 +58,15 @@ def main(argv: Optional[List[str]] = None) -> int:
         0
     """
     parser = argparse.ArgumentParser(
-        prog="nexa",
-        description=f"{NEXA_NAME} v{NEXA_VERSION} — CLI",
+        prog="openforge",
+        description=f"{FORGE_NAME} v{NEXA_VERSION} — CLI",
         add_help=True,
     )
     # v4.2.3: top-level --version flag (parses and exits before subcommands).
     parser.add_argument(
         "-V", "--version",
         action="store_true",
-        help="Print the current nexa-agent version and exit.",
+        help="Print the current openforge version and exit.",
     )
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
@@ -125,7 +125,7 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     # v4.2.3: --version short-circuit (handled BEFORE subcommand dispatch).
     if getattr(args, "version", False):
-        print(f"{NEXA_NAME} v{NEXA_VERSION}")
+        print(f"{FORGE_NAME} v{NEXA_VERSION}")
         return 0
 
     if args.command == "setup":
@@ -147,7 +147,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     elif args.command == "plugin":
         if getattr(args, "plugin_command", None) == "install":
             return _cmd_plugin_install(args.url)
-        print("Usage: nexa plugin install <git-url>")
+        print("Usage: openforge plugin install <git-url>")
         return 1
     else:
         _print_rich_help()
@@ -163,7 +163,7 @@ def _cmd_plugin_install(url: str) -> int:
         console.print(f"[red]Invalid URL: {url}[/red]")
         return 1
     name = url.rstrip("/").rsplit("/", 1)[-1].replace(".git", "")
-    plugin_dir = Path.home() / ".nexa" / "plugins" / name
+    plugin_dir = Path.home() / ".openforge" / "plugins" / name
     plugin_dir.parent.mkdir(parents=True, exist_ok=True)
     try:
         subprocess.run(["git", "clone", url, str(plugin_dir)], check=True, capture_output=True, text=True)
@@ -176,33 +176,33 @@ def _cmd_plugin_install(url: str) -> int:
 
 def _print_rich_help() -> None:
     """Print a rich-rendered help table listing all subcommands."""
-    table = Table(title=f"{NEXA_NAME} v{NEXA_VERSION} — Subcommands", show_header=True, header_style="bold cyan")
+    table = Table(title=f"{FORGE_NAME} v{NEXA_VERSION} — Subcommands", show_header=True, header_style="bold cyan")
     table.add_column("Command", style="cyan", no_wrap=True)
     table.add_column("Description", style="white")
     table.add_column("Example", style="dim")
 
     rows = [
-        ("setup", "Initialize ~/.openforge/ and configure provider", "nexa setup"),
-        ("model", "Show or set the current model", "nexa model llama3.2"),
-        ("gateway start", "Start the gateway server", "nexa gateway start --port 8000"),
-        ("gateway stop", "Stop the gateway server (graceful SIGTERM)", "nexa gateway stop"),
-        ("gateway status", "Check if the gateway server is running", "nexa gateway status"),
-        ("provider list", "List all LLM providers (v4.1.0)", "nexa provider list"),
-        ("provider add", "Interactively add a custom provider (v4.1.0)", "nexa provider add tokenrouter"),
-        ("provider use", "Switch the active provider (v4.1.0)", "nexa provider use tokenrouter"),
-        ("provider remove", "Remove a custom provider (v4.1.0)", "nexa provider remove tokenrouter"),
-        ("provider test", "Health-check a provider (v4.1.0)", "nexa provider test openai"),
-        ("doctor", "Run self-health diagnostics", "nexa doctor"),
+        ("setup", "Initialize ~/.openforge/ and configure provider", "openforge setup"),
+        ("model", "Show or set the current model", "openforge model llama3.2"),
+        ("gateway start", "Start the gateway server", "openforge gateway start --port 8000"),
+        ("gateway stop", "Stop the gateway server (graceful SIGTERM)", "openforge gateway stop"),
+        ("gateway status", "Check if the gateway server is running", "openforge gateway status"),
+        ("provider list", "List all LLM providers (v4.1.0)", "openforge provider list"),
+        ("provider add", "Interactively add a custom provider (v4.1.0)", "openforge provider add tokenrouter"),
+        ("provider use", "Switch the active provider (v4.1.0)", "openforge provider use tokenrouter"),
+        ("provider remove", "Remove a custom provider (v4.1.0)", "openforge provider remove tokenrouter"),
+        ("provider test", "Health-check a provider (v4.1.0)", "openforge provider test openai"),
+        ("doctor", "Run self-health diagnostics", "openforge doctor"),
     ]
     for cmd, desc, example in rows:
         table.add_row(cmd, desc, example)
 
-    console.print(Panel(table, border_style="cyan", title="[cyan]Nexa Agent CLI[/cyan]"))
+    console.print(Panel(table, border_style="cyan", title="[cyan]OpenForge CLI[/cyan]"))
     console.print(
-        "\n[dim]Type 'nexa <command> --help' for command-specific options.[/dim]"
+        "\n[dim]Type 'openforge <command> --help' for command-specific options.[/dim]"
     )
     console.print(
-        "[dim]For the interactive chat REPL, use 'nexa-chat'.[/dim]\n"
+        "[dim]For the interactive chat REPL, use 'openforge-chat'.[/dim]\n"
     )
 
 
@@ -213,13 +213,13 @@ def _cmd_setup() -> int:
     Returns:
         0 on success.
     """
-    ensure_nexa_home()
+    ensure_forge_home()
     console.print(Panel(
         f"[green]Home directory initialized:[/green] {FORGE_HOME}\n"
         f"[green]Workspace:[/green] {FORGE_WORKSPACE}\n"
         f"Setup complete. Edit ~/.openforge/.env to configure your provider.",
         border_style="green",
-        title="[green]Nexa Setup[/green]",
+        title="[green]OpenForge Setup[/green]",
     ))
     return 0
 
@@ -365,7 +365,7 @@ def _cmd_provider(
     if action == "list":
         all_providers = reg.list_all()
         table = Table(
-            title="Nexa Agent — LLM Providers",
+            title="OpenForge — LLM Providers",
             show_header=True,
             header_style="bold cyan",
         )
@@ -436,12 +436,12 @@ def _cmd_provider(
         console.print(f"  base_url: [cyan]{default_base}[/cyan]")
         console.print(f"  model:    [green]{default_model}[/green]")
         console.print(f"  api_key:  [dim]{cfg.masked_api_key()}[/dim]")
-        console.print(f"\n[dim]Activate with:[/dim] nexa provider use {name}")
+        console.print(f"\n[dim]Activate with:[/dim] openforge provider use {name}")
         return 0
 
     if action == "use":
         if not name:
-            console.print("[red]Usage: nexa provider use <name>[/red]")
+            console.print("[red]Usage: openforge provider use <name>[/red]")
             return 1
         if reg.set_active(name):
             console.print(f"[green]✓ Switched to[/green] {name}")
@@ -451,12 +451,12 @@ def _cmd_provider(
                 console.print(f"  model:    [green]{cfg.model}[/green]")
             return 0
         console.print(f"[red]Unknown provider:[/red] {name}")
-        console.print("[dim]Available: nexa provider list[/dim]")
+        console.print("[dim]Available: openforge provider list[/dim]")
         return 1
 
     if action == "remove":
         if not name:
-            console.print("[red]Usage: nexa provider remove <name>[/red]")
+            console.print("[red]Usage: openforge provider remove <name>[/red]")
             return 1
         if reg.remove(name):
             console.print(f"[green]✓ Removed[/green] {name}")
@@ -466,7 +466,7 @@ def _cmd_provider(
 
     if action == "test":
         if not name:
-            console.print("[red]Usage: nexa provider test <name>[/red]")
+            console.print("[red]Usage: openforge provider test <name>[/red]")
             return 1
         console.print(f"[cyan]Probing[/cyan] {name}...")
         try:
@@ -499,7 +499,7 @@ def _cmd_doctor() -> int:
         await db.init()
         health = SelfHealth(db)
         report = await health.run_full_check()
-        console.print(Panel(report.summary(), border_style="yellow", title="[yellow]Nexa Health Report[/yellow]"))
+        console.print(Panel(report.summary(), border_style="yellow", title="[yellow]OpenForge Health Report[/yellow]"))
         return 0 if report.all_healthy else 1
 
     return asyncio.run(run())

@@ -24,8 +24,11 @@ from .config import (  # noqa: F401
     FORGE_WORKSPACE,
     OPENAI_API_KEY,
     OPENAI_BASE_URL,
+    ensure_forge_home,
     ensure_nexa_home,
 )
+
+FORGE_NAME = "OpenForge"
 
 __all__ = [
     "NEXA_NAME",
