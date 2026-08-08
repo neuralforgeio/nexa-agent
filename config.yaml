@@ -16,8 +16,8 @@ project:
   repository: "neuralforgeio/nexa-agent"
 
 version:
-  current: "4.13.0"
-  codename: "DevOps + Distribution"
+  current: "4.14.0"
+  codename: "Additional Intelligence"
   released: "2026-08-07"
   semver_scheme: "MAJOR.MINOR.PATCH"
   notes: |

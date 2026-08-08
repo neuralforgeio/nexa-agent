@@ -70,12 +70,15 @@ class ProviderHealth:
         cooldown_until: Monotonic timestamp until which the provider is
                         considered unhealthy (or ``None`` if healthy).
         avg_latency_ms: Rolling average latency in milliseconds (or ``None``).
+        notes:          Free-form capability/cost annotation used by
+                        cost-aware / capability-aware failover (I-08, I-09).
     """
 
     name: str
     base_url: str
     model: str
     api_key: str
+    notes: str = ""  # e.g. "cheap", "vision"
     failures: int = 0
     last_success: Optional[float] = None
     last_failure: Optional[float] = None
@@ -199,25 +202,34 @@ class ProviderHealthTracker:
             )
 
     def pick_next(
-        self, exclude: Optional[set] = None
+        self, exclude: Optional[set] = None, prefer: Optional[str] = None
     ) -> Optional[ProviderHealth]:
         """
         Pick the next healthy provider in chain order.
 
-        Args:
-            exclude: Optional set of provider names to skip (e.g. the one
-                     that just failed).
+        Optional callers may bias selection by cost or capability:
+        - prefer='cheap'   → call sites pick the cheapest healthy provider.
+        - prefer='vision'  → call sites exclude providers that lack vision.
+        This module does NOT hold pricing data itself — pricing lives in
+        nexa/cost_tracker.py; this method is a policy hook, not a fork.
 
         Returns:
             The next :class:`ProviderHealth`, or ``None`` if all are unhealthy.
         """
         exclude = exclude or set()
-        for p in self._providers.values():
-            if p.name in exclude:
-                continue
-            if p.is_healthy:
-                return p
-        return None
+        candidates = [p for p in self.healthy_providers() if p.name not in exclude]
+        if not candidates:
+            return None
+        if prefer == "cheap":
+            try:
+                from nexa.cost_tracker import _PRICING
+            except Exception:
+                _PRICING = {}
+            return min(candidates, key=lambda p: _PRICING.get(p.name, 0.001))
+        if prefer == "vision":
+            vision_only = [p for p in candidates if "vision" in (p.notes or "").lower()]
+            return vision_only[0] if vision_only else None
+        return candidates[0]
 
     def stats(self) -> List[Dict[str, Any]]:
         """Return a serializable summary of every provider's health."""
