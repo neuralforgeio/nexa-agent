@@ -146,6 +146,25 @@ class LLMProvider:
         self.model = model or NEXA_MODEL
         self._client: Optional[AsyncOpenAI] = None
 
+    @classmethod
+    def from_active_provider(cls) -> "LLMProvider":
+        """
+        Build an LLMProvider from the active registry provider.
+
+        This makes TokenRouter/others the first-class runtime path: when the
+        user has activated a provider via ``nexa provider use <name>`` or the
+        Web UI, the agent will talk to that endpoint rather than the env
+        defaults.
+        """
+        try:
+            from nexa.provider_registry import ProviderRegistry
+            cfg = ProviderRegistry().get_active()
+            if cfg is not None:
+                return cls(api_key=cfg.api_key, base_url=cfg.base_url, model=cfg.model)
+        except Exception:
+            pass
+        return cls()  # env/config defaults (slowest good path)
+
     async def _get_client(self) -> AsyncOpenAI:
         """
         Lazily create and cache the ``AsyncOpenAI`` client.

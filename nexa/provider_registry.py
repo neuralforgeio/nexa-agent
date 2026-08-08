@@ -259,10 +259,9 @@ class ProviderRegistry:
             2. ``NEXA_PROVIDER`` env var.
             3. ``"openai"`` default.
 
-        Returns:
-            The active :class:`StoredProviderConfig`. For catalog providers
-            without a stored key, the api_key is resolved from env at call
-            time via :func:`providers.catalog.resolve_provider`.
+        <VERSION>:
+            The ``base_url`` is normalized so callers always receive a canonical
+            OpenAI-compatible endpoint (``/v1/chat/completions`` fallback).
         """
         name: Optional[str] = None
         # Try the active file first.
@@ -274,20 +273,29 @@ class ProviderRegistry:
         # Fall back to env.
         if not name:
             name = os.environ.get("NEXA_PROVIDER") or "openai"
-        # If it's a custom provider, return it directly.
+
+        # Pull the config (custom first, then catalog).
         if name in self._custom:
-            return self._custom[name]
-        # Else resolve from catalog + env.
-        if name in PROVIDER_CATALOG:
+            cfg = self._custom[name]
+        elif name in PROVIDER_CATALOG:
             base_url, model, api_key = resolve_provider(name)
-            return StoredProviderConfig(
+            cfg = StoredProviderConfig(
                 name=name, base_url=base_url, api_key=api_key, model=model
             )
-        # Unknown — fall back to openai.
-        base_url, model, api_key = resolve_provider("openai")
-        return StoredProviderConfig(
-            name="openai", base_url=base_url, api_key=api_key, model=model
-        )
+        else:
+            base_url, model, api_key = resolve_provider("openai")
+            cfg = StoredProviderConfig(
+                name="openai", base_url=base_url, api_key=api_key, model=model
+            )
+
+        # Auto-normalize base_url → OpenAI-compatible form.
+        bu = (cfg.base_url or "").strip().rstrip("/")
+        if bu:
+            if bu.endswith("/v"):  # TokenRouter edge case: /v → /v1
+                cfg.base_url = bu + "1"
+            elif "/v1" not in bu:  # plain host → append /v1
+                cfg.base_url = bu + "/v1"
+        return cfg
 
     # ------------------------------------------------------------------
     # Health check
