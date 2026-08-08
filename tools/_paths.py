@@ -59,6 +59,13 @@ def resolve_in_workspace(raw: str) -> Path:
     if "\x00" in raw or "\ufffd" in raw:
         raise ValueError("path contains null byte or invalid marker")
 
+    # Reject URL-encoded traversal (e.g. "..%2f", "..%5c", "%2e%2e").
+    lowered = raw.lower()
+    if "%2f" in lowered or "%5c" in lowered or "%2e" in lowered:
+        decoded = raw.replace("%2f", "/").replace("%5c", "\\").replace("%2e", ".")
+        if ".." in decoded.replace("\\", "/"):
+            raise ValueError(f"encoded traversal in path: '{raw}'")
+
     base = NEXA_WORKSPACE.resolve()
     resolved = (base / raw).resolve()
     try:
