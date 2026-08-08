@@ -35,7 +35,10 @@ from rich.console import Group
 from rich.live import Live
 from rich.text import Text
 
-from openforge.constants import NEXA_NAME, NEXA_VERSION
+from openforge.constants import (
+    NEXA_NAME,
+    NEXA_VERSION
+)
 
 from ui_tui.input.keys import bind_state, kb
 from ui_tui.render.layout import build_layout

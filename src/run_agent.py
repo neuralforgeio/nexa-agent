@@ -28,7 +28,10 @@ from typing import Any, AsyncGenerator, Dict, List, Optional
 
 from agent.core.conversation_loop import run_conversation
 from agent.prompt.prompt_builder import build_system_prompt
-from openforge.constants import FORGE_MAX_CONTEXT_MESSAGES, NEXA_NAME
+from openforge.constants import (
+    FORGE_MAX_CONTEXT_MESSAGES,
+    NEXA_NAME
+)
 from openforge.provider import LLMProvider
 from providers.catalog import resolve_provider
 from openforge.state import ConversationDB

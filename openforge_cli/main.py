@@ -34,7 +34,11 @@ from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
 
-from openforge.constants import FORGE_NAME, FORGE_VERSION, ensure_forge_home
+from openforge.constants import (
+    FORGE_NAME,
+    FORGE_VERSION,
+    ensure_forge_home
+)
 from openforge.config import FORGE_HOME, FORGE_WORKSPACE
 
 console = Console()

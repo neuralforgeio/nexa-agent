@@ -55,7 +55,10 @@ from agent.understanding.proactive_suggester import ProactiveSuggester, suggesti
 from agent.reasoning.reasoning_chain import ReasoningChain
 from agent.error.self_healer import SelfHealer
 from agent.learning.self_improvement import SelfImprovementLoop
-from openforge.constants import NEXA_NAME
+from openforge.constants import (  # noqa: F401
+    FORGE_VERSION,
+)
+from openforge.constants import *  # noqa: F401,F403  (legacy aliases live here)
 from openforge.provider import LLMProvider
 from openforge.provider_failover import (
     FailoverChain,

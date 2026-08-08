@@ -36,7 +36,11 @@ from rich.panel import Panel
 from rich.text import Text
 
 from agent.core.self_health import SelfHealth
-from openforge.constants import NEXA_AUTHOR, NEXA_NAME, NEXA_VERSION
+from openforge.constants import (
+    NEXA_AUTHOR,
+    NEXA_NAME,
+    NEXA_VERSION
+)
 from providers.catalog import list_providers, resolve_provider
 from src.run_agent import OpenForgeAgent
 from openforge.state import ConversationDB

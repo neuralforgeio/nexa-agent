@@ -29,7 +29,10 @@ from rich.console import Group
 from rich.live import Live
 from rich.text import Text
 
-from openforge.constants import NEXA_NAME, NEXA_VERSION
+from openforge.constants import (
+    NEXA_NAME,
+    NEXA_VERSION
+)
 
 # ── Sub-package imports ────────────────────────────────────────────────────
 from ui_tui.core.state import (

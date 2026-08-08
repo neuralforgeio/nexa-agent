@@ -52,7 +52,7 @@ class TestBuildSystemPrompt:
     def test_includes_identity_section(self, registry) -> None:
         """The prompt must include the agent identity."""
         prompt = build_system_prompt(registry)
-        assert "Nexa Agent" in prompt
+        assert "OpenForge" in prompt
         # Version is present (any "vX.Y.Z" pattern, version-agnostic).
         import re
         assert re.search(r"v\d+\.\d+\.\d+", prompt), "Version must be present in identity"
@@ -149,7 +149,7 @@ class TestIdentitySection:
     def test_includes_name(self) -> None:
         """The identity must include the agent name."""
         section = _build_identity_section()
-        assert "Nexa Agent" in section
+        assert "OpenForge" in section
 
     def test_includes_version(self) -> None:
         """The identity must include the version."""

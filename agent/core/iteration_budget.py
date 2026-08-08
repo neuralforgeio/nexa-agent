@@ -17,7 +17,9 @@ SPDX-License-Identifier: MIT
 from dataclasses import dataclass, field
 from typing import List
 
-from openforge.constants import FORGE_MAX_TOOL_ITERATIONS
+from openforge.constants import (
+    FORGE_MAX_TOOL_ITERATIONS
+)
 
 
 @dataclass

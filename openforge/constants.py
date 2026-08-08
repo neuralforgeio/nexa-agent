@@ -1,8 +1,11 @@
 """OpenForge — Constants
-======================
+=====================
 
-Central registry of brand identity, version, and runtime constants.
-Single source of truth for OpenForge constants.
+Single source of truth for OpenForge identity, version, paths, and
+runtimeSafety constants.
+
+Imports from :mod:`openforge.config` for FORGE_*; keeps <<<NEXA_*>>> aliases
+for one MINOR cycle to avoid breaking third-party imports during migration.
 
 Copyright (c) 2026 Dearly Febriano Irwansyah
 SPDX-License-Identifier: MIT
@@ -23,6 +26,18 @@ from .config import (  # noqa: F401
     ensure_forge_home,
 )
 
+# ---------------------------------------------------------------------------
+# Legacy aliases — set them AFTER the canonical FORGE_* names exist.
+# Keeping these here means any `from openforge.constants import NEXA_NAME`
+# continues to work for one MINOR cycle, then we delete them.
+# ---------------------------------------------------------------------------
+NEXA_NAME = FORGE_NAME
+NEXA_VERSION = FORGE_VERSION
+NEXA_AUTHOR = FORGE_AUTHOR
+NEXA_TAGLINE = FORGE_TAGLINE
+NEXA_MODEL = FORGE_MODEL
+ensure_nexa_home = ensure_forge_home
+
 __all__ = [
     "FORGE_NAME",
     "FORGE_VERSION",
@@ -36,10 +51,11 @@ __all__ = [
     "OPENAI_API_KEY",
     "OPENAI_BASE_URL",
     "ensure_forge_home",
-    # Backwards-compat aliases (one MINOR cycle).
+    # legacy aliases (deprecated, will be removed in v5.x)
     "NEXA_NAME",
     "NEXA_VERSION",
     "NEXA_AUTHOR",
     "NEXA_TAGLINE",
     "NEXA_MODEL",
+    "ensure_nexa_home",
 ]
