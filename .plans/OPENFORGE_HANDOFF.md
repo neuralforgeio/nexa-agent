@@ -36,6 +36,7 @@ Do it only after the folder is renamed, in the new session.
 
 - [x] **Phase 1** — Rebrand surface + SYSTEMPROMPT rewrite + README SemVer (v4.16.0)
 - [x] **Phase 2** — Core rename code (154 files; imports+constants; packaged) — v4.17.0
+- [x] **Phase 3a (partial)** — Foundations for Unified Architecture: `openforge/path_resolver.py`, `openforge/path_protection.py`, `openforge/integrity.py` (SHA256 lock) + tests (1105 pytest up from 1097) — committed on main, pending tag for Phase 3 full pipeline.
 - [ ] **Phase 3**: Unified architecture (`~/.openforge/` full implementation)
       S3.0 → `openforge/path_resolver.py`
       S3.1 → `openforge/path_protection.py`
