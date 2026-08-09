@@ -35,13 +35,13 @@ def get_forge_home() -> Path:
     Honours FORGE_HOME, falls back to legacy FORGE_HOME, then uses
     the new default ~/.openforge.
     """
-    env = os.environ.get("FORGE_HOME") or os.environ.get("FORGE_HOME")
+    env = os.environ.get("FORGE_HOME") or os.environ.get("NEXA_HOME")
     return Path(env).expanduser().resolve() if env else Path.home() / ".openforge"
 
 
 def get_forge_lib() -> Path:
     """Return the read-only core library directory."""
-    env = os.environ.get("FORGE_LIB") or os.environ.get("FORGE_LIB")
+    env = os.environ.get("FORGE_LIB") or os.environ.get("NEXA_LIB")
     return Path(env).expanduser().resolve() if env else get_forge_home() / "lib"
 
 

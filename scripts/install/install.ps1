@@ -80,14 +80,18 @@ if (Test-Path $webDir) {
 }
 
 Write-Step "Finalize: permissions, LOCK, PATH shim"
-# Mark lib read-only (best-effort on Windows)
-try { (Get-ChildItem $ForgeLib -Recurse -File | ForEach-Object { $_.IsReadOnly = $true }) } catch {}
-# Generate LOCK via the installed package
+# QA-G-1 fix: write LOCK while lib/ is still writable.
 try {
   $env:FORGE_LIB = $ForgeLib
   & $VenvPy -c "from openforge.integrity import write_lock; import pathlib,os; write_lock(pathlib.Path(os.environ['FORGE_LIB']))" | Out-Null
   Write-Ok "LOCK written: $ForgeLib\LOCK"
 } catch { Write-Warn "LOCK generate skipped: $_" }
+
+# QA-G-8 fix parity: mark DIRECTORIES read-only too (best-effort on Windows).
+try {
+  Get-ChildItem $ForgeLib -Recurse -Directory | ForEach-Object { $_.Attributes = 'ReadOnly' }
+  Get-ChildItem $ForgeLib -Recurse -File | ForEach-Object { $_.IsReadOnly = $true }
+} catch {}
 
 # Add lib .venv Scripts to user PATH so openforge / openforge-chat work in any new shell.
 $userPath = [Environment]::GetEnvironmentVariable("Path","User")

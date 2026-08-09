@@ -266,7 +266,20 @@ async def run_tui(agent, conv_id: str, history: Optional[List[Dict[str, Any]]] =
 # ─────────────────────────────────────────────────────────────────────────────
 
 def main() -> int:
-    """TUI entry point (``forge-tui``) — delegates to :func:`run_tui`."""
+    """TUI entry point (``openforge-tui``) — delegates to :func:`run_tui`.
+
+    QA-A-6: handle ``--help``/``--version`` before launching the full-screen UI
+    so scripted callers (and CI) do not hang inside the alternate screen.
+    """
+    import sys
+    if "--help" in sys.argv or "-h" in sys.argv:
+        print("openforge-tui — OpenForge terminal UI\n\nUsage: openforge-tui [--help] [--version]")
+        return 0
+    if "--version" in sys.argv or "-V" in sys.argv:
+        from openforge.constants import FORGE_NAME, FORGE_VERSION
+        print(f"{FORGE_NAME} v{FORGE_VERSION}")
+        return 0
+
     from src.run_agent import OpenForgeAgent, set_active_agent
 
     agent = OpenForgeAgent()

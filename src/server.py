@@ -1711,13 +1711,13 @@ async def skills_execute(name: str, req: Dict[str, Any]) -> Dict[str, Any]:
 # ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
-if __name__ == "__main__":
-    """
-    Entry point for running the server directly.
+def main() -> None:
+    """Console-script entry point for ``openforge-gateway``.
 
-    Acquires the ``server`` singleton lock first so a second ``server.py``
-    process fails fast with remediation steps instead of silently
-    double-binding port 8000 (the "2 processes" bug).
+    QA-A-1: previously ``pyproject.toml`` pointed ``openforge-gateway`` at
+    ``src.server:main`` but no such function existed — only the
+    ``if __name__ == "__main__"`` block below. This function factors that
+    logic out so both invocation styles work identically.
     """
     import sys
 
@@ -1731,4 +1731,8 @@ if __name__ == "__main__":
         print(str(exc), file=sys.stderr)
         sys.exit(1)
 
-    uvicorn.run("server:app", host="0.0.0.0", port=8000, reload=False)
+    uvicorn.run("src.server:app", host="0.0.0.0", port=8000, reload=False)
+
+
+if __name__ == "__main__":
+    main()

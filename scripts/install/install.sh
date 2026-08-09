@@ -8,16 +8,14 @@
 #
 # Target layout (SINGLE ROOT — no scattered folders):
 #   ~/.openforge/
-#   ├── lib/        (code — read-only, chmod 555)
-#   ├── .venv/      (virtualenv)
-#   ├── workspace/  (RW: your files)
-#   ├── memory/     (RW)
-#   ├── secrets/    (chmod 700, RW)
-#   ├── sessions/   (RW)
-#   ├── logs/       (RW)
-#   └── openforge.db
+#   ├── lib/           (code — read-only, chmod 555)
+#   ├── .venv/         (virtualenv)
+#   ├── workspace/     (RW: your files)
+#   ├── memory/ secrets/ sessions/ logs/ tools/ extensions/
+#   ├── .permissions/  .versions/  .backups/   (RW, dot-dirs)
+#   └── openforge.db   (created on first `openforge setup`, not at install time)
 #
-# LOCK integrity is written to ~/.openforge/lib/LOCK after install.
+# LOCK integrity is written to ~/.openforge/lib/LOCK before lib/ is made read-only.
 #
 # Copyright (c) 2026 Dearly Febriano Irwansyah
 # SPDX-License-Identifier: MIT
@@ -84,6 +82,8 @@ ok "uv: $(uv --version)"
 step 3 7 "Create unified layout ($FORGE_HOME)"
 mkdir -p "$FORGE_HOME"/{memory,secrets,sessions,logs,tools,extensions,workspace,.permissions,.versions,.backups}
 chmod 700 "$FORGE_HOME/secrets" 2>/dev/null || true
+# QA-G-9: also tighten any credential files to owner-only read/write.
+find "$FORGE_HOME/secrets" -type f -exec chmod 600 {} + 2>/dev/null || true
 ok "created ~/.openforge structure"
 
 # ---- Clone code into lib/ ----------------------------------------------------
@@ -132,10 +132,8 @@ fi
 
 # ---- Bootstraps: LOCK + permissions ------------------------------------------
 step 7 7 "Finalize: permissions, PATH, LOCK"
-# Make lib/ read-only (protect the agent from rewriting itself).
-chmod -R a-w "$FORGE_LIB" 2>/dev/null || warn "chmod -w on lib/ only partially applied"
 
-# Register LOCK integrity manifest via the installed package.
+# QA-G-1 fix: write the LOCK manifest FIRST, then mark lib/ read-only.
 FORGE_LIB="$FORGE_LIB" "$VENV_PY" - <<'PY2' || warn "integrity.LOCK generation skipped"
 import os, sys
 sys.path.insert(0, os.environ["FORGE_LIB"])
@@ -144,11 +142,15 @@ lock = write_lock(__import__("pathlib").Path(os.environ["FORGE_LIB"]))
 print("LOCK written:", lock)
 PY2
 
-# Symlink CLI into ~/.local/bin (user-level install, no root needed).
+# Make lib/ read-only (protect the agent from rewriting itself) — AFTER LOCK.
+chmod -R a-w "$FORGE_LIB" 2>/dev/null || warn "chmod -w on lib/ only partially applied"
+
+# QA-G-2 fix: binaries live in the venv that the installer created at
+# $FORGE_HOME/.venv (NOT $FORGE_LIB/.venv). Link from the correct location.
 mkdir -p "$HOME/.local/bin"
-for b in openforge openforge-chat openforge-agent openforge-gateway; do
-  if [ -x "$FORGE_LIB/.venv/bin/$b" ]; then
-    ln -sf "$FORGE_LIB/.venv/bin/$b" "$HOME/.local/bin/$b"
+for b in openforge openforge-chat openforge-agent openforge-tui; do
+  if [ -x "$VENV_DIR/bin/$b" ]; then
+    ln -sf "$VENV_DIR/bin/$b" "$HOME/.local/bin/$b"
   fi
 done
 ok "linked into ~/.local/bin"

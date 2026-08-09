@@ -129,11 +129,12 @@ or legacy FORGE_HOME (via the resolver) but the default lands on .openforge.
 """
 
 FORGE_WORKSPACE: Path = Path(
-    os.environ.get("FORGE_WORKSPACE", Path.cwd() / "forge-workspace")
+    os.environ.get("FORGE_WORKSPACE", str(FORGE_HOME / "workspace"))
 )
 """
 The filesystem sandbox for file & terminal tools. All file operations
 are confined here to prevent arbitrary access to the host filesystem.
+Default: ``FORGE_HOME/workspace`` (i.e. ``~/.openforge/workspace``).
 """
 
 FORGE_DB_PATH: Path = FORGE_HOME / "openforge.db"
@@ -220,13 +221,18 @@ def ensure_forge_home() -> None:
     """
     Ensure that the ``FORGE_HOME`` directory and its subdirectories exist.
 
-    Creates ``~/.openforge/`` along with ``sessions``, ``memory``, ``logs``
-    subdirectories, and the ``FORGE_WORKSPACE`` sandbox directory.
+    Creates the full unified layout under ``~/.openforge/``:
+    ``lib``, ``.venv`` (created by the installer), ``workspace``, ``memory``,
+    ``secrets``, ``sessions``, ``logs``, ``tools``, ``extensions``,
+    ``.permissions``, ``.versions``, ``.backups``.
 
     This function is safe to call multiple times — it uses
     ``parents=True, exist_ok=True``.
     """
-    for subdir in ("sessions", "memory", "logs"):
+    for subdir in (
+        "lib", "workspace", "memory", "secrets", "sessions", "logs",
+        "tools", "extensions", ".permissions", ".versions", ".backups",
+    ):
         (FORGE_HOME / subdir).mkdir(parents=True, exist_ok=True)
     FORGE_WORKSPACE.mkdir(parents=True, exist_ok=True)
 
