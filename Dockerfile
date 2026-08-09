@@ -1,4 +1,4 @@
-# D-04: Production Docker image for nexa-agent.
+# D-04: Production Docker image for openforge.
 FROM python:3.11-slim
 WORKDIR /app
 COPY pyproject.toml requirements.txt ./

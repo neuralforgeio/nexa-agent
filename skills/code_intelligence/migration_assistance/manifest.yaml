@@ -3,7 +3,7 @@ version: 0.1.0
 description: Plan the migration of a source file from one framework or language version to another. Returns ordered
   migration steps with code changes plus a list of breaking changes to watch for.
 category: code_intelligence
-author: nexa-agent
+author: openforge
 permissions:
 - filesystem:workspace
 - memory:read

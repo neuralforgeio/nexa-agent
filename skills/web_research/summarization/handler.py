@@ -12,7 +12,7 @@ executive). Returns the manifest contract: ``summary`` (str), ``key_points``
 Permissions
 -----------
 Declared: ``filesystem:workspace``, ``memory:read``. When ``file_path`` is
-given the handler resolves it inside the sandboxed Nexa workspace via
+given the handler resolves it inside the sandboxed Forge workspace via
 ``agent.tool_api.workspace_path``; paths escaping the workspace or missing
 files are rejected with :class:`skills.registry.SkillInputError`.
 
@@ -43,7 +43,7 @@ _LENGTHS = ("brief", "standard", "detailed")
 _STYLES = ("bullet", "paragraph", "executive")
 
 SYSTEM = (
-    "You are a precise summarization engine inside the Nexa Agent skills "
+    "You are a precise summarization engine inside the OpenForge skills "
     "system. Summarize the user's source text honouring the requested length "
     "(brief, standard, or detailed) and style (bullet, paragraph, or "
     "executive). Never invent facts that are not in the source. Respond with "

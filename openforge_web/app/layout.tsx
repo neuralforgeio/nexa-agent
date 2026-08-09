@@ -25,10 +25,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         style={{
           margin: 0,
           padding: 0,
-          // Background/color come from --nexa-* tokens in globals.css so the
+          // Background/color come from --forge-* tokens in globals.css so the
           // F-06 theme toggle recolors the whole app without a reload.
-          background: "var(--nexa-bg, #141618)",
-          color: "var(--nexa-text, #ECECEC)",
+          background: "var(--forge-bg, #141618)",
+          color: "var(--forge-text, #ECECEC)",
           fontFamily:
             "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
           WebkitFontSmoothing: "antialiased",

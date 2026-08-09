@@ -28,7 +28,7 @@ async def main() -> int:
 
     prompt = (
         "Create a file called hello_e2e.py that prints the string "
-        "'Nexa E2E Hello'. Then use run_terminal_command to execute it "
+        "'Forge E2E Hello'. Then use run_terminal_command to execute it "
         "with python and confirm the output."
     )
 
@@ -61,10 +61,10 @@ async def main() -> int:
     target = ws / "hello_e2e.py"
     file_exists = target.exists()
     content_mentions = (
-        file_exists and "Nexa E2E Hello" in target.read_text(encoding="utf-8")
+        file_exists and "Forge E2E Hello" in target.read_text(encoding="utf-8")
     )
-    run_ok = "Nexa E2E Hello" in tool_output
-    answer_mentions = "Nexa E2E Hello" in final_answer
+    run_ok = "Forge E2E Hello" in tool_output
+    answer_mentions = "Forge E2E Hello" in final_answer
 
     print(f"file written?               {file_exists}")
     print(f"file content has marker?    {content_mentions}")

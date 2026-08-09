@@ -30,8 +30,8 @@ from rich.live import Live
 from rich.text import Text
 
 from openforge.constants import (
-    NEXA_NAME,
-    NEXA_VERSION
+    FORGE_NAME,
+    FORGE_VERSION
 )
 
 # ── Sub-package imports ────────────────────────────────────────────────────
@@ -171,7 +171,7 @@ async def run_tui(agent, conv_id: str, history: Optional[List[Dict[str, Any]]] =
     poller = None
     try:
         import os
-        backend = os.environ.get("NEXA_BACKEND", "http://localhost:8000")
+        backend = os.environ.get("FORGE_BACKEND", "http://localhost:8000")
         poller = ServerHealthPoller(state, backend_url=backend)
         poller.start()
     except Exception:
@@ -266,7 +266,7 @@ async def run_tui(agent, conv_id: str, history: Optional[List[Dict[str, Any]]] =
 # ─────────────────────────────────────────────────────────────────────────────
 
 def main() -> int:
-    """TUI entry point (``nexa-tui``) — delegates to :func:`run_tui`."""
+    """TUI entry point (``forge-tui``) — delegates to :func:`run_tui`."""
     from src.run_agent import OpenForgeAgent, set_active_agent
 
     agent = OpenForgeAgent()

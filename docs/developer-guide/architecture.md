@@ -2,7 +2,7 @@
 
 ## Overview
 
-Nexa Agent is a terminal-first local AI agent with an iterative tool-calling
+OpenForge is a terminal-first local AI agent with an iterative tool-calling
 loop, multi-provider LLM support, and a self-improvement memory system.
 
 ## Core Components
@@ -15,7 +15,7 @@ loop, multi-provider LLM support, and a self-improvement memory system.
 | `run_agent.py` | OpenForgeAgent class + standalone CLI runner |
 | `server.py` | FastAPI SSE server for web UI integration |
 
-### 2. nexa/ — Core Package
+### 2. forge/ — Core Package
 
 | Module | Responsibility |
 |--------|---------------|

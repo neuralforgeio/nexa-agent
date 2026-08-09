@@ -42,7 +42,7 @@ __all__ = ["handle", "SYSTEM"]
 _TONES = ("formal", "casual", "persuasive", "apologetic")
 
 SYSTEM = (
-    "You are the email_drafting skill inside the Nexa Agent skills system. "
+    "You are the email_drafting skill inside the OpenForge skills system. "
     "You are given REAL bullet points, a tone, a recipient, and whether a "
     "signature block is wanted. Draft an email that covers ONLY what the "
     "bullet points actually say — never invent facts, names, dates, or "

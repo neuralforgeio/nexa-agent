@@ -2,7 +2,7 @@
 
 > **Version**: v4.2.1+ | **Creator**: Dearly Febriano Irwansyah | **License**: MIT
 
-Panduan lengkap untuk menguji Nexa Agent secara manual: instalasi, provider config, CLI, TUI, Web UI, terminal security, dan skenario end-to-end.
+Panduan lengkap untuk menguji OpenForge secara manual: instalasi, provider config, CLI, TUI, Web UI, terminal security, dan skenario end-to-end.
 
 Implicitly the v4 line adds: persona-driven orchestrator (FORGE_ORCHESTRATOR=1),
 expanded provider catalog (24), hardened AST gate for user tools, atomic
@@ -16,13 +16,13 @@ Jika Anda punya llama.cpp berjalan di port 8080:
 
 ```bash
 # 1. Add Ornith provider (one-time setup)
-nexa provider add ornith --base-url http://127.0.0.1:8080/v1 --api-key dummy --model "Ornith-1.0-9b-Q4_K_M.gguf"
+forge provider add ornith --base-url http://127.0.0.1:8080/v1 --api-key dummy --model "Ornith-1.0-9b-Q4_K_M.gguf"
 
 # 2. Activate it
-nexa provider use ornith
+forge provider use ornith
 
 # 3. Start chatting (TUI)
-nexa-chat
+forge-chat
 ```
 
 That's it! Provider tersimpan di `~/.openforge/secrets/providers.json` dan bertahan antar restart.
@@ -35,10 +35,10 @@ Backend + Frontend:
 
 ```bash
 # Terminal 1: Backend (port 8000)
-nexa gateway start
+forge gateway start
 
 # Terminal 2: Frontend (port 3000)
-cd nexa_web && npm run dev
+cd forge_web && npm run dev
 ```
 
 Buka http://localhost:3000 di browser. Klik ⚙ (Settings) di sidebar → provider "ornith" → Test → Use.
@@ -48,24 +48,24 @@ Buka http://localhost:3000 di browser. Klik ⚙ (Settings) di sidebar → provid
 ## CLI Test (interactive REPL)
 
 ```bash
-nexa-chat
+forge-chat
 ```
 
 Then inside the REPL:
 
 ```
-nexa > /help                         # show all commands
-nexa > /provider list               # show all 8 providers
-nexa > /provider use ornith         # switch to Ornith
-nexa > /model Ornith-1.0-9b      # set model
-nexa > Hello! Give me a one-word answer.   # chat
-nexa > /exit                        # quit
+forge > /help                         # show all commands
+forge > /provider list               # show all 8 providers
+forge > /provider use ornith         # switch to Ornith
+forge > /model Ornith-1.0-9b      # set model
+forge > Hello! Give me a one-word answer.   # chat
+forge > /exit                        # quit
 ```
 
 Atau single-turn:
 
 ```bash
-nexa-agent "What is the capital of France?"
+openforge "What is the capital of France?"
 ```
 
 ---
@@ -79,17 +79,17 @@ python -m ui_tui.app
 Layout:
 
 ```
-┌─ Nexa Agent v4.1.0 │ model: Ornith-1.0-9b │ tokens: ~0 │ server: UP │ 14:32 ─┐
+┌─ OpenForge v4.1.0 │ model: Ornith-1.0-9b │ tokens: ~0 │ server: UP │ 14:32 ─┐
 ├──────────────────────────────────────┬─────────────────────────────────────┤
 │ Chat                                                       │ Tool Log:        │
 │                                                            │                  │
 │ You: Hello!                                                │ ✓ read_file      │
 │                                                            │   (45ms)         │
-│ Nexa: Hi! I'm Nexa, your local assistant.              │                  │
+│ Forge: Hi! I'm Forge, your local assistant.              │                  │
 │ You: What can you do?                                      │                  │
 │                                                            │                  │
 ├──────────────────────────────────────┴─────────────────────────────────────┤
-│ nexa > _                                                                    │
+│ forge > _                                                                    │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -111,17 +111,17 @@ TUI slash commands:
 
 ```bash
 # Izinkan akses ke file workspace
-nexa > read file forge-workspace/notes.txt
-✓ read_file (12ms): "Hello from Nexa!"
+forge > read file forge-workspace/notes.txt
+✓ read_file (12ms): "Hello from Forge!"
 
 # Block akses ke ~/.openforge (protected)
-nexa > cat ~/.openforge/.env
+forge > cat ~/.openforge/.env
 ValueError: command accesses protected FORGE_HOME path (~/.openforge/)
-nexa > cat ~/.openforge/secrets/providers.json
+forge > cat ~/.openforge/secrets/providers.json
 Same — blocked.
 
 # Terminal allowed workspace files
-nexa > ls forge-workspace/
+forge > ls forge-workspace/
 ✓ run_terminal_command (45ms): ["file.txt", "notes.txt"]
 ```
 
@@ -130,10 +130,10 @@ nexa > ls forge-workspace/
 ## Code Execution (HITL)
 
 ```bash
-nexa > Write a Python function to calculate factorial
+forge > Write a Python function to calculate factorial
 AI: Here's a factorial function...
 
-nexa > Run it with code_execution
+forge > Run it with code_execution
 🔧 Preparing `code_execution` tool call...
    Code: def factorial(n): return n * factorial(n-1) if n > 0; print(factorial(5))
    Approval required: [y/n] y
@@ -159,7 +159,7 @@ nexa > Run it with code_execution
 | `Connection refused: 127.0.0.1:8080` | Pastikan `llama-server.exe` running |
 | `Missing credentials` di Ornith | Set `api_key=dummy` (local provider) |
 | Streaming lambat/diskip | Normal — laptop tua + model besar |
-| `404 Not Found` di frontend | Pastikan backend `nexa gateway start` running |
+| `404 Not Found` di frontend | Pastikan backend `forge gateway start` running |
 | `git grep "ghp_"` return secrets | Dokumentasitas saja (CONTINUATION_PROMPT.md) |
 
 ---

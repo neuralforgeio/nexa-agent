@@ -1,4 +1,4 @@
-# QA-RESULTS — Nexa Agent v4.2.0 (Session Drop)
+# QA-RESULTS — OpenForge v4.2.0 (Session Drop)
 
 Date: 2026-08-02 (UTC)
 Method: Direct execution on this codebase, not a re-roll of GLM-5.2's plan.
@@ -23,7 +23,7 @@ Tester: zcode assist
 | GLM-P0-TOOL-3 | `registry.execute(name='x', ...)` TypeError | ✓ unit + integration |
 | GLM-P0-TOOL-4 | `__builtins__.open()` AST bypass | ✓ attribute / subscript / getattr variants all rejected |
 | GLM-P0-AGENT-1 | `Orchestrator.decide_next` returned stale phase on cap | ✓ returns actual state.phase now |
-| GLM-P0-TOOL-1 | HOME env leak — subprocess could read `~/.nexa` | ✓ HOME overridden to workspace |
+| GLM-P0-TOOL-1 | HOME env leak — subprocess could read `~/.openforge` | ✓ HOME overridden to workspace |
 | GLM-P0-TOOL-2 | `deep_research` crashed on str-shaped search output | ✓ coerced via `_parse_search_text` |
 | GLM-P0-SETUP-1 | fastapi/uvicorn/ptyprocess/watchdog missing from pyproject | ✓ declared |
 
@@ -43,7 +43,7 @@ could disagree about the path being resolved.
 - `GET /api/health` returns `version == 4.2.0` and the expected 33-tool list.
 - `GET /api/provider` enumerates 24 catalog providers.
 - `POST /api/sessions` + `GET /api/sessions/{id}` round-trips.
-- `NEXA_ORCHESTRATOR=1` flows: PLANNING badge on boot, transitions
+- `FORGE_ORCHESTRATOR=1` flows: PLANNING badge on boot, transitions
   PLANNING → CODING → REVIEWING → DONE work end-to-end (verified against
   `Orchestrator.decide_next` directly).
 - Persona Manager whitlists are honored: Coder persona gets `write_file` +
@@ -52,7 +52,7 @@ could disagree about the path being resolved.
 ## Live llama.cpp integration
 Manual run (no pytest skip-guard):
 ```
-NEXA_E2E_LLAMACPP=1 .venv/Scripts/python.exe -m pytest tests/test_llamacpp_real.py -q
+FORGE_E2E_LLAMACPP=1 .venv/Scripts/python.exe -m pytest tests/test_llamacpp_real.py -q
 ```
 Result: **7 passed, 78s wall clock** (test_host_health, test_models_endpoint,
 test_chat_completions_nonstream [with reasoning_content], test_streaming_token_flow,

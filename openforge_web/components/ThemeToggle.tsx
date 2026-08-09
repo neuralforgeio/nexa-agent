@@ -37,7 +37,7 @@ export function ThemeToggle() {
       style={{
         background: "none",
         border: "none",
-        color: "var(--nexa-dim, #9A9A9A)",
+        color: "var(--forge-dim, #9A9A9A)",
         cursor: "pointer",
         padding: 4,
         borderRadius: 6,

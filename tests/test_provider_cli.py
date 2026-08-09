@@ -1,13 +1,13 @@
 """
-Tests for the `nexa provider` CLI subcommands (v3.0.0).
+Tests for the `forge provider` CLI subcommands (v3.0.0).
 
 Verifies:
-    - `nexa provider list` shows all 8 providers (catalog + custom).
-    - `nexa provider add` with --base-url --api-key --model flags (non-interactive).
-    - `nexa provider use` activates a provider.
-    - `nexa provider remove` deletes a provider.
-    - `nexa provider add` interactive (mocked stdin) prompts for missing fields.
-    - `nexa provider test` runs the health check.
+    - `forge provider list` shows all 8 providers (catalog + custom).
+    - `forge provider add` with --base-url --api-key --model flags (non-interactive).
+    - `forge provider use` activates a provider.
+    - `forge provider remove` deletes a provider.
+    - `forge provider add` interactive (mocked stdin) prompts for missing fields.
+    - `forge provider test` runs the health check.
 
 Copyright (c) 2026 Dearly Febriano Irwansyah
 SPDX-License-Identifier: MIT
@@ -23,10 +23,10 @@ from openforge_cli.main import main, _cmd_provider
 
 
 class TestProviderList:
-    """Tests for `nexa provider list`."""
+    """Tests for `forge provider list`."""
 
     def test_list_shows_eight_providers(self, tmp_path: Path, monkeypatch, capsys) -> None:
-        """`nexa provider list` shows all 8 catalog providers."""
+        """`forge provider list` shows all 8 catalog providers."""
         monkeypatch.setattr("openforge.provider_registry.FORGE_SECRETS_DIR", tmp_path)
         rc = main(["provider", "list"])
         assert rc == 0
@@ -38,7 +38,7 @@ class TestProviderList:
 
 
 class TestProviderAddNonInteractive:
-    """Tests for `nexa provider add` with flag overrides (no stdin)."""
+    """Tests for `forge provider add` with flag overrides (no stdin)."""
 
     def test_add_with_flags_persists(self, tmp_path: Path, monkeypatch) -> None:
         """--base-url --api-key --model flags skip interactive prompts."""
@@ -76,10 +76,10 @@ class TestProviderAddNonInteractive:
 
 
 class TestProviderUse:
-    """Tests for `nexa provider use`."""
+    """Tests for `forge provider use`."""
 
     def test_use_activates_provider(self, tmp_path: Path, monkeypatch) -> None:
-        """`nexa provider use <name>` sets the active provider."""
+        """`forge provider use <name>` sets the active provider."""
         monkeypatch.setattr("openforge.provider_registry.FORGE_SECRETS_DIR", tmp_path)
         # First add a provider.
         main([
@@ -98,17 +98,17 @@ class TestProviderUse:
         assert active.name == "tokenrouter"
 
     def test_use_unknown_returns_error(self, tmp_path: Path, monkeypatch) -> None:
-        """`nexa provider use <unknown>` returns exit code 1."""
+        """`forge provider use <unknown>` returns exit code 1."""
         monkeypatch.setattr("openforge.provider_registry.FORGE_SECRETS_DIR", tmp_path)
         rc = main(["provider", "use", "nonexistent"])
         assert rc == 1
 
 
 class TestProviderRemove:
-    """Tests for `nexa provider remove`."""
+    """Tests for `forge provider remove`."""
 
     def test_remove_deletes_provider(self, tmp_path: Path, monkeypatch) -> None:
-        """`nexa provider remove <name>` deletes the provider."""
+        """`forge provider remove <name>` deletes the provider."""
         monkeypatch.setattr("openforge.provider_registry.FORGE_SECRETS_DIR", tmp_path)
         main([
             "provider", "add", "tokenrouter",
@@ -123,17 +123,17 @@ class TestProviderRemove:
         assert reg.get("tokenrouter") is None
 
     def test_remove_unknown_returns_error(self, tmp_path: Path, monkeypatch) -> None:
-        """`nexa provider remove <unknown>` returns exit code 1."""
+        """`forge provider remove <unknown>` returns exit code 1."""
         monkeypatch.setattr("openforge.provider_registry.FORGE_SECRETS_DIR", tmp_path)
         rc = main(["provider", "remove", "nonexistent"])
         assert rc == 1
 
 
 class TestProviderTest:
-    """Tests for `nexa provider test`."""
+    """Tests for `forge provider test`."""
 
     def test_test_returns_zero_when_healthy(self, tmp_path: Path, monkeypatch) -> None:
-        """`nexa provider test <name>` returns 0 when the provider is healthy."""
+        """`forge provider test <name>` returns 0 when the provider is healthy."""
         monkeypatch.setattr("openforge.provider_registry.FORGE_SECRETS_DIR", tmp_path)
 
         async def fake_test(self, name):
@@ -144,7 +144,7 @@ class TestProviderTest:
         assert rc == 0
 
     def test_test_returns_one_when_unhealthy(self, tmp_path: Path, monkeypatch) -> None:
-        """`nexa provider test <name>` returns 1 when unhealthy."""
+        """`forge provider test <name>` returns 1 when unhealthy."""
         monkeypatch.setattr("openforge.provider_registry.FORGE_SECRETS_DIR", tmp_path)
 
         async def fake_test(self, name):
@@ -156,7 +156,7 @@ class TestProviderTest:
 
 
 class TestProviderAddInteractive:
-    """Tests for `nexa provider add` with interactive prompts (mocked stdin)."""
+    """Tests for `forge provider add` with interactive prompts (mocked stdin)."""
 
     def test_add_interactive_prompts(self, tmp_path: Path, monkeypatch) -> None:
         """Interactive add prompts for name, api_key, model."""

@@ -3,7 +3,7 @@ OpenForge — File Patch Tool (Hardened v2.1.0)
 ==============================================
 
 Provides the ``file_patch`` tool for applying unified diff patches to
-files in the nexa workspace. This enables surgical file modifications
+files in the forge workspace. This enables surgical file modifications
 without rewriting the entire file.
 
 Hardening (v2.1.0):
@@ -28,6 +28,7 @@ from typing import Any, Dict, List, Optional
 
 from openforge.config import FORGE_WORKSPACE
 from tools._paths import resolve_in_workspace
+from openforge.path_protection import ensure_safe_write
 
 # Re-export for backward compatibility.
 _resolve_in_workspace = resolve_in_workspace
@@ -76,6 +77,7 @@ async def file_patch(path: str, patch: str, **_: Any) -> str:
         raise ValueError("patch is required")
 
     full = resolve_in_workspace(path)
+    ensure_safe_write(full, "file_patch")
     if not full.exists():
         raise ValueError(f"file not found: '{path}'")
     if full.is_dir():
@@ -456,3 +458,4 @@ REVERT_FILE_SCHEMA: Dict[str, Any] = {
     },
     "required": ["path"],
 }
+

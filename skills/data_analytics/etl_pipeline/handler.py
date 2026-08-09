@@ -35,7 +35,7 @@ from skills._llm import chat_json  # noqa: F401  (re-exported seam; ask_llm_json
 __all__ = ["handle"]
 
 _SYSTEM = (
-    "You are Nexa's ETL pipeline designer. You are given the REAL source "
+    "You are Forge's ETL pipeline designer. You are given the REAL source "
     "config, destination config, transformation steps, and optional schedule. "
     "Generate Python ETL code that genuinely implements those steps against "
     "the shown configs — do not hallucinate connectors/credentials not "

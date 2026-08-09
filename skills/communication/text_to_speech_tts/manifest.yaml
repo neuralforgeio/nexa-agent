@@ -3,7 +3,7 @@ version: 0.1.0
 description: Synthesize speech from text with a chosen voice, speed, and language. Returns the workspace path of
   the audio file, its duration in seconds, and synthesis metadata.
 category: communication
-author: nexa-agent
+author: openforge
 permissions:
 - filesystem:workspace:write
 - network:*

@@ -1,7 +1,7 @@
-# Nexa Agent — MASTER PRODUCT FLAGSHIP PLAN (v3.0.0 → v4.0.0)
+# OpenForge — MASTER PRODUCT FLAGSHIP PLAN (v3.0.0 → v4.0.0)
 
 > **Owner**: Dearly Febriano Irwansyah
-> **Vision**: Nexa menjadi local AI agent kelas enterprise — autonomous,
+> **Vision**: Forge menjadi local AI agent kelas enterprise — autonomous,
 > programmer-centric, full-featured, dengan sandbox lengkap + deep research
 > + tool chaining. Orang lain bisa install dengan satu baris curl/irm dan
 > dalam 60 detik punya agent yang lebih baik dari GPT-4 biasa.
@@ -13,7 +13,7 @@
 - [x] Ultra-cool installer with animations, progress bars, unicode sparkles
 - [x] Cross-platform (Linux/macOS + Windows/PowerShell)
 - [x] Auto-detect / install Python 3.11+, uv, git
-- [x] Auto-clone repo, create venv, install deps, run `nexa setup`
+- [x] Auto-clone repo, create venv, install deps, run `forge setup`
 - [x] Instruction message after install (new terminal + PATH)
 
 ## 🎯 Phase B: Frontend UI Polish + Sandbox Layout
@@ -62,7 +62,7 @@
 ### C1: Deep Research Agent ✅ DONE
 - Automatically when user asks something fresh
 - Multi-query reformulation → DuckDuckGo → fetch pages → extract facts → validate → synthesize
-- Writes findings to knowledge cache (`~/.nexa/knowledge/`)
+- Writes findings to knowledge cache (`~/.openforge/knowledge/`)
 - `/deep-search <query>` command available in CLI
 - Add 'deep_research' tool (id: 11) in registry
 
@@ -94,8 +94,8 @@
 
 ### C7: Custom Agent Creation ✅ DONE
 - `/agent` slash command: list/create/edit custom agents
-- Agents = `.nexa/agents/*.json` with per-agent system prompt + tool restrictions
-- Used by  `.nexa/agent-slug/` for persistent settings
+- Agents = `.openforge/agents/*.json` with per-agent system prompt + tool restrictions
+- Used by  `.openforge/agent-slug/` for persistent settings
 
 ## 🎯 Phase D: Installer Upgraded Experience
 
@@ -103,7 +103,7 @@
 - Spinner animations during long tasks
 - Percentage progress bars
 - Unicode logos + sparkly frames
-- Welcome banner with nexa artwork
+- Welcome banner with forge artwork
 - Auto-detection of system tools
 
 ### D2: First-Time Setup Wizard
@@ -112,7 +112,7 @@
 - Prompt: "Set your API key for X" (secure hidden input)
 - Prompt: "Preferred model name?" (sensible default)
 - Auto-installs dependency deps for chosen provider
-- Writes to `~/.nexa/providers.json` (masked storage)
+- Writes to `~/.openforge/providers.json` (masked storage)
 
 ## 🎯 Phase E: Router between Tools + TUI
 

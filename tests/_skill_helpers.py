@@ -4,7 +4,7 @@ Shared helpers for skill tests.
 `ScriptedProvider` is a deterministic stand-in *only* for the LLM boundary:
 it speaks the `chat_stream(messages) -> async (event, payload)` contract, so
 real file reads, schema validation, and prompt construction all run for real.
-Live llama.cpp coverage lives behind the `NEXA_E2E_LLAMACPP=1` gate.
+Live llama.cpp coverage lives behind the `FORGE_E2E_LLAMACPP=1` gate.
 """
 
 from __future__ import annotations

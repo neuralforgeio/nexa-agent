@@ -47,7 +47,7 @@ __all__ = ["handle"]
 _FRAMEWORKS = ("pytest", "unittest")
 
 SYSTEM = (
-    "You are Nexa's test-generation engine. You are given the REAL contents "
+    "You are Forge's test-generation engine. You are given the REAL contents "
     "of a source file and a target framework (pytest or unittest). Write "
     "genuine, runnable unit tests against ONLY the code actually shown — "
     "never invent functions, classes, or behaviour that are not present. "

@@ -48,7 +48,7 @@ _DETAIL_GUIDANCE: Dict[str, str] = {
 }
 
 SYSTEM = (
-    "You are Nexa's code-explanation engine. You are given the REAL contents "
+    "You are Forge's code-explanation engine. You are given the REAL contents "
     "of a source file plus a requested detail level. Analyse only what is "
     "actually in the file — never invent identifiers, functions, or behaviour "
     "that are not present. Respond with a SINGLE JSON object, and nothing "

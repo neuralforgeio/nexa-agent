@@ -7,7 +7,7 @@ These guard the fixes so the same class of failure cannot silently return:
           *installed* dependency (declared in pyproject + requirements).
   BUG-02  deployment_automation test hardcoded Windows path separators
           → workspace-path comparisons must be OS-portable.
-  BUG-03  installer never ran `npm install` for nexa_web → installer scripts
+  BUG-03  installer never ran `npm install` for forge_web → installer scripts
           must contain the frontend dependency-install step.
 
 Copyright (c) 2026 Dearly Febriano Irwansyah
@@ -60,7 +60,7 @@ class TestBug02PortablePaths:
 
 
 class TestBug03InstallerFrontendDeps:
-    """Installers must attempt to install nexa_web deps automatically."""
+    """Installers must attempt to install forge_web deps automatically."""
 
     def test_install_sh_has_npm_install_step(self):
         sh = (REPO_ROOT / "scripts" / "install" / "install.sh").read_text(encoding="utf-8")

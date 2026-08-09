@@ -1,8 +1,8 @@
-# Nexa Agent — File & Folder Organization Plan (v4.0.0)
+# OpenForge — File & Folder Organization Plan (v4.0.0)
 
 > **Why.** The project grew organically across 4 major versions. Newcomers
 > open the repo and see 40+ top-level entries, three different "agent"
-> packages (``agent/``, ``nexa/agent/``, ``agentskills/`` mentioned in
+> packages (``agent/``, ``forge/agent/``, ``agentskills/`` mentioned in
 > docs) and can't tell what's canonical. This document defines the
 > **target tree** and the **safe migration order**, so a human maintainer
 > can finish the re-org in small, reviewable PRs instead of one giant
@@ -10,8 +10,8 @@
 
 Rules we follow:
 
-1. **Public surface stays stable.** ``nexa/``, ``agent/``, ``tools/`` keep
-   their import paths — existing code (`from nexa.provider import …`)
+1. **Public surface stays stable.** ``forge/``, ``agent/``, ``tools/`` keep
+   their import paths — existing code (`from forge.provider import …`)
    must not break. Re-exports via ``__init__.py`` do the heavy lifting.
 2. **Each directory has one job.** A file belongs to the directory whose
    README paragraph names it.
@@ -24,7 +24,7 @@ Rules we follow:
 ## 1. Target tree (goal state)
 
 ```
-nexa-agent/
+openforge/
 │
 ├── README.md                  ← product overview, quickstart, screenshots
 ├── LICENSE                    ← MIT (copyright Dearly Febriano Irwansyah)
@@ -35,15 +35,15 @@ nexa-agent/
 │   ├── architecture.md
 │   ├── tools/
 │   │   ├── planning-tools.md  ← the 20 v4.0 tools (auto-generated list)
-│   │   └── user-tools.md      ← how to write ~/.nexa/tools/*.py
+│   │   └── user-tools.md      ← how to write ~/.openforge/tools/*.py
 │   ├── deployment/
 │   │   ├── windows.md
 │   │   └── linux.md
 │   └── images/                ← logo, screenshots
 │
-├── nexa/                      ← core Python package (stable public API)
+├── forge/                      ← core Python package (stable public API)
 │   ├── __init__.py
-│   ├── bootstrap.py           ← stdio UTF-8 + NEXA_HOME warmup
+│   ├── bootstrap.py           ← stdio UTF-8 + FORGE_HOME warmup
 │   ├── config.py              ← constants + env loading
 │   ├── state.py               ← ConversationDB (SQLite + FTS5)
 │   ├── process_manager.py     ← singleton locks (v4.0)
@@ -91,11 +91,11 @@ nexa-agent/
 │   ├── __init__.py
 │   └── catalog.py             ← PROVIDER_CATALOG + resolve_provider()
 │
-├── nexa_cli/                  ← `nexa` CLI (entry point, subcommands)
+├── forge_cli/                  ← `forge` CLI (entry point, subcommands)
 │   ├── __init__.py
 │   └── main.py
 │
-├── ui_tui/                    ← `nexa-tui` rich TUI client
+├── ui_tui/                    ← `forge-tui` rich TUI client
 │   ├── __init__.py
 │   └── app.py
 │
@@ -103,7 +103,7 @@ nexa-agent/
 │   ├── __init__.py
 │   └── server.py
 │
-├── nexa_web/                  ← Next.js web UI (LOCAL only, not on PyPI)
+├── forge_web/                  ← Next.js web UI (LOCAL only, not on PyPI)
 │   ├── package.json
 │   ├── next.config.ts
 │   ├── app/
@@ -123,7 +123,7 @@ nexa-agent/
 │   │   ├── stream.ts          ← SSE client with reconnect backoff
 │   │   └── theme.ts           ← design tokens + types
 │   └── public/
-│       └── nexa-agent.png     ← logo
+│       └── openforge.png     ← logo
 │
 ├── scripts/                   ← install & helper scripts (cross-platform)
 │   ├── install.ps1            ← Windows installer
@@ -139,7 +139,7 @@ nexa-agent/
 │   ├── test_terminal_tool.py
 │   └── …                      ← (one file per subsystem, flat)
 │
-├── nexa-workspace/            ← the FS sandbox tools are confined to
+├── forge-workspace/            ← the FS sandbox tools are confined to
 │   └── .gitkeep
 │
 ├── .plans/                    ← internal planning/state — NOT shipped
@@ -161,20 +161,20 @@ nexa-agent/
 Work one step per PR; run the full test suite between steps.
 
 1. **Move ``docs/README_PLUGIN_ICON.html`` → ``docs/images/``** (pure move, no refs).
-2. **Move ``tools/planning/`` imports** under ``nexa.tools.planning`` via
+2. **Move ``tools/planning/`` imports** under ``forge.tools.planning`` via
    ``tools/planning/__init__.py`` aliases so public paths keep working.
-3. **Fold ``nexa_cli/`` into ``nexa/cli/``** with a forwarding shim in
-   ``nexa_cli/__init__.py`` (``from nexa.cli import main``). Tests already
+3. **Fold ``forge_cli/`` into ``forge/cli/``** with a forwarding shim in
+   ``forge_cli/__init__.py`` (``from forge.cli import main``). Tests already
    cover entry points, they must stay green.
-4. **Fold ``tui_gateway/`` + ``ui_tui/`` into ``nexa/ui/`` sub-packages.**
-5. **Consolidate ``agent/`` + ``nexa/agent/``**: the only module in
-   ``nexa/agent/`` is ``client_session.py``. Move it to
-   ``agent/client_session.py`` and leave ``nexa/agent/__init__.py`` with
+4. **Fold ``tui_gateway/`` + ``ui_tui/`` into ``forge/ui/`` sub-packages.**
+5. **Consolidate ``agent/`` + ``forge/agent/``**: the only module in
+   ``forge/agent/`` is ``client_session.py``. Move it to
+   ``agent/client_session.py`` and leave ``forge/agent/__init__.py`` with
    a deprecation shim.
 6. **Consolidate test helpers** into ``tests/_helpers/`` (faker builders,
    common fixtures). No test file gets longer than ~300 lines — split by
    subsystem, not concern.
-7. **Group ``nexa_web/components/`` into subfolders**:
+7. **Group ``forge_web/components/`` into subfolders**:
    ``components/chat/``, ``components/sandbox/``, ``components/settings/``.
 
 Each step keeps ``.venv/Scripts/python.exe -m pytest tests/ -q`` green.
@@ -188,13 +188,13 @@ Nesting is a win when the grouping mirrors how a maintainer thinks.
 Good nestings in the current codebase:
 
 - ``tools/planning/`` — the 20 planning tools are one mental unit.
-- ``nexa_web/components/sandbox/`` *(target)* — SandboxPanel + TerminalPanel.
+- ``forge_web/components/sandbox/`` *(target)* — SandboxPanel + TerminalPanel.
 - ``docs/deployment/`` — per-platform install docs.
 
 Avoid:
 
 - Nested ``utils/`` inside another package (split by domain instead).
-- ``tests/nexa/agent/…`` — tests stay flat; they map to *behaviors*,
+- ``tests/forge/agent/…`` — tests stay flat; they map to *behaviors*,
   not packages.
 
 ---

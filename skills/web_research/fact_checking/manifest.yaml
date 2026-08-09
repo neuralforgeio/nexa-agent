@@ -3,7 +3,7 @@ version: 0.1.0
 description: Check the truth of a claim against supplied or discovered sources. Returns a verdict (true, false,
   partial, or unverified) with supporting evidence and a confidence score.
 category: web_research
-author: nexa-agent
+author: openforge
 permissions:
 - network:*
 - memory:read

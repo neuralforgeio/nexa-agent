@@ -22,9 +22,9 @@ from rich.table import Table
 from rich.text import Text
 
 from openforge.constants import (
-    NEXA_AUTHOR,
-    NEXA_NAME,
-    NEXA_VERSION
+    FORGE_AUTHOR,
+    FORGE_NAME,
+    FORGE_VERSION
 )
 
 from ui_tui.core.theme import PALETTE, ACCENT, ACCENT_DIM, BG, BORDER, ERROR
@@ -64,9 +64,9 @@ def render_status_bar(state: TUIState) -> Panel:
 
     bar = Group(
         Text.assemble(
-            (f" {NEXA_NAME} ", f"bold {ACCENT}"),
-            (f" v{NEXA_VERSION} ", "dim"),
-            (f" by {NEXA_AUTHOR} ", "dim"),
+            (f" {FORGE_NAME} ", f"bold {ACCENT}"),
+            (f" v{FORGE_VERSION} ", "dim"),
+            (f" by {FORGE_AUTHOR} ", "dim"),
         ),
         Text.assemble(
             Text(" model:", style=MUTED),
@@ -88,7 +88,7 @@ def render_status_bar(state: TUIState) -> Panel:
         height=5,
         border_style=ACCENT_DIM,
         padding=(0, 1),
-        title="[dim]nexa-tui[/dim]",
+        title="[dim]forge-tui[/dim]",
     )
 
 
@@ -104,7 +104,7 @@ def render_chat_area(state: TUIState) -> Panel:
     if not state.messages:
         body = Align.center(
             Text(
-                f"Hello, I'm {NEXA_NAME}.\nType a message below to begin.",
+                f"Hello, I'm {FORGE_NAME}.\nType a message below to begin.",
                 style=MUTED,
                 justify="center",
             )
@@ -116,7 +116,7 @@ def render_chat_area(state: TUIState) -> Panel:
                 chunks.append(Text(f"\nYou", style=f"bold {TEXT}"))
                 chunks.append(Text(msg.content, style=TEXT))
             elif msg.role == "assistant":
-                chunks.append(Text(f"\n{NEXA_NAME}", style=PALETTE["assistant"]))
+                chunks.append(Text(f"\n{FORGE_NAME}", style=PALETTE["assistant"]))
                 try:
                     chunks.append(Markdown(msg.content))
                 except Exception:
@@ -244,7 +244,7 @@ def render_input_box(state: TUIState, current_input: str = "") -> Panel:
     prompt_txt = Text()
     if state.streaming:
         prompt_txt.append("⣿ ", style=f"bold {WARNING}")
-    prompt_txt.append(f"{NEXA_NAME} > ", style=f"bold {SUCCESS}")
+    prompt_txt.append(f"{FORGE_NAME} > ", style=f"bold {SUCCESS}")
     prompt_txt.append(current_input, style=TEXT)
     prompt_txt.append(" ", style=MUTED)
     prompt_txt.append("(Ctrl+T tools · Ctrl+P persona · Tab cycle panels)", style=MUTED)

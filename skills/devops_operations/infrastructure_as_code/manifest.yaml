@@ -3,7 +3,7 @@ version: 0.1.0
 description: Generate infrastructure-as-code (Terraform, Pulumi, or CloudFormation) for a provider from a natural-language
   description. Returns the IaC source, its workspace file path, and a cost estimate.
 category: devops_operations
-author: nexa-agent
+author: openforge
 permissions:
 - filesystem:workspace:write
 - memory:read

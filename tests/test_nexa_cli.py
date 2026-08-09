@@ -1,5 +1,5 @@
 """
-Tests for the nexa_cli subcommand module.
+Tests for the forge_cli subcommand module.
 
 Verifies:
     - CLI setup command creates ~/.openforge/ directory
@@ -17,7 +17,7 @@ from openforge_cli.main import main
 
 
 class TestCLISetup:
-    """Tests for the 'nexa setup' command."""
+    """Tests for the 'forge setup' command."""
 
     def test_setup_returns_zero(self) -> None:
         """setup command must return 0."""
@@ -27,14 +27,14 @@ class TestCLISetup:
     def test_setup_creates_home(self, tmp_path, monkeypatch) -> None:
         """setup must create the FORGE_HOME directory."""
         import openforge.config as cfg
-        monkeypatch.setattr(cfg, "FORGE_HOME", tmp_path / ".nexa")
-        monkeypatch.setattr("openforge.constants.FORGE_HOME", tmp_path / ".nexa")
+        monkeypatch.setattr(cfg, "FORGE_HOME", tmp_path / ".openforge")
+        monkeypatch.setattr("openforge.constants.FORGE_HOME", tmp_path / ".openforge")
         result = main(["setup"])
         assert result == 0
 
 
 class TestCLIModel:
-    """Tests for the 'nexa model' command."""
+    """Tests for the 'forge model' command."""
 
     def test_model_show_returns_zero(self) -> None:
         """model command without args must return 0."""
@@ -44,14 +44,14 @@ class TestCLIModel:
     def test_model_set_returns_zero(self, tmp_path, monkeypatch) -> None:
         """model command with name must return 0."""
         import openforge.config as cfg
-        monkeypatch.setattr(cfg, "FORGE_HOME", tmp_path / ".nexa")
-        (tmp_path / ".nexa").mkdir()
+        monkeypatch.setattr(cfg, "FORGE_HOME", tmp_path / ".openforge")
+        (tmp_path / ".openforge").mkdir()
         result = main(["model", "test-model-123"])
         assert result == 0
 
 
 class TestCLIGateway:
-    """Tests for the 'nexa gateway' command."""
+    """Tests for the 'forge gateway' command."""
 
     def test_gateway_status_returns_zero_or_one(self) -> None:
         """gateway status must return 0 (running) or 1 (stopped)."""
@@ -60,7 +60,7 @@ class TestCLIGateway:
 
 
 class TestCLIDoctor:
-    """Tests for the 'nexa doctor' command."""
+    """Tests for the 'forge doctor' command."""
 
     def test_doctor_returns_zero_or_one(self) -> None:
         """doctor must return 0 (healthy) or 1 (issues)."""

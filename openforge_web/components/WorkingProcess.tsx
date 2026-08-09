@@ -114,7 +114,7 @@ export function WorkingProcess({ steps, isActive, summary }: WorkingProcessProps
                   height: 4,
                   borderRadius: "50%",
                   background: "#4A9EFF",
-                  animation: `nexa-blink 1.2s ease-in-out ${i * 0.15}s infinite`,
+                  animation: `forge-blink 1.2s ease-in-out ${i * 0.15}s infinite`,
                 }}
               />
             ))}

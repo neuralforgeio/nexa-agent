@@ -68,7 +68,7 @@ _TEXT_EXTENSIONS = {
 _TEXT_FILENAMES = {"dockerfile", "makefile", "vagrantfile", "gemfile", "rakefile"}
 
 SYSTEM = (
-    "You are Nexa's security-audit engine. You are given the REAL contents of "
+    "You are Forge's security-audit engine. You are given the REAL contents of "
     "one or more source files read from the user's workspace, plus a scan "
     "depth (quick | deep). Audit ONLY the code actually shown for OWASP-style "
     "security vulnerabilities: injection (SQL, command, template), hardcoded "

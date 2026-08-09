@@ -1,4 +1,4 @@
-# Pull Request — Nexa Agent
+# Pull Request — OpenForge
 
 <!--
 Thanks for the contribution. PRs that fail the hygiene checklist will be asked
@@ -37,8 +37,8 @@ in worklog.md.
 ## Verification performed
 
 - [ ] `pytest tests/ -q --tb=no` — all tests pass
-- [ ] `cd nexa_web && ./node_modules/.bin/eslint.cmd .` — clean
-- [ ] `cd nexa_web && ./node_modules/.bin/next.cmd build` — clean
+- [ ] `cd forge_web && ./node_modules/.bin/eslint.cmd .` — clean
+- [ ] `cd forge_web && ./node_modules/.bin/next.cmd build` — clean
 - [ ] Manual run against a live provider / local server (describe below)
 - [ ] I have re-run the relevant `tests/test_<feature>.py` for any change
       that touches a tool
@@ -49,7 +49,7 @@ in worklog.md.
 
 ## Checklist
 
-- [ ] Branch is `nexa-demo-<8-hex>` (pushed), not `main`.
+- [ ] Branch is `forge-demo-<8-hex>` (pushed), not `main`.
 - [ ] Tests added for new behavior; existing tests updated when semantics change.
 - [ ] No secrets or credentials in the diff.
 - [ ] No changes to the frozen-history files:

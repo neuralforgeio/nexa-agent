@@ -1,7 +1,7 @@
 # F-02 Message Actions — Plan (Direct-to-main, v4.6.5 → then tag v4.6.5)
 
 ## Goal
-Give every message in `nexa_web/components/MessageBubble.tsx` a hover toolbar with four actions:
+Give every message in `forge_web/components/MessageBubble.tsx` a hover toolbar with four actions:
 - Copy: `navigator.clipboard.writeText(message.content)`
 - Regenerate (assistant messages only): re-send the preceding user prompt through `onSend`
 - Edit & Resubmit (user messages only): inline textarea pre-filled with the message content; submitting calls `onSend(newText)`
@@ -11,10 +11,10 @@ Give every message in `nexa_web/components/MessageBubble.tsx` a hover toolbar wi
 Spec Category-1 F-02. Currently MessageBubble is render-only; users have no way to act on turns.
 
 ## Files touched
-1. `nexa_web/components/MessageBubble.tsx` — add toolbar UI + `actions` prop (optional callbacks). Local state: `hovered`, `copyOk`, `editing`, `editDraft`, `branching`.
-2. `nexa_web/app/page.tsx` — map messages with index and message.id, wire callbacks: `onCopy` native in bubble; `onRegenerate(idx)` → find nearest preceding user message → `onSend`; `onEditSubmit(idx, text)` → `onSend(text)`; `onBranch(idx)` → POST branch → setSessionId(new).
-3. `nexa_web/lib/sessions.ts` — already has `branchSession`; reuse it.
-4. `nexa_web/tests/message-actions.test.tsx` — 3 tests.
+1. `forge_web/components/MessageBubble.tsx` — add toolbar UI + `actions` prop (optional callbacks). Local state: `hovered`, `copyOk`, `editing`, `editDraft`, `branching`.
+2. `forge_web/app/page.tsx` — map messages with index and message.id, wire callbacks: `onCopy` native in bubble; `onRegenerate(idx)` → find nearest preceding user message → `onSend`; `onEditSubmit(idx, text)` → `onSend(text)`; `onBranch(idx)` → POST branch → setSessionId(new).
+3. `forge_web/lib/sessions.ts` — already has `branchSession`; reuse it.
+4. `forge_web/tests/message-actions.test.tsx` — 3 tests.
 
 ## Impact
 - Backward compatible: actions prop optional, existing render unchanged when omitted.
@@ -22,7 +22,7 @@ Spec Category-1 F-02. Currently MessageBubble is render-only; users have no way 
 
 ## Backend check
 - `grep "sessions/branch" src/server.py` → if missing, add small endpoint:
-  - GET source session messages up to (and including) messageId; create new session; insert copies; return new id. (new DB helper `branch_conversation(from_id, up_to_message_id)` in nexa/state.py)
+  - GET source session messages up to (and including) messageId; create new session; insert copies; return new id. (new DB helper `branch_conversation(from_id, up_to_message_id)` in forge/state.py)
 
 ## Tests (3 required)
 1. toolbar appears on hover, has 4 buttons for assistant / subset (copy|edit|branch) for user.

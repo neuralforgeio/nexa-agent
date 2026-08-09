@@ -3,7 +3,7 @@ version: 0.1.0
 description: Diagnose a bug from a stack trace plus optional context files. Returns the root cause, affected files,
   a concrete fix suggestion, and a confidence score between 0 and 1.
 category: code_intelligence
-author: nexa-agent
+author: openforge
 permissions:
 - filesystem:workspace
 - memory:read

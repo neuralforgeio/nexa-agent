@@ -4,7 +4,7 @@
 Single source of truth for OpenForge identity, version, paths, and
 runtimeSafety constants.
 
-Imports from :mod:`openforge.config` for FORGE_*; keeps <<<NEXA_*>>> aliases
+Imports from :mod:`openforge.config` for FORGE_*; keeps <<<FORGE_*>>> aliases
 for one MINOR cycle to avoid breaking third-party imports during migration.
 
 Copyright (c) 2026 Dearly Febriano Irwansyah
@@ -28,14 +28,14 @@ from .config import (  # noqa: F401
 
 # ---------------------------------------------------------------------------
 # Legacy aliases — set them AFTER the canonical FORGE_* names exist.
-# Keeping these here means any `from openforge.constants import NEXA_NAME`
+# Keeping these here means any `from openforge.constants import FORGE_NAME`
 # continues to work for one MINOR cycle, then we delete them.
 # ---------------------------------------------------------------------------
-NEXA_NAME = FORGE_NAME
-NEXA_VERSION = FORGE_VERSION
-NEXA_AUTHOR = FORGE_AUTHOR
-NEXA_TAGLINE = FORGE_TAGLINE
-NEXA_MODEL = FORGE_MODEL
+FORGE_NAME = FORGE_NAME
+FORGE_VERSION = FORGE_VERSION
+FORGE_AUTHOR = FORGE_AUTHOR
+FORGE_TAGLINE = FORGE_TAGLINE
+FORGE_MODEL = FORGE_MODEL
 ensure_nexa_home = ensure_forge_home
 
 __all__ = [
@@ -52,10 +52,10 @@ __all__ = [
     "OPENAI_BASE_URL",
     "ensure_forge_home",
     # legacy aliases (deprecated, will be removed in v5.x)
-    "NEXA_NAME",
-    "NEXA_VERSION",
-    "NEXA_AUTHOR",
-    "NEXA_TAGLINE",
-    "NEXA_MODEL",
+    "FORGE_NAME",
+    "FORGE_VERSION",
+    "FORGE_AUTHOR",
+    "FORGE_TAGLINE",
+    "FORGE_MODEL",
     "ensure_nexa_home",
 ]

@@ -3,7 +3,7 @@ version: 0.1.0
 description: Execute, optimize, or design SQL against a database described by a connection config. Returns result
   rows, the execution time in seconds, and optimization suggestions.
 category: data_analytics
-author: nexa-agent
+author: openforge
 permissions:
 - network:*
 - terminal:execute

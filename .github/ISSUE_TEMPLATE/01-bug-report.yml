@@ -1,5 +1,5 @@
 name: 🐛 Bug Report
-description: Report an unexpected behavior in Nexa Agent
+description: Report an unexpected behavior in OpenForge
 title: "[BUG] "
 labels: ["bug", "needs-triage"]
 body:
@@ -11,7 +11,7 @@ body:
         Please confirm:
         - The issue reproduces on the latest `main`.
         - I've searched open issues (no duplicates).
-        - This isn't a usage question (those go to Discussions) and isn't a critical security vulnerability (those go to `security@nexa-agent.dev`).
+        - This isn't a usage question (those go to Discussions) and isn't a critical security vulnerability (those go to `security@openforge.dev`).
 
   - type: dropdown
     id: severity
@@ -30,16 +30,16 @@ body:
     attributes:
       label: Component
       options:
-        - Frontend (nexa_web)
+        - Frontend (forge_web)
         - Backend (server.py / FastAPI)
         - Tools (built-in tool registry)
         - Agent intelligence mesh
         - Orchestrator / Persona
         - Provider (LLM adapter)
         - Gateways (Telegram / Discord / etc.)
-        - CLI (nexa / nexa-chat)
+        - CLI (forge / forge-chat)
         - TUI (ui_tui)
-        - Database / state (nexa/state.py)
+        - Database / state (forge/state.py)
         - Installer / packaging
         - Documentation
         - Other
@@ -91,10 +91,10 @@ body:
       required: false
 
   - type: input
-    id: nexa_version
+    id: forge_version
     attributes:
-      label: Nexa Agent version
-      description: Run `python -c "from openforge.config import NEXA_VERSION; print(NEXA_VERSION)"` and paste the output.
+      label: OpenForge version
+      description: Run `python -c "from openforge.config import FORGE_VERSION; print(FORGE_VERSION)"` and paste the output.
       placeholder: 4.2.1
     validations:
       required: true

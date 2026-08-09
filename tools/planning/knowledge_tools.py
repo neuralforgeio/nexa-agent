@@ -27,7 +27,7 @@ from typing import Any, Dict, List, Optional
 # ---------------------------------------------------------------------------
 async def memory_search(query: str, kind: Optional[str] = None, limit: int = 8) -> str:
     """
-    Search Nexa's long-term memory store (FTS5).
+    Search Forge's long-term memory store (FTS5).
 
     Args:
         query: The search query.
@@ -134,7 +134,7 @@ SESSION_SEARCH_SCHEMA: Dict[str, Any] = {
 # ---------------------------------------------------------------------------
 _MAX_FETCH = 32 * 1024       # 32 KB decoded-text cap
 _TIMEOUT_S = 12.0            # Reasonable for slow CDNs
-_UA = "OpenForgeAgent/4.0 (+https://github.com/neuralforgeio/nexa-agent)"
+_UA = "OpenForgeAgent/4.0 (+https://github.com/neuralforgeio/openforge)"
 
 
 def _html_to_text(raw: str) -> str:

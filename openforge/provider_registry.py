@@ -256,7 +256,7 @@ class ProviderRegistry:
 
         Resolution order:
             1. ``~/.openforge/secrets/active`` file.
-            2. ``NEXA_PROVIDER`` env var.
+            2. ``FORGE_PROVIDER`` env var.
             3. ``"openai"`` default.
 
         <VERSION>:
@@ -272,7 +272,7 @@ class ProviderRegistry:
                 name = None
         # Fall back to env.
         if not name:
-            name = os.environ.get("NEXA_PROVIDER") or "openai"
+            name = os.environ.get("FORGE_PROVIDER") or "openai"
 
         # Pull the config (custom first, then catalog).
         if name in self._custom:

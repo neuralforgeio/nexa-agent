@@ -2,7 +2,7 @@
 OpenForge — Process Manager (Cross-Platform Process-Safe Singletons)
 ======================================================================
 
-Guarantees that long-lived Nexa subsystems (the FastAPI web server, the
+Guarantees that long-lived Forge subsystems (the FastAPI web server, the
 Next.js dev server, etc.) run **exactly once per user account**, fixing the
 "2 processes when I send one message" bug.
 
@@ -126,7 +126,7 @@ class SingletonProcess:
             # that would create two live owners, the exact bug.
             if _pid_exists(existing_pid):
                 raise SingletonConflict(
-                    f"[nexa] another '{self.name}' process is already running "
+                    f"[forge] another '{self.name}' process is already running "
                     f"(pid={existing_pid}).\n"
                     f"  Fix with:\n"
                     f"    Windows:  taskkill /PID {existing_pid} /F\n"

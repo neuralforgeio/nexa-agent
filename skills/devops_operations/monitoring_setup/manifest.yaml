@@ -3,7 +3,7 @@ version: 0.1.0
 description: 'Configure monitoring for an application: emit ready-to-use config files for metrics, alerting, and
   a dashboard on the chosen observability platform.'
 category: devops_operations
-author: nexa-agent
+author: openforge
 permissions:
 - filesystem:workspace:write
 - terminal:execute

@@ -211,7 +211,7 @@ class ProviderHealthTracker:
         - prefer='cheap'   → call sites pick the cheapest healthy provider.
         - prefer='vision'  → call sites exclude providers that lack vision.
         This module does NOT hold pricing data itself — pricing lives in
-        nexa/cost_tracker.py; this method is a policy hook, not a fork.
+        forge/cost_tracker.py; this method is a policy hook, not a fork.
 
         Returns:
             The next :class:`ProviderHealth`, or ``None`` if all are unhealthy.
@@ -375,8 +375,8 @@ def build_default_chain(
 
     Resolution order for the primary provider:
         1. ``primary_name`` argument (if given).
-        2. ``NEXA_PROVIDER`` env var.
-        3. ``NEXA_BASE_URL`` env var (treated as ``"custom"``).
+        2. ``FORGE_PROVIDER`` env var.
+        3. ``FORGE_BASE_URL`` env var (treated as ``"custom"``).
         4. ``"openai"`` fallback.
 
     Failover providers come from:
@@ -400,7 +400,7 @@ def build_default_chain(
 
     # Resolve the primary provider.
     primary_base, primary_model, primary_key = resolve_provider(primary_name)
-    primary_display = primary_name or os.environ.get("NEXA_PROVIDER", "openai")
+    primary_display = primary_name or os.environ.get("FORGE_PROVIDER", "openai")
     if primary_display not in PROVIDER_CATALOG and primary_display != "custom":
         primary_display = "openai"
 

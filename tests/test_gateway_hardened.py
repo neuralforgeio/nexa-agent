@@ -1,5 +1,5 @@
 """
-Tests for the hardened nexa_cli (gateway start sys.executable, gateway stop SIGTERM, --port flag).
+Tests for the hardened forge_cli (gateway start sys.executable, gateway stop SIGTERM, --port flag).
 
 Verifies:
     - gateway start uses sys.executable (cross-platform), not hardcoded "python3".

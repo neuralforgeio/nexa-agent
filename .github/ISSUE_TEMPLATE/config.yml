@@ -1,4 +1,4 @@
-# Issue chooser configuration for Nexa Agent.
+# Issue chooser configuration for OpenForge.
 # Prevents blank issues and routes reporters to the right place before they
 # open a new ticket.
 
@@ -6,14 +6,14 @@ blank_issues_enabled: false
 
 contact_links:
   - name: Documentation
-    url: https://github.com/neuralforgeio/nexa-agent/tree/main/docs
+    url: https://github.com/neuralforgeio/openforge/tree/main/docs
     about: Read the manual before filing. Most popup errors are documented.
   - name: Security Disclosure (private)
-    url: mailto:security@nexa-agent.dev
+    url: mailto:security@openforge.dev
     about: For critical vulnerabilities (RCE/data leak/auth bypass), email directly. Do not file a public issue.
   - name: Discussions / Q&A
-    url: https://github.com/neuralforgeio/nexa-agent/discussions
+    url: https://github.com/neuralforgeio/openforge/discussions
     about: Questions about usage ("how do I...") belong in Discussions, not Issues.
   - name: Provider compatibility matrix
-    url: https://github.com/neuralforgeio/nexa-agent/blob/main/docs/providers.md
+    url: https://github.com/neuralforgeio/openforge/blob/main/docs/providers.md
     about: Verify the provider is supported and correctly configured before opening an issue.

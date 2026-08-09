@@ -3,7 +3,7 @@ version: 0.1.0
 description: Draft an email from bullet points in a chosen tone for a named recipient. Returns a subject line, the
   full body, and alternative phrasings.
 category: communication
-author: nexa-agent
+author: openforge
 permissions:
 - memory:read
 input_schema:

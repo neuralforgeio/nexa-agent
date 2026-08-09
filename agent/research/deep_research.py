@@ -16,7 +16,7 @@ It does: **Research Loop**
     6. Synthesize everything into a comprehensive answer with citations.
     7. Cache the validated facts in :mod:`agent.knowledge_cache`.
 
-This is how Nexa becomes smarter than a tool-user — it becomes a
+This is how Forge becomes smarter than a tool-user — it becomes a
 **research-driven knowledge agent**.
 
 Why built-in instead of a library?
@@ -171,7 +171,7 @@ async def _fetch_page_content(
         import httpx
         async with httpx.AsyncClient(timeout=timeout, follow_redirects=True) as client:
             resp = await client.get(url, headers={
-                "User-Agent": "Mozilla/5.0 (compatible; OpenForgeAgent/1.0; +https://github.com/neuralforgeio/nexa-agent)"
+                "User-Agent": "Mozilla/5.0 (compatible; OpenForgeAgent/1.0; +https://github.com/neuralforgeio/openforge)"
             })
             resp.raise_for_status()
             html = resp.text

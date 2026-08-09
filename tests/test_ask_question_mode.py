@@ -73,7 +73,7 @@ class TestBuildQuickSystemPrompt:
         """The '# Available Tools' section is removed."""
         prompt = (
             "# Agent Identity\n"
-            "You are Nexa Agent.\n\n"
+            "You are OpenForge.\n\n"
             "# Available Tools\n"
             "- read_file: read a file\n"
             "- write_file: write a file\n\n"
@@ -88,7 +88,7 @@ class TestBuildQuickSystemPrompt:
     def test_preserves_other_sections(self) -> None:
         """Non-tool sections are preserved."""
         prompt = (
-            "# Identity\nNexa\n\n"
+            "# Identity\nOpenForge\n\n"
             "# Available Tools\n- read_file\n\n"
             "# Memory\nUser prefers Python."
         )
@@ -99,9 +99,9 @@ class TestBuildQuickSystemPrompt:
 
     def test_no_tools_section_returns_unchanged(self) -> None:
         """If there's no tools section, the prompt is unchanged (except whitespace)."""
-        prompt = "# Identity\nNexa\n\n# Memory\nUser prefers Python."
+        prompt = "# Identity\nOpenForge\n\n# Memory\nUser prefers Python."
         simplified = build_quick_system_prompt(prompt)
-        assert "Nexa" in simplified
+        assert "Forge" in simplified
         assert "User prefers Python" in simplified
 
 

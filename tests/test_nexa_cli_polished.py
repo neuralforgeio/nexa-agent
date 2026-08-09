@@ -1,8 +1,8 @@
 """
-Tests for nexa_cli/main.py polish (rich help table, sys.executable, SIGTERM).
+Tests for forge_cli/main.py polish (rich help table, sys.executable, SIGTERM).
 
 Verifies:
-    - `nexa_cli main()` with `--help` produces a rich table (not plain argparse).
+    - `forge_cli main()` with `--help` produces a rich table (not plain argparse).
     - gateway start uses sys.executable (not hardcoded "python3").
     - gateway stop uses SIGTERM (not SIGKILL=9 directly).
     - gateway start accepts a --port flag.

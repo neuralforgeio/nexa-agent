@@ -37,7 +37,7 @@ from skills.registry import SkillInputError
 __all__ = ["handle"]
 
 SYSTEM = (
-    "You are Nexa's performance-profiling engine operating in STATIC "
+    "You are Forge's performance-profiling engine operating in STATIC "
     "ANALYSIS mode: you are given the REAL contents of a source file and a "
     "runtime scenario, but you have NOT executed the code and have NO "
     "profiler timings. Identify likely bottlenecks strictly from the code "

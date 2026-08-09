@@ -2,67 +2,67 @@
 
 /* ------------------------------------------------------------------
  * F-06 — Theme tokens.
- * <ThemeProvider> writes concrete --nexa-* values onto <html> at
+ * <ThemeProvider> writes concrete --forge-* values onto <html> at
  * runtime (light or dark token map). The :root fallbacks below are the
  * dark palette so the app is never unstyled before hydration / in SSR.
  * ------------------------------------------------------------------ */
 :root {
-  --nexa-bg: #0D0E10;
-  --nexa-surface: #141618;
-  --nexa-panel: #111214;
-  --nexa-panel-2: #191B1E;
-  --nexa-elev: #222327;
-  --nexa-border: #24262B;
-  --nexa-border-2: #2E2F34;
-  --nexa-text: #ECECEC;
-  --nexa-dim: #9A9A9A;
-  --nexa-mute: #6A6A6A;
-  --nexa-accent: #4A9EFF;
-  --nexa-accent-soft: rgba(74, 158, 255, 0.12);
-  --nexa-accent-ring: rgba(74, 158, 255, 0.4);
-  --nexa-success: #4ADE80;
-  --nexa-error: #F87171;
-  --nexa-warning: #FBBF24;
-  --nexa-scroll: #2E2F34;
+  --forge-bg: #0D0E10;
+  --forge-surface: #141618;
+  --forge-panel: #111214;
+  --forge-panel-2: #191B1E;
+  --forge-elev: #222327;
+  --forge-border: #24262B;
+  --forge-border-2: #2E2F34;
+  --forge-text: #ECECEC;
+  --forge-dim: #9A9A9A;
+  --forge-mute: #6A6A6A;
+  --forge-accent: #4A9EFF;
+  --forge-accent-soft: rgba(74, 158, 255, 0.12);
+  --forge-accent-ring: rgba(74, 158, 255, 0.4);
+  --forge-success: #4ADE80;
+  --forge-error: #F87171;
+  --forge-warning: #FBBF24;
+  --forge-scroll: #2E2F34;
 }
 
 html.light {
-  --nexa-bg: #F4F5F7;
-  --nexa-surface: #FFFFFF;
-  --nexa-panel: #FAFAFB;
-  --nexa-panel-2: #F2F3F5;
-  --nexa-elev: #EBECF0;
-  --nexa-border: #E3E5EA;
-  --nexa-border-2: #CFD3DB;
-  --nexa-text: #1B1D21;
-  --nexa-dim: #5C6270;
-  --nexa-mute: #8A91A0;
-  --nexa-accent: #2B7CD3;
-  --nexa-accent-soft: rgba(43, 124, 211, 0.10);
-  --nexa-accent-ring: rgba(43, 124, 211, 0.4);
-  --nexa-success: #15803D;
-  --nexa-error: #DC2626;
-  --nexa-warning: #B45309;
-  --nexa-scroll: #C6CAD2;
+  --forge-bg: #F4F5F7;
+  --forge-surface: #FFFFFF;
+  --forge-panel: #FAFAFB;
+  --forge-panel-2: #F2F3F5;
+  --forge-elev: #EBECF0;
+  --forge-border: #E3E5EA;
+  --forge-border-2: #CFD3DB;
+  --forge-text: #1B1D21;
+  --forge-dim: #5C6270;
+  --forge-mute: #8A91A0;
+  --forge-accent: #2B7CD3;
+  --forge-accent-soft: rgba(43, 124, 211, 0.10);
+  --forge-accent-ring: rgba(43, 124, 211, 0.4);
+  --forge-success: #15803D;
+  --forge-error: #DC2626;
+  --forge-warning: #B45309;
+  --forge-scroll: #C6CAD2;
 }
 
 body {
-  background: var(--nexa-bg);
-  color: var(--nexa-text);
+  background: var(--forge-bg);
+  color: var(--forge-text);
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-@keyframes nexa-blink {
+@keyframes forge-blink {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.3; }
 }
 
-@keyframes nexa-spin {
+@keyframes forge-spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--nexa-scroll); border-radius: 999px; }
-::-webkit-scrollbar-thumb:hover { background: var(--nexa-accent); }
+::-webkit-scrollbar-thumb { background: var(--forge-scroll); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: var(--forge-accent); }

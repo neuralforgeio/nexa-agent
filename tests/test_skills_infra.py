@@ -11,7 +11,7 @@ Covered:
 The fake providers here are *scripted stand-ins* (deterministic stand-ins for
 the LLM boundary only) — all file, schema, and registry logic is exercised for
 real. Honest end-to-end LLM coverage lives in ``tests/test_skills_llm_real.py``
-under the ``NEXA_E2E_LLAMACPP=1`` gate.
+under the ``FORGE_E2E_LLAMACPP=1`` gate.
 """
 
 from __future__ import annotations
@@ -110,7 +110,7 @@ def _good_manifest() -> Dict[str, Any]:
         "version": "0.1.0",
         "description": "Demo skill for tests.",
         "category": "code_intelligence",
-        "author": "nexa-agent",
+        "author": "openforge",
         "permissions": ["filesystem:workspace", "memory:read"],
         "input_schema": {"type": "object", "required": ["text"]},
         "output_schema": {"type": "object", "required": ["result"]},
@@ -268,13 +268,13 @@ class TestDiscoveryAndExecute:
         monkeypatch.setattr(R, "_REGISTRY", R.load_registry(pkg))
         assert R.is_enabled("echo_skill") is True
 
-        monkeypatch.setenv("NEXA_SKILLS_DISABLED", "echo_skill")
+        monkeypatch.setenv("FORGE_SKILLS_DISABLED", "echo_skill")
         assert R.is_enabled("echo_skill") is False
         with pytest.raises(R.SkillDisabledError):
             asyncio.run(R.execute_skill("echo_skill", {"text": "x"}, ScriptedProvider()))
 
-        monkeypatch.delenv("NEXA_SKILLS_DISABLED")
-        monkeypatch.setenv("NEXA_SKILLS_ENABLED", "something_else")
+        monkeypatch.delenv("FORGE_SKILLS_DISABLED")
+        monkeypatch.setenv("FORGE_SKILLS_ENABLED", "something_else")
         assert R.is_enabled("echo_skill") is False
 
 

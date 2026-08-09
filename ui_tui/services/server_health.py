@@ -20,7 +20,7 @@ from ui_tui.core.state import TUIState
 #: How often to poll (seconds).
 POLL_INTERVAL = 5.0
 
-#: Backend URL — can be overridden via NEXA_BACKEND env var.
+#: Backend URL — can be overridden via FORGE_BACKEND env var.
 DEFAULT_BACKEND = "http://localhost:8000"
 
 
@@ -60,7 +60,7 @@ class ServerHealthPoller:
             return
 
         self._thread = threading.Thread(
-            target=self._loop, name="nexa-health-poller", daemon=True
+            target=self._loop, name="forge-health-poller", daemon=True
         )
         self._thread.start()
 

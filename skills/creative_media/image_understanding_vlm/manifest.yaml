@@ -3,7 +3,7 @@ version: 0.1.0
 description: 'Understand an image from a workspace path or URL using a vision-language model: answer questions,
   detect objects, and extract visible text (OCR).'
 category: creative_media
-author: nexa-agent
+author: openforge
 permissions:
 - filesystem:workspace
 - network:*

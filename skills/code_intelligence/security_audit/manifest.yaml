@@ -3,7 +3,7 @@ version: 0.1.0
 description: Audit a file or directory for security vulnerabilities at a quick or deep scan depth. Returns findings
   carrying a CWE id, severity, location, description, and remediation guidance.
 category: code_intelligence
-author: nexa-agent
+author: openforge
 permissions:
 - filesystem:workspace
 - memory:read

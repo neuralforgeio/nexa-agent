@@ -1,8 +1,8 @@
-# NEXA MASTER PLAN
+# FORGE MASTER PLAN
 **OpenForge — Terminal-First Local AI Agent**
 Version 1.7.0 · Author: Dearly Febriano Irwansyah · MIT License
 
-> This document is the source of truth for Nexa Agent's architecture,
+> This document is the source of truth for OpenForge's architecture,
 > development roadmap, and maintenance schedule. It is updated by the
 > autonomous cron system after every development cycle.
 
@@ -10,7 +10,7 @@ Version 1.7.0 · Author: Dearly Febriano Irwansyah · MIT License
 
 ## 1. Project Overview
 
-Nexa Agent is a **local-first AI agent** built entirely in Python. It runs
+OpenForge is a **local-first AI agent** built entirely in Python. It runs
 as a terminal application (TUI) with an iterative tool-calling loop,
 multi-provider LLM support, and a self-improvement memory system. All user
 data is stored locally at `~/.openforge/`.
@@ -27,11 +27,11 @@ data is stored locally at `~/.openforge/`.
 ## 2. Architecture
 
 ```
-nexa-agent/
+openforge/
 ├── cli.py                  # Interactive TUI (prompt_toolkit + rich)
 ├── run_agent.py            # OpenForgeAgent class + standalone runner
 ├── server.py               # FastAPI SSE server (port 8000)
-├── nexa/                   # Core package
+├── forge/                   # Core package
 │   ├── bootstrap.py        # UTF-8 stdio setup
 │   ├── constants.py        # FORGE_HOME, version, safeguards
 │   ├── config.py           # Environment variable loading
@@ -69,7 +69,7 @@ nexa-agent/
 
 ## 3. Autonomous Development System
 
-Nexa Agent is developed by an autonomous cron system with 3 cycles:
+OpenForge is developed by an autonomous cron system with 3 cycles:
 
 | Cron | Schedule | Role | Priority |
 |------|----------|------|----------|
@@ -113,7 +113,7 @@ Nexa Agent is developed by an autonomous cron system with 3 cycles:
 | 8 | TUI Enhancement: /sessions, /export, /config |
 | 9 | Provider Failover: health check + automatic failover |
 | 10 | Trajectory Recording |
-| 11 | CLI Entry Point: `pip install nexa-agent` → `nexa` command |
+| 11 | CLI Entry Point: `pip install openforge` → `forge` command |
 | 12 | Config File: ~/.openforge/config.yaml |
 
 ### Future Enterprise Features
@@ -135,7 +135,7 @@ Nexa Agent is developed by an autonomous cron system with 3 cycles:
 - **Providers**: 6 (openai, openrouter, ollama, llamacpp, lmstudio, vllm)
 - **TUI commands**: /help /tools /search /memory /memories /doctor /model /provider /history /clear /exit
 - **Storage**: ~/.openforge/ (openforge.db, memory/MEMORY.md, memory/USER.md)
-- **GitHub**: github.com/neuralforgeio/nexa-agent
+- **GitHub**: github.com/neuralforgeio/openforge
 
 ---
 
@@ -166,5 +166,5 @@ QA results are tracked in `.plans/qa_log.md` after every Cron 3 cycle.
 
 ---
 
-*This document is automatically maintained by the Nexa Autonomous Principal Engineer cron system.*
+*This document is automatically maintained by the Forge Autonomous Principal Engineer cron system.*
 *Last updated: v1.7.0 cycle*

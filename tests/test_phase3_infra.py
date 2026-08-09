@@ -9,7 +9,7 @@ from openforge import integrity, path_protection, path_resolver
 class TestPathResolver:
     def test_default_home(self, monkeypatch, tmp_path):
         monkeypatch.delenv("FORGE_HOME", raising=False)
-        monkeypatch.delenv("NEXA_HOME", raising=False)
+        monkeypatch.delenv("FORGE_HOME", raising=False)
         monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.setenv("USERPROFILE", str(tmp_path))
         home = path_resolver.get_forge_home()
@@ -26,12 +26,12 @@ class TestPathResolver:
 
     def test_nexa_home_fallback(self, monkeypatch, tmp_path):
         monkeypatch.delenv("FORGE_HOME", raising=False)
-        monkeypatch.setenv("NEXA_HOME", str(tmp_path / "legacy"))
+        monkeypatch.setenv("FORGE_HOME", str(tmp_path / "legacy"))
         assert path_resolver.get_forge_home() == tmp_path / "legacy"
 
     def test_workspace_default(self, monkeypatch, tmp_path):
         monkeypatch.delenv("FORGE_HOME", raising=False)
-        monkeypatch.delenv("NEXA_HOME", raising=False)
+        monkeypatch.delenv("FORGE_HOME", raising=False)
         monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.setenv("USERPROFILE", str(tmp_path))
         assert path_resolver.get_forge_workspace() == tmp_path / ".openforge" / "workspace"

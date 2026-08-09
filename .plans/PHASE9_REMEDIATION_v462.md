@@ -7,7 +7,7 @@
 |-----|---------|-----------|-----|
 | BUG-01 (P1) | `spreadsheet_operations` raised `SkillError("requires openpyxl")` on fresh install | `openpyxl` was only pip-installed by the agent that fixed it (never declared as a dependency) | Added `openpyxl>=3.1.0` to both `pyproject.toml` and `requirements.txt` |
 | BUG-02 (P1) | `test_workspace_is_untouched` fails on Linux because path separators differ | Hardcoded `"apps\\web-dashboard"` in test | Replaced with `os.path.join("apps", ...)` — portable |
-| BUG-03 (P2) | Fresh clones fail `npm run build` — "Module not found" for xterm / highlighters | Installer never ran `npm install` in `nexa_web/` | `install.sh` + `install.ps1` now auto-run `npm install` when npm is present (graceful skip otherwise) |
+| BUG-03 (P2) | Fresh clones fail `npm run build` — "Module not found" for xterm / highlighters | Installer never ran `npm install` in `forge_web/` | `install.sh` + `install.ps1` now auto-run `npm install` when npm is present (graceful skip otherwise) |
 | BUG-04 (P2) | Installer URLs in README/docs returned 404 | The 4.3.0 reorg moved scripts to `scripts/install/` but docs still linked the old `scripts/install.sh` | All references updated: `README.md`, plugin HTML, `install.sh`, `install.ps1` now use `scripts/install/install.sh` (and equivalent PS1) |
 | BUG-05 (P2) | — Same as BUG-03 — (installer missing frontend npm step) | Duplicate of BUG-03 | Fixed by BUG-03 fix |
 

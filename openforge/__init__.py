@@ -33,14 +33,14 @@ from .constants import (
     ensure_forge_home,
 )
 
-# Build __all__ from FORGE_* first; keep NEXA_* as deprecated aliases from
+# Build __all__ from FORGE_* first; keep FORGE_* as deprecated aliases from
 # openforge.config so importing legacy names still works during transition.
 from .config import (  # noqa: F401
-    NEXA_AUTHOR,
-    NEXA_MODEL,
-    NEXA_NAME,
-    NEXA_TAGLINE,
-    NEXA_VERSION,
+    FORGE_AUTHOR,
+    FORGE_MODEL,
+    FORGE_NAME,
+    FORGE_TAGLINE,
+    FORGE_VERSION,
     ensure_nexa_home,
 )
 
@@ -58,11 +58,11 @@ __all__ = [
     "OPENAI_BASE_URL",
     "ensure_forge_home",
     # legacy aliases
-    "NEXA_NAME",
-    "NEXA_VERSION",
-    "NEXA_AUTHOR",
-    "NEXA_TAGLINE",
-    "NEXA_MODEL",
+    "FORGE_NAME",
+    "FORGE_VERSION",
+    "FORGE_AUTHOR",
+    "FORGE_TAGLINE",
+    "FORGE_MODEL",
     "ensure_nexa_home",
 ]
 

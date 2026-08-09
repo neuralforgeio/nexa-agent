@@ -145,7 +145,7 @@ class TestScratchpad:
         monkeypatch.setattr("tools.planning.scratchpad.resolve_in_workspace", lambda p: tmp_path)
         await scratchpad_write("first", mode="replace")
         await scratchpad_write("second", mode="append", label="note")
-        content = (tmp_path / ".nexa" / "scratchpad.md").read_text()
+        content = (tmp_path / ".openforge" / "scratchpad.md").read_text()
         assert "first" in content and "second" in content and "## note" in content
 
     @pytest.mark.asyncio

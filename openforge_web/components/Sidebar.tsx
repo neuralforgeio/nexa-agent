@@ -186,7 +186,7 @@ export function Sidebar({ activeSessionId, onSelect, onNew, refreshKey }: Sideba
           position: "relative",
         }}
         onMouseEnter={(e) => {
-          if (!isActive && !isRenaming) e.currentTarget.style.background = "var(--nexa-panel-2, #1A1B1E)";
+          if (!isActive && !isRenaming) e.currentTarget.style.background = "var(--forge-panel-2, #1A1B1E)";
         }}
         onMouseLeave={(e) => {
           if (!isActive && !isRenaming) e.currentTarget.style.background = "transparent";
@@ -341,13 +341,13 @@ export function Sidebar({ activeSessionId, onSelect, onNew, refreshKey }: Sideba
         }}
       >
         <img
-          src="/nexa-agent.png"
-          alt="Nexa"
+          src="/openforge.png"
+          alt="Forge"
           style={{ width: 32, height: 32, borderRadius: 8, objectFit: "cover" }}
         />
         <div>
           <div style={{ fontSize: 14, fontWeight: 700, color: "#ECECEC", letterSpacing: -0.2 }}>
-            Nexa Agent
+            OpenForge
           </div>
           <div style={{ fontSize: 11, color: "#6A6A6A" }}>Chat = Agent</div>
         </div>
@@ -521,7 +521,7 @@ export function CollapsedSidebar({ onNew, onExpand }: { onNew: () => void; onExp
       }}
     >
       <button onClick={onExpand} title="Expand sidebar" style={{ background: "transparent", border: "none", cursor: "pointer", padding: 0, marginBottom: 6 }}>
-        <img src="/nexa-agent.png" alt="Nexa" style={{ width: 28, height: 28, borderRadius: 8, objectFit: "cover" }} />
+        <img src="/openforge.png" alt="Forge" style={{ width: 28, height: 28, borderRadius: 8, objectFit: "cover" }} />
       </button>
       <button
         onClick={onNew}

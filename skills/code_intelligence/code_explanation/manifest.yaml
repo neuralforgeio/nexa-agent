@@ -3,7 +3,7 @@ version: 0.1.0
 description: Explain what a source file does, at a brief, detailed, or ELI5 level. Returns a prose explanation,
   the step-by-step flow, and the file's key dependencies.
 category: code_intelligence
-author: nexa-agent
+author: openforge
 permissions:
 - filesystem:workspace
 input_schema:

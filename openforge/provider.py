@@ -24,7 +24,7 @@ from typing import Any, AsyncGenerator, Dict, List, Optional, Tuple
 
 from openai import AsyncOpenAI
 
-from .config import NEXA_MODEL, OPENAI_API_KEY, OPENAI_BASE_URL, NEXA_NAME, NEXA_VERSION
+from .config import FORGE_MODEL, OPENAI_API_KEY, OPENAI_BASE_URL, FORGE_NAME, FORGE_VERSION
 from tools.registry import ToolRegistry, ToolResult
 
 
@@ -41,8 +41,8 @@ def _supports_tools(base_url: Optional[str]) -> bool:
     Return whether the endpoint at ``base_url`` advertises tool calling.
 
     Resolution order:
-      1. ``NEXA_LLM_SUPPORTS_TOOLS=0/false/no`` — force OFF (escape hatch).
-      2. ``NEXA_LLM_SUPPORTS_TOOLS=1/true/yes`` — force ON.
+      1. ``FORGE_LLM_SUPPORTS_TOOLS=0/false/no`` — force OFF (escape hatch).
+      2. ``FORGE_LLM_SUPPORTS_TOOLS=1/true/yes`` — force ON.
       3. Heuristic on the URL host: providers known to lack function-calling
          (llama.cpp with embedding-only models, ollama tool-less models) are
          OFF unless explicitly forced on.
@@ -53,7 +53,7 @@ def _supports_tools(base_url: Optional[str]) -> bool:
     Returns:
         ``True`` if tools may be sent to this provider.
     """
-    flag = _env_flag("NEXA_LLM_SUPPORTS_TOOLS")
+    flag = _env_flag("FORGE_LLM_SUPPORTS_TOOLS")
     if flag in ("0", "false", "no", "off"):
         return False
     if flag in ("1", "true", "yes", "on"):
@@ -143,7 +143,7 @@ class LLMProvider:
         """
         self.api_key = api_key or OPENAI_API_KEY
         self.base_url = base_url or (OPENAI_BASE_URL or None)
-        self.model = model or NEXA_MODEL
+        self.model = model or FORGE_MODEL
         self._client: Optional[AsyncOpenAI] = None
 
     @classmethod
@@ -152,7 +152,7 @@ class LLMProvider:
         Build an LLMProvider from the active registry provider.
 
         This makes TokenRouter/others the first-class runtime path: when the
-        user has activated a provider via ``nexa provider use <name>`` or the
+        user has activated a provider via ``forge provider use <name>`` or the
         Web UI, the agent will talk to that endpoint rather than the env
         defaults.
         """
@@ -207,7 +207,7 @@ class LLMProvider:
 
         Capability negotiation (v4.0):
             - If the provider does not support function calling (env-gated
-              via ``NEXA_LLM_SUPPORTS_TOOLS`` or a 4xx "tools not supported"
+              via ``FORGE_LLM_SUPPORTS_TOOLS`` or a 4xx "tools not supported"
               response), the tools payload is dropped and the completion
               proceeds as plain text. This prevents llama.cpp builds without
               tool support from hanging/cancelling the request.
@@ -355,7 +355,7 @@ class LLMProvider:
     @staticmethod
     def build_system_prompt(body: str) -> str:
         """
-        Build the system prompt with Nexa Agent identity.
+        Build the system prompt with OpenForge identity.
 
         Args:
             body: The body of the system prompt (tool catalog, memory, etc.).
@@ -364,7 +364,7 @@ class LLMProvider:
             The full system prompt string.
         """
         return (
-            f"You are {NEXA_NAME} v{NEXA_VERSION}, an advanced AI agent.\n"
+            f"You are {FORGE_NAME} v{FORGE_VERSION}, an advanced AI agent.\n"
             "You reason step by step and may use tools to ground your answers.\n"
             "Be concise, accurate and helpful. When you need to use a tool, "
             "call it via the function-calling interface and stop; the runtime "

@@ -3,7 +3,7 @@ version: 0.1.0
 description: Semantic search across the workspace, agent memory, or both. Returns ranked results with file path,
   line number, code snippet, and a relevance score.
 category: code_intelligence
-author: nexa-agent
+author: openforge
 permissions:
 - filesystem:workspace
 - memory:read

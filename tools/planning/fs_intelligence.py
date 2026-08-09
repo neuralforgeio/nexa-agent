@@ -342,7 +342,7 @@ _SCAFFOLDS: Dict[str, Dict[str, str]] = {
         "index.html": "<!doctype html>\n<html>\n<head>\n  <meta charset='utf-8'>\n  <meta name='viewport' content='width=device-width'>\n  <title>{name}</title>\n  <link rel='stylesheet' href='style.css'>\n</head>\n<body>\n  <h1>{name}</h1>\n  <p>Edit <code>index.html</code> to get started.</p>\n  <script src='app.js'></script>\n</body>\n</html>\n",
         "style.css": "* { box-sizing: border-box; margin: 0; }\nbody { font-family: system-ui; padding: 2rem; line-height: 1.6; }\n",
         "app.js": "console.log('Hello from {name}!');\n",
-        "README.md": "# {name}\n\nA static site scaffolded by Nexa Agent.\n",
+        "README.md": "# {name}\n\nA static site scaffolded by OpenForge.\n",
     },
     "next": {
         "package.json": '{\n  "name": "{slug}",\n  "private": true,\n  "scripts": {\n    "dev": "next dev",\n    "build": "next build",\n    "start": "next start"\n  },\n  "dependencies": {\n    "next": "latest",\n    "react": "latest",\n    "react-dom": "latest"\n  }\n}\n',
@@ -352,7 +352,7 @@ _SCAFFOLDS: Dict[str, Dict[str, str]] = {
         "next.config.ts": "import type { NextConfig } from 'next';\nconst config: NextConfig = {};\nexport default config;\n",
         "tsconfig.json": '{\n  "compilerOptions": {\n    "target": "ES2017",\n    "lib": ["dom", "dom.iterable", "esnext"],\n    "allowJs": true,\n    "skipLibCheck": true,\n    "strict": true,\n    "noEmit": true,\n    "esModuleInterop": true,\n    "module": "esnext",\n    "moduleResolution": "bundler",\n    "resolveJsonModule": true,\n    "isolatedModules": true,\n    "jsx": "preserve",\n    "incremental": true,\n    "plugins": [{ "name": "next" }]\n  },\n  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],\n  "exclude": ["node_modules"]\n}\n',
         ".gitignore": "node_modules/\n.next/\nout/\n*.log\n.env.local\n",
-        "README.md": "# {name}\n\nNext.js app scaffolded by Nexa Agent.\n\n```\nnpm install\nnpm run dev\n```\n",
+        "README.md": "# {name}\n\nNext.js app scaffolded by OpenForge.\n\n```\nnpm install\nnpm run dev\n```\n",
     },
     "vite-react": {
         "package.json": '{\n  "name": "{slug}",\n  "private": true,\n  "type": "module",\n  "scripts": {\n    "dev": "vite",\n    "build": "vite build",\n    "preview": "vite preview"\n  },\n  "dependencies": {\n    "react": "latest",\n    "react-dom": "latest"\n  },\n  "devDependencies": {\n    "@vitejs/plugin-react": "latest",\n    "vite": "latest"\n  }\n}\n',
@@ -371,13 +371,13 @@ _SCAFFOLDS: Dict[str, Dict[str, str]] = {
     },
     "fastapi": {
         "requirements.txt": "fastapi\nuvicorn[standard]\npydantic\n",
-        "src/main.py": "\"\"\"{name} — FastAPI app scaffolded by Nexa Agent.\"\"\"\nfrom fastapi import FastAPI\n\napp = FastAPI(title=\"{name}\")\n\n\n@app.get(\"/\")\ndef root() -> dict:\n    return {\"hello\": \"{name}\"}\n\n\n@app.get(\"/health\")\ndef health() -> dict:\n    return {\"ok\": True}\n",
+        "src/main.py": "\"\"\"{name} — FastAPI app scaffolded by OpenForge.\"\"\"\nfrom fastapi import FastAPI\n\napp = FastAPI(title=\"{name}\")\n\n\n@app.get(\"/\")\ndef root() -> dict:\n    return {\"hello\": \"{name}\"}\n\n\n@app.get(\"/health\")\ndef health() -> dict:\n    return {\"ok\": True}\n",
         ".gitignore": "__pycache__/\n*.pyc\n.venv/\n.env\n",
         "README.md": "# {name}\n\n```\npip install -r requirements.txt\nuvicorn src.main:app --reload\n```\n",
     },
     "python-cli": {
         "requirements.txt": "typer\nrich\n",
-        "src/main.py": "\"\"\"{name} — Python CLI scaffolded by Nexa Agent.\"\"\"\nimport typer\nfrom rich import print\n\napp = typer.Typer(help=\"{name}\")\n\n\n@app.command()\ndef hello(name: str = \"world\") -> None:\n    \"\"\"Say hello.\"\"\"\n    print(f\"[bold green]Hello, {name}![/bold green]\")\n\n\nif __name__ == \"__main__\":\n    app()\n",
+        "src/main.py": "\"\"\"{name} — Python CLI scaffolded by OpenForge.\"\"\"\nimport typer\nfrom rich import print\n\napp = typer.Typer(help=\"{name}\")\n\n\n@app.command()\ndef hello(name: str = \"world\") -> None:\n    \"\"\"Say hello.\"\"\"\n    print(f\"[bold green]Hello, {name}![/bold green]\")\n\n\nif __name__ == \"__main__\":\n    app()\n",
         "README.md": "# {name}\n\n```\npip install -r requirements.txt\npython -m src.main hello\n```\n",
     },
     "empty": {},

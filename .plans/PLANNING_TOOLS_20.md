@@ -1,8 +1,8 @@
-# Nexa Agent — 20 Planning & Intelligence Tools (v4.0.0)
+# OpenForge — 20 Planning & Intelligence Tools (v4.0.0)
 
-> **Goal.** Give Nexa the deepest tool-belt of any local agent: true planning,
+> **Goal.** Give Forge the deepest tool-belt of any local agent: true planning,
 > filesystem intelligence, git-native reasoning, and self-extending tooling —
-> all confined to the NEXA_WORKSPACE sandbox (read-only tools may read project
+> all confined to the FORGE_WORKSPACE sandbox (read-only tools may read project
 > files but never mutate outside the workspace).
 
 Design principles (applied to all 20):
@@ -24,9 +24,9 @@ Design principles (applied to all 20):
 | # | Tool | What it does |
 |---|------|--------------|
 | 1 | ``task_plan`` | Decompose a high-level goal into an ordered, dependency-aware DAG of subtasks with per-task effort/risk. Deterministic templates for common patterns (`build a web app`, `fix a bug`, `write tests`, `research X`) + generic decomposition for everything else. |
-| 2 | ``todo_write`` | Create/update a named TODO file in the workspace (``.nexa/todos/<name>.md``). Check/uncheck items, add/remove items. The task-management backbone every long-running agent needs. |
+| 2 | ``todo_write`` | Create/update a named TODO file in the workspace (``.openforge/todos/<name>.md``). Check/uncheck items, add/remove items. The task-management backbone every long-running agent needs. |
 | 3 | ``todo_read`` | Read a TODO file (or list them all). `todo_read` + `todo_write` together are a persistent scratch-pad the LLM can consult across turns. |
-| 4 | ``scratchpad_write`` | Free-form notes to ``.nexa/scratchpad.md`` (append or replace). The agent's working memory between tool calls. |
+| 4 | ``scratchpad_write`` | Free-form notes to ``.openforge/scratchpad.md`` (append or replace). The agent's working memory between tool calls. |
 | 5 | ``think`` | A loop-back reasoning tool: pass a `thought` and optional `next_action`; returns the thought plus a nudge. Lets models reason *explicitly* without polluting the final answer (pairs with the Working Process panel). |
 
 ## B. Filesystem Intelligence
@@ -59,14 +59,14 @@ Design principles (applied to all 20):
 | # | Tool | What it does |
 |---|------|--------------|
 | 16 | ``memory_search`` | FTS5 search over long-term memories + messages (via `ConversationDB.search_*`). Returns rank-ordered snippets with source pointers. |
-| 17 | ``session_search`` | FTS5 search over past conversations — lets Nexa recall any previous session by keyword. |
+| 17 | ``session_search`` | FTS5 search over past conversations — lets Forge recall any previous session by keyword. |
 | 18 | ``web_fetch`` | Fetch a URL (10s timeout, 32 KB cap, simple HTML→text) and return the readable text. Complements `web_search` with actual page content. |
 
 ## F. Self-Extension (the "getting smarter" tier)
 
 | # | Tool | What it does |
 |---|------|--------------|
-| 19 | ``create_tool`` | Draft a new Nexa tool: writes ``~/.nexa/tools/<name>.py`` (the *user-writable* tool folder) with docstring, `*_SCHEMA`, and an async entry. Nexa can then call it — the agent literally extends itself (MIT-licensed, attribution still belongs to Dearly Febriano Irwansyah per LICENSE §2). |
+| 19 | ``create_tool`` | Draft a new Forge tool: writes ``~/.openforge/tools/<name>.py`` (the *user-writable* tool folder) with docstring, `*_SCHEMA`, and an async entry. Forge can then call it — the agent literally extends itself (MIT-licensed, attribution still belongs to Dearly Febriano Irwansyah per LICENSE §2). |
 | 20 | ``plan_and_delegate`` | Meta-tool: call ``task_plan`` and, for each top-level task, provide a suggested sub-delegate prompt for the existing ``delegate`` tool — the recursive-planner hook. |
 
 ---
@@ -86,6 +86,6 @@ tools/
     └── self_extend.py         # create_tool, plan_and_delegate
 ```
 
-The user-writable tools directory `~/.nexa/tools/` is scanned at registry
+The user-writable tools directory `~/.openforge/tools/` is scanned at registry
 build time (``load_user_tools()``) so anything ``create_tool`` drafts is
 immediately usable in the *next* conversation turn.

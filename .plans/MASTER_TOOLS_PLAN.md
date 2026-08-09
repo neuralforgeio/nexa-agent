@@ -1,4 +1,4 @@
-# Nexa Agent Master Tools Plan — Batch A
+# OpenForge Master Tools Plan — Batch A
 > v4.7.0 — 14 frontend UX tools + 8 backend hardening tools
 > Approved: 2026-08-05 by user
 > Status: AUTONOMOUS EXECUTION (hybrid per tool)
@@ -54,7 +54,7 @@
 - B-06: slowapi rate limits
 - B-07: usage aggregator (/api/usage)
 - B-08: orchestrator stream events SSE
-- files: src/server.py, nexa/state.py (+ cost aggregation)
+- files: src/server.py, forge/state.py (+ cost aggregation)
 - tests: verify 429 response format, SSE bridge works
 
 ---
@@ -65,7 +65,7 @@
 - 14 new tests per F category (3-5 per feature)
 - npm lint + build clean
 - tsc --noEmit clean
-- nexa --version + doctor pass
+- forge --version + doctor pass
 
 ## Escalation Triggers
 - Any P0/P1 bug found → stop → report → user
@@ -74,7 +74,7 @@
 - Security issue → stop → user
 
 ## Rollback Plan
-- Each batch has its own `nexa-demo-frontend-v4.7*` branch
+- Each batch has its own `forge-demo-frontend-v4.7*` branch
 - If anything breaks: git revert the batch branch, push report, stop
 
 ## Estimated duration

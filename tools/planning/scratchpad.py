@@ -5,7 +5,7 @@ OpenForge — Planning Tools: Scratchpad + Think (v4.1.0)
 Two tools:
 
 - :func:`scratchpad_write` — the agent's working memory on disk
-  (``.nexa/scratchpad.md``). Append or replace.
+  (``.openforge/scratchpad.md``). Append or replace.
 - :func:`think`            — a loop-back reasoning tool. The agent narrates
   an internal step (hypothesis, plan, next action); the tool echoes the
   thought back along with a prompt to continue. This pairs with the
@@ -31,19 +31,19 @@ def resolve_in_workspace(raw: str):
     return _resolve_in_workspace(raw)
 
 
-_SCRATCHPAD_REL = ".nexa/scratchpad.md"
+_SCRATCHPAD_REL = ".openforge/scratchpad.md"
 
 
 def _scratchpad_path():
     """Return the absolute path for the workspace scratchpad."""
     ws = resolve_in_workspace(".")
-    (ws / ".nexa").mkdir(parents=True, exist_ok=True)
+    (ws / ".openforge").mkdir(parents=True, exist_ok=True)
     return ws / _SCRATCHPAD_REL
 
 
 async def scratchpad_write(content: str, mode: str = "append", label: str = "") -> str:
     """
-    Write to the workspace scratchpad (``.nexa/scratchpad.md``).
+    Write to the workspace scratchpad (``.openforge/scratchpad.md``).
 
     Use this to remember intermediate results, hypotheses, partial plans —
     anything you need to recall in later tool calls but shouldn't put in

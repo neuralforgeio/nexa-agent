@@ -1,6 +1,6 @@
 /* D-10: minimal service worker — app-shell precache + offline fallback. */
-const CACHE = "nexa-v1";
-const SHELL = ["/", "/manifest.json", "/nexa-agent.png"];
+const CACHE = "forge-v1";
+const SHELL = ["/", "/manifest.json", "/openforge.png"];
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)));
   self.skipWaiting();

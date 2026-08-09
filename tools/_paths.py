@@ -38,11 +38,11 @@ def resolve_in_workspace(raw: str) -> Path:
 
     Example:
         >>> resolve_in_workspace("notes.txt")  # doctest: +SKIP
-        PosixPath('/home/user/.nexa/workspace/notes.txt')
+        PosixPath('/home/user/.openforge/workspace/notes.txt')
         >>> resolve_in_workspace("../../etc/passwd")  # doctest: +SKIP
         Traceback (most recent call last):
             ...
-        ValueError: path '../../etc/passwd' escapes the nexa workspace (...)
+        ValueError: path '../../etc/passwd' escapes the forge workspace (...)
     """
     # v4.2.1-fix: reject control characters and NUL. On Windows + Linux
     # paths, a NUL byte (``\x00``) is a recognised path terminator trick —
@@ -72,6 +72,6 @@ def resolve_in_workspace(raw: str) -> Path:
         resolved.relative_to(base)
     except ValueError as exc:
         raise ValueError(
-            f"path '{raw}' escapes the nexa workspace ({base})"
+            f"path '{raw}' escapes the forge workspace ({base})"
         ) from exc
     return resolved

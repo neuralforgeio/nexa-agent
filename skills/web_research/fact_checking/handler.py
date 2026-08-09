@@ -42,7 +42,7 @@ __all__ = ["handle", "SYSTEM"]
 _VERDICTS = ("true", "false", "partial", "unverified")
 
 SYSTEM = (
-    "You are a rigorous fact-checking engine inside the Nexa Agent skills "
+    "You are a rigorous fact-checking engine inside the OpenForge skills "
     "system. Evaluate the user's claim ONLY against the source texts provided "
     "in the prompt. Rules:\n"
     "- If no sources are provided, or the provided sources do not actually "

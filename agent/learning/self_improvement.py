@@ -2,7 +2,7 @@
 OpenForge — Self-Improvement Reflection Loop
 =============================================
 
-This module lets Nexa *reflect* on its own past turns and extract
+This module lets Forge *reflect* on its own past turns and extract
 actionable improvements. Unlike the memory curator (which stores facts
 about the user/world), the self-improvement loop stores **meta-rules**
 about how to behave better next time.

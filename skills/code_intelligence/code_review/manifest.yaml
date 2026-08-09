@@ -3,7 +3,7 @@ version: 0.1.0
 description: Review a workspace file for bugs, security issues, and style violations. Returns structured findings
   with severities and concrete suggestions plus a summary.
 category: code_intelligence
-author: nexa-agent
+author: openforge
 permissions:
 - filesystem:workspace
 - memory:read

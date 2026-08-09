@@ -3,7 +3,7 @@ version: 0.1.0
 description: Perform multi-source web research on a topic with a configurable depth. Returns a synthesis summary,
   structured sources with credibility ratings, and formatted citations.
 category: web_research
-author: nexa-agent
+author: openforge
 permissions:
 - network:*
 - memory:read

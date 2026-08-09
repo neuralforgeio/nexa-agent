@@ -8,7 +8,7 @@ interface PluginEntry {
 const MOCK: PluginEntry[] = [
   { name: "browser-use", version: "0.1.0", description: "Browser automation via Playwright", author: "community", stars: 120 },
   { name: "docx-report", version: "0.2.1", description: "Generate reports as .docx", author: "community", stars: 54 },
-  { name: "voice-io", version: "0.3.0", description: "Voice input/output for Nexa", author: "community", stars: 89 },
+  { name: "voice-io", version: "0.3.0", description: "Voice input/output for Forge", author: "community", stars: 89 },
 ];
 
 export function PluginMarketplace() {

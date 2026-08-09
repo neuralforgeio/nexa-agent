@@ -2,7 +2,7 @@
 OpenForge — WebSocket/SSE Server for Web UI Integration
 ========================================================
 
-This module provides a FastAPI server that exposes the Nexa Agent to the
+This module provides a FastAPI server that exposes the OpenForge to the
 Next.js web frontend via SSE (Server-Sent Events) streaming. The server
 runs on port 8000 and is accessed by the frontend through the Caddy
 gateway proxy via ``?XTransformPort=8000``.
@@ -43,9 +43,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, JSONResponse
 from pydantic import BaseModel
 
-from openforge import bootstrap as nexa_bootstrap  # noqa: F401 — must be imported first for UTF-8 stdio.
+from openforge import bootstrap as forge_bootstrap  # noqa: F401 — must be imported first for UTF-8 stdio.
 from agent.core.self_health import SelfHealth
-from openforge.config import NEXA_NAME, NEXA_VERSION
+from openforge.config import FORGE_NAME, FORGE_VERSION
 from openforge.provider_failover import is_failover_enabled
 from src.run_agent import OpenForgeAgent
 from openforge.state import ConversationDB
@@ -60,8 +60,8 @@ def _generate_api_token() -> str:
     if not token:
         token = secrets.token_urlsafe(32)
         # Print once at startup so the operator can store it in the frontend.
-        print(f"\n[{NEXA_NAME}] FORGE_API_TOKEN not set — generated one:")
-        print(f"[{NEXA_NAME}]   {token}\n", flush=True)
+        print(f"\n[{FORGE_NAME}] FORGE_API_TOKEN not set — generated one:")
+        print(f"[{FORGE_NAME}]   {token}\n", flush=True)
     return token
 
 
@@ -175,9 +175,9 @@ async def lifespan(app: FastAPI):
 # FastAPI app
 # ---------------------------------------------------------------------------
 app = FastAPI(
-    title=NEXA_NAME,
-    version=NEXA_VERSION,
-    description=f"{NEXA_NAME} — Python agent server for web UI integration.",
+    title=FORGE_NAME,
+    version=FORGE_VERSION,
+    description=f"{FORGE_NAME} — Python agent server for web UI integration.",
     lifespan=lifespan,
 )
 
@@ -262,8 +262,8 @@ async def health() -> Dict[str, Any]:
     """
     return {
         "status": "ok",
-        "name": NEXA_NAME,
-        "version": NEXA_VERSION,
+        "name": FORGE_NAME,
+        "version": FORGE_VERSION,
         "tools": _agent.registry.list_names(),
         "model": _agent.provider.model,
         "base_url": _agent.provider.base_url,
@@ -699,14 +699,14 @@ async def export_session(session_id: str, format: str = "md") -> JSONResponse:
             ],
         })
 
-    lines = [f"# Nexa Agent Conversation", f"Session: {session_id}", ""]
+    lines = [f"# OpenForge Conversation", f"Session: {session_id}", ""]
     for m in messages:
         role = m["role"]
         content = m["content"]
         if role == "user":
             lines.append(f"## User\n\n{content}\n")
         elif role == "assistant":
-            lines.append(f"## Nexa\n\n{content}\n")
+            lines.append(f"## Forge\n\n{content}\n")
         elif role == "tool":
             # B-02: the <details> block is raw HTML inside the Markdown, so
             # escape its contents to prevent stored-XSS on export.
@@ -1067,7 +1067,7 @@ async def ws_terminal(websocket) -> None:
     pty = None
     if pty_enabled:
         print(
-            f"[{NEXA_NAME}] WARNING: PTY terminal mode ENABLED (FORGE_ENABLE_PTY=1) "
+            f"[{FORGE_NAME}] WARNING: PTY terminal mode ENABLED (FORGE_ENABLE_PTY=1) "
             "— command blocklist bypassed; env secrets scrubbed.",
             flush=True,
         )
@@ -1090,7 +1090,7 @@ async def ws_terminal(websocket) -> None:
                 and not k.upper().endswith(("_API_KEY", "_TOKEN", "_SECRET"))
             }
             env["HOME"] = str(FORGE_WORKSPACE)
-            env["NEXA_SANDBOXED"] = "1"
+            env["FORGE_SANDBOXED"] = "1"
             return env
 
         if _sys.platform == "win32":

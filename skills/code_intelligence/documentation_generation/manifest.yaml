@@ -3,7 +3,7 @@ version: 0.1.0
 description: Generate documentation (docstrings, README, or API reference) for a workspace file. Returns the rendered
   documentation plus the list of files that were created or updated.
 category: code_intelligence
-author: nexa-agent
+author: openforge
 permissions:
 - filesystem:workspace
 - filesystem:workspace:write

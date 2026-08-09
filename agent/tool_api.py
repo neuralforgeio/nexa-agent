@@ -194,5 +194,5 @@ def http_client(*, timeout: float = 30.0, follow_redirects: bool = True):
     return httpx.AsyncClient(
         timeout=timeout,
         follow_redirects=follow_redirects,
-        headers={"User-Agent": "nexa-agent-tool/4.3"},
+        headers={"User-Agent": "openforge-tool/4.3"},
     )

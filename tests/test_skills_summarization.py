@@ -36,7 +36,7 @@ def _input() -> dict:
 
 @pytest.fixture()
 def ws(tmp_path, monkeypatch):
-    """Sandbox the Nexa workspace at a temp dir (env var + chdir + cached const)."""
+    """Sandbox the Forge workspace at a temp dir (env var + chdir + cached const)."""
     monkeypatch.setenv("FORGE_WORKSPACE", str(tmp_path))
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr("tools._paths.FORGE_WORKSPACE", tmp_path)

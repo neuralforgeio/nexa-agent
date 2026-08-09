@@ -339,7 +339,7 @@ class ToolRegistry:
 
 def create_default_registry() -> ToolRegistry:
     """
-    Create a :class:`ToolRegistry` pre-populated with the default Nexa tools.
+    Create a :class:`ToolRegistry` pre-populated with the default Forge tools.
 
     The default tool set includes:
     ``read_file``, ``write_file``, ``run_terminal_command``, ``generate_uuid``.
@@ -355,7 +355,7 @@ def create_default_registry() -> ToolRegistry:
         name="read_file",
         fn=read_file,
         description=(
-            "Read the contents of a text file inside the nexa workspace. "
+            "Read the contents of a text file inside the forge workspace. "
             "Path is relative to the workspace root."
         ),
         parameters={
@@ -373,7 +373,7 @@ def create_default_registry() -> ToolRegistry:
         name="write_file",
         fn=write_file,
         description=(
-            "Write text content to a file inside the nexa workspace. "
+            "Write text content to a file inside the forge workspace. "
             "Overwrites if the file exists, creates parent dirs if needed."
         ),
         parameters={
@@ -395,7 +395,7 @@ def create_default_registry() -> ToolRegistry:
         name="run_terminal_command",
         fn=run_terminal_command,
         description=(
-            "Execute a shell command in the nexa workspace and return "
+            "Execute a shell command in the forge workspace and return "
             "stdout/stderr. Output is capped at 2000 chars. 15s timeout."
         ),
         parameters={
@@ -611,7 +611,7 @@ def load_user_tools(registry: ToolRegistry) -> ToolRegistry:
         return registry
 
     for py_file in sorted(tools_dir.glob("*.py")):
-        mod_name = f"nexa_user_{py_file.stem}"
+        mod_name = f"forge_user_{py_file.stem}"
         tool_name = py_file.stem
         try:
             # v4.1.0: static AST gate — reject dangerous imports/builtins
@@ -623,7 +623,7 @@ def load_user_tools(registry: ToolRegistry) -> ToolRegistry:
             safe, reason = ast_check_tool_source(_src)
             if not safe:
                 _log_tool_load(tool_name, py_file, ok=False, reason=reason)
-                print(f"[nexa] user tool {tool_name!r} REJECTED: {reason}")
+                print(f"[forge] user tool {tool_name!r} REJECTED: {reason}")
                 continue
 
             spec = importlib.util.spec_from_file_location(mod_name, py_file)

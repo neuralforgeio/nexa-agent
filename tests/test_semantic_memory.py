@@ -235,10 +235,17 @@ class TestIsSemanticMemoryEnabled:
 
     def test_default_on(self, monkeypatch) -> None:
         """Semantic memory is ON by default (opt-out)."""
-        monkeypatch.delenv("NEXA_SEMANTIC_MEMORY", raising=False)
+        monkeypatch.delenv("FORGE_SEMANTIC_MEMORY", raising=False)
+        monkeypatch.delenv("FORGE_SEMANTIC_MEMORY", raising=False)
         assert is_semantic_memory_enabled() is True
 
     def test_disabled_when_zero(self, monkeypatch) -> None:
-        """NEXA_SEMANTIC_MEMORY=0 disables it."""
-        monkeypatch.setenv("NEXA_SEMANTIC_MEMORY", "0")
+        """FORGE_SEMANTIC_MEMORY=0 disables it."""
+        monkeypatch.setenv("FORGE_SEMANTIC_MEMORY", "0")
+        assert is_semantic_memory_enabled() is False
+
+    def test_nexa_env_fallback(self, monkeypatch) -> None:
+        """Legacy FORGE_SEMANTIC_MEMORY still honored for one MINOR cycle."""
+        monkeypatch.delenv("FORGE_SEMANTIC_MEMORY", raising=False)
+        monkeypatch.setenv("FORGE_SEMANTIC_MEMORY", "0")
         assert is_semantic_memory_enabled() is False

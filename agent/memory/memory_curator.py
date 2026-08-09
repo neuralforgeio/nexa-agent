@@ -2,7 +2,7 @@
 OpenForge — Memory Curator (The "Getting Smarter" Loop)
 ========================================================
 
-This module implements Nexa Agent's self-improvement system. After each
+This module implements OpenForge's self-improvement system. After each
 conversation turn, the curator analyzes the exchange and distills durable
 insights into both the SQLite memory store and the file-based memory
 system (``~/.openforge/memory/MEMORY.md`` and ``USER.md``). Over time, the

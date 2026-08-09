@@ -3,7 +3,7 @@ version: 0.1.0
 description: Transcribe an audio file to text with optional language hint and speaker diarization. Returns the transcript,
   timed segments with speaker labels, and the detected language.
 category: communication
-author: nexa-agent
+author: openforge
 permissions:
 - filesystem:workspace
 - network:*

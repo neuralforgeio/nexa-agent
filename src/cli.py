@@ -2,7 +2,7 @@
 OpenForge — Interactive TUI (prompt_toolkit + rich)
 ====================================================
 
-This module implements the interactive terminal UI for Nexa Agent, inspired
+This module implements the interactive terminal UI for OpenForge, inspired
 by Claude Code.
 
 Features:
@@ -28,7 +28,7 @@ import os
 import sys
 
 # Bootstrap UTF-8 stdio FIRST (before any rich imports that may print).
-from openforge import bootstrap as nexa_bootstrap  # noqa: F401
+from openforge import bootstrap as forge_bootstrap  # noqa: F401
 
 from rich.console import Console
 from rich.markdown import Markdown
@@ -37,9 +37,9 @@ from rich.text import Text
 
 from agent.core.self_health import SelfHealth
 from openforge.constants import (
-    NEXA_AUTHOR,
-    NEXA_NAME,
-    NEXA_VERSION
+    FORGE_AUTHOR,
+    FORGE_NAME,
+    FORGE_VERSION
 )
 from providers.catalog import list_providers, resolve_provider
 from src.run_agent import OpenForgeAgent
@@ -66,19 +66,19 @@ SLASH_COMMANDS = {
     "/knowledge": "Show cached learned facts (v2.0). Usage: /knowledge [clear]",
     "/patterns": "Show recognized conversation patterns (v2.0)",
     "/reflect": "Reflect on the last turn (v2.0 self-improvement)",
-    "/exit": "Exit Nexa Agent (or press Ctrl+D)",
+    "/exit": "Exit OpenForge (or press Ctrl+D)",
 }
 
 
 def print_banner() -> None:
-    """Print the Nexa Agent ASCII banner and version info."""
+    """Print the OpenForge ASCII banner and version info."""
     banner = f"""
 ╔══════════════════════════════════════════╗
-║   {NEXA_NAME} v{NEXA_VERSION}                ║
-║   by {NEXA_AUTHOR:<30} ║
+║   {FORGE_NAME} v{FORGE_VERSION}                ║
+║   by {FORGE_AUTHOR:<30} ║
 ╚══════════════════════════════════════════╝
 """
-    console.print(Panel(banner.strip(), border_style="cyan", title="[cyan]Nexa Agent[/cyan]"))
+    console.print(Panel(banner.strip(), border_style="cyan", title="[cyan]OpenForge[/cyan]"))
     console.print("[dim]Type your message and press Enter. Type /help for commands.[/dim]\n")
 
 
@@ -110,7 +110,7 @@ def _print_tools(agent: OpenForgeAgent) -> None:
     """
     from rich.table import Table
 
-    table = Table(title="🛠️  Nexa Agent Tools", border_style="cyan", show_lines=True)
+    table = Table(title="🛠️  OpenForge Tools", border_style="cyan", show_lines=True)
     table.add_column("Tool", style="cyan bold", no_wrap=True)
     table.add_column("Description", style="white")
     table.add_column("Parameters", style="dim")
@@ -233,7 +233,7 @@ async def handle_slash_command(cmd: str, agent: OpenForgeAgent, db: Conversation
             else:
                 console.print(f"[red]Unknown provider:[/red] {name}. Try /provider list\n")
         elif sub == "add":
-            # Defer to nexa_cli _cmd_provider for the interactive logic.
+            # Defer to forge_cli _cmd_provider for the interactive logic.
             from openforge_cli.main import _cmd_provider
             console.print("[cyan]Add a new provider. Press Ctrl+C to abort.[/cyan]")
             try:
@@ -357,7 +357,7 @@ async def handle_slash_command(cmd: str, agent: OpenForgeAgent, db: Conversation
                     if role == "user":
                         lines.append(f"## 🧑 User\n\n{content}\n")
                     elif role == "assistant":
-                        lines.append(f"## ⚡ Nexa\n\n{content}\n")
+                        lines.append(f"## ⚡ Forge\n\n{content}\n")
                     elif role == "tool":
                         lines.append(f"<details><summary>🔧 {m.get('tool_name', 'tool')}</summary>\n\n```\n{content[:500]}\n```\n</details>\n")
                 export_text = "\n".join(lines)
@@ -368,17 +368,17 @@ async def handle_slash_command(cmd: str, agent: OpenForgeAgent, db: Conversation
                 console.print(f"[green]Exported to:[/green] {export_path}\n")
                 console.print(f"[dim]{len(msgs)} messages exported.[/dim]\n")
     elif command == "/config":
-        from openforge.config import FORGE_HOME, FORGE_WORKSPACE, NEXA_MODEL
+        from openforge.config import FORGE_HOME, FORGE_WORKSPACE, FORGE_MODEL
         parts = (arg or "").split(maxsplit=2)
         if not arg or parts[0] == "show":
-            console.print(Panel("[bold]Nexa Agent Configuration[/bold]", border_style="cyan"))
+            console.print(Panel("[bold]OpenForge Configuration[/bold]", border_style="cyan"))
             console.print(f"  [cyan]FORGE_HOME[/cyan]:      {FORGE_HOME}")
             console.print(f"  [cyan]FORGE_WORKSPACE[/cyan]: {FORGE_WORKSPACE}")
             console.print(f"  [cyan]Provider[/cyan]:       {agent.provider.base_url}")
             console.print(f"  [cyan]Model[/cyan]:          {agent.provider.model}")
             console.print(f"  [cyan]API Key[/cyan]:        {'✓ set' if agent.provider.api_key else '✗ not set'}")
             console.print(f"  [cyan]Tools[/cyan]:          {len(agent.registry.list_names())} registered")
-            console.print(f"  [cyan]Version[/cyan]:        {NEXA_VERSION}")
+            console.print(f"  [cyan]Version[/cyan]:        {FORGE_VERSION}")
             console.print()
         elif parts[0] == "set" and len(parts) >= 3:
             key = parts[1]
@@ -485,7 +485,7 @@ async def run_turn(agent: OpenForgeAgent, message: str, conv_id: str, history: l
     try:
         async for event in agent.run_streaming(message, conv_id, history):
             if event["type"] == "thinking":
-                console.print("[dim]Nexa is thinking...[/dim]", end="")
+                console.print("[dim]Forge is thinking...[/dim]", end="")
             elif event["type"] == "compressing":
                 console.print(f"\n[yellow]⚠ {event.get('detail', 'compressing context')}[/yellow]")
             elif event["type"] == "token":
@@ -548,7 +548,7 @@ async def interactive_loop(agent: OpenForgeAgent) -> None:
         try:
             # Use input() for simplicity and maximum compatibility.
             # (prompt_toolkit is optional; we provide a rich rendering layer.)
-            user_input = input("nexa > ").strip()
+            user_input = input("forge > ").strip()
         except (EOFError, KeyboardInterrupt):
             console.print("\n[dim]Goodbye![/dim]")
             break
@@ -577,7 +577,7 @@ def main() -> None:
         python cli.py --provider openai --model gpt-4o
     """
     parser = argparse.ArgumentParser(
-        description=f"{NEXA_NAME} — interactive terminal AI agent",
+        description=f"{FORGE_NAME} — interactive terminal AI agent",
     )
     parser.add_argument("--provider", default=None, help="Provider name (ollama, openai, llamacpp, lmstudio, vllm)")
     parser.add_argument("--model", default=None, help="Model override")

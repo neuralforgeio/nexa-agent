@@ -90,7 +90,7 @@ class TestSkillsExecuteEndpoint:
         assert r.status_code == 404
 
     def test_disabled_skill_returns_403(self, client, monkeypatch):
-        monkeypatch.setenv("NEXA_SKILLS_DISABLED", "translation")
+        monkeypatch.setenv("FORGE_SKILLS_DISABLED", "translation")
         r = client.post(
             "/api/skills/translation/execute",
             json={"input": {"text": "hi", "from": "en", "to": "fr"}},
@@ -110,7 +110,7 @@ class TestSkillsExecuteEndpoint:
     def test_llm_skill_ok_with_scripted_input(self, client):
         """Uses the real provider path; ScriptedProvider is NOT burned in here —
         this test verifies the endpoint contract, not the model. The heavy
-        real-LLM gate lives in NEXA_E2E_LLAMACPP tests."""
+        real-LLM gate lives in FORGE_E2E_LLAMACPP tests."""
         r = client.post(
             "/api/skills/translation/execute",
             json={"input": {"text": "hello", "from": "en", "to": "fr"}},

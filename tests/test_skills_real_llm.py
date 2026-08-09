@@ -3,11 +3,11 @@ Skills — REAL-LLM end-to-end tests against a LIVE llama.cpp server (Ornith).
 
 These exercise the full skill path — registry → input validation → handler →
 provider.chat_stream → output validation — with a real local model instead of a
-scripted provider. They are skipped unless ``NEXA_E2E_LLAMACPP=1`` is set and a
+scripted provider. They are skipped unless ``FORGE_E2E_LLAMACPP=1`` is set and a
 llama.cpp server is reachable on 127.0.0.1:8080.
 
 Run explicitly:
-    $env:NEXA_E2E_LLAMACPP="1"
+    $env:FORGE_E2E_LLAMACPP="1"
     .venv\\Scripts\\python.exe -m pytest tests/test_skills_real_llm.py -v
 
 Notes:
@@ -35,8 +35,8 @@ from skills import registry as R
 
 pytestmark = [
     pytest.mark.skipif(
-        os.environ.get("NEXA_E2E_LLAMACPP", "0") not in ("1", "true", "yes"),
-        reason="set NEXA_E2E_LLAMACPP=1 to run the live llama.cpp skill tests",
+        os.environ.get("FORGE_E2E_LLAMACPP", "0") not in ("1", "true", "yes"),
+        reason="set FORGE_E2E_LLAMACPP=1 to run the live llama.cpp skill tests",
     ),
     pytest.mark.timeout(900),
 ]
@@ -56,8 +56,8 @@ def _provider():
 
     return LLMProvider(
         api_key="dummy",
-        base_url=os.environ.get("NEXA_LLAMACPP_URL", "http://127.0.0.1:8080/v1"),
-        model=os.environ.get("NEXA_MODEL", "Ornith-1.0-9b-Q4_K_M.gguf"),
+        base_url=os.environ.get("FORGE_LLAMACPP_URL", "http://127.0.0.1:8080/v1"),
+        model=os.environ.get("FORGE_MODEL", "Ornith-1.0-9b-Q4_K_M.gguf"),
     )
 
 
@@ -160,7 +160,7 @@ async def test_real_translation(provider):
 @pytest.mark.asyncio
 async def test_real_summarization(provider):
     article = (
-        "Nexa Agent is a local AI agent written in Python. It exposes tools for "
+        "OpenForge is a local AI agent written in Python. It exposes tools for "
         "file and terminal operations and uses llama.cpp for local inference. "
         "The project keeps memory persistent and supports pluggable providers."
     )

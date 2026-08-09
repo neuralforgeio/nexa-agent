@@ -15,7 +15,7 @@ Usage as a library::
 
 Usage as a CLI::
 
-    python run_agent.py --provider ollama --model llama3.2 "Hello, Nexa!"
+    python run_agent.py --provider ollama --model llama3.2 "Hello, Forge!"
 
 Copyright (c) 2026 Dearly Febriano Irwansyah
 SPDX-License-Identifier: MIT
@@ -30,7 +30,7 @@ from agent.core.conversation_loop import run_conversation
 from agent.prompt.prompt_builder import build_system_prompt
 from openforge.constants import (
     FORGE_MAX_CONTEXT_MESSAGES,
-    NEXA_NAME
+    FORGE_NAME
 )
 from openforge.provider import LLMProvider
 from providers.catalog import resolve_provider
@@ -471,7 +471,7 @@ async def _run_single_turn(agent: OpenForgeAgent, message: str) -> None:
         elif event["type"] == "tool_result":
             print(f"\n[tool: {event['name']}] {event['result']['output'][:200]}")
         elif event["type"] == "done":
-            print(f"\n[{NEXA_NAME}] done.")
+            print(f"\n[{FORGE_NAME}] done.")
         elif event["type"] == "error":
             print(f"\n[error] {event['message']}", file=sys.stderr)
 
@@ -487,7 +487,7 @@ def main() -> None:
         python run_agent.py --provider llamacpp "Hello"
     """
     parser = argparse.ArgumentParser(
-        description=f"{NEXA_NAME} — standalone agent runner",
+        description=f"{FORGE_NAME} — standalone agent runner",
     )
     parser.add_argument("message", nargs="?", help="The message to send")
     parser.add_argument("--provider", default=None, help="Provider name (ollama, openai, llamacpp, ...)")

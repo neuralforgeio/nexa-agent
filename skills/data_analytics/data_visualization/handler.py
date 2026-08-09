@@ -35,7 +35,7 @@ from skills.registry import SkillInputError
 __all__ = ["handle"]
 
 _SYSTEM = (
-    "You are Nexa's data-visualization designer. You are given the REAL "
+    "You are Forge's data-visualization designer. You are given the REAL "
     "dataset (as JSON rows), a requested visualization type "
     "(dashboard|chart|report), an optional layout hint, and some code-computed "
     "summary statistics. Propose ONLY components that make sense for the data "

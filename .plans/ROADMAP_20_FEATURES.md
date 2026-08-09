@@ -1,4 +1,4 @@
-# Nexa Agent — 20-Feature Enterprise Roadmap (v3.1+)
+# OpenForge — 20-Feature Enterprise Roadmap (v3.1+)
 
 > **Status**: Blueprint written. Execution deferred to v3.1.0+.
 > Each feature has a specification, value, complexity (1-5), and dependencies.
@@ -40,7 +40,7 @@
 
 ### 1.5 Local Knowledge Graph
 - **Description**: Build a local knowledge graph from user interactions (entities + relationships). Query it via a `query_graph` tool.
-- **Value**: The agent "understands" how concepts relate (e.g. "Nexa uses Python + FastAPI + SQLite").
+- **Value**: The agent "understands" how concepts relate (e.g. "Forge uses Python + FastAPI + SQLite").
 - **Complexity**: 5 (graph schema + extraction + query language)
 - **Dependencies**: 1.1 (Semantic Vector Memory)
 

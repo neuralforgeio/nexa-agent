@@ -1,5 +1,5 @@
 /**
- * OpenForge — Main Chat Page (v4.16.0 — rebrand from Nexa Agent)
+ * OpenForge — Main Chat Page (v4.16.0 — rebrand from OpenForge)
  *
  * Layout:
  *   [Sidebar | Chat | Sandbox(right, resizable 50/50 preview+terminal)]
@@ -38,8 +38,8 @@ import { sendChatMessage, persistTurn } from "../lib/stream";
 import { branchSession } from "../lib/sessions";
 import type { Message, ChatEvent, SessionMessage } from "../lib/theme";
 
-const LS_SIDEBAR = "nexa-sidebar-open";
-const LS_SANDBOX = "nexa-sandbox-open";
+const LS_SIDEBAR = "forge-sidebar-open";
+const LS_SANDBOX = "forge-sandbox-open";
 
 export default function Page() {
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -57,7 +57,7 @@ export default function Page() {
   const [sidebarMode, setSidebarMode] = useState<SidebarMode>("open");
   // Sandbox starts CLOSED. It opens only when the user presses Ctrl+J
   // (or clicks the toggle). This prevents the sandbox from loading
-  // the Nexa UI itself on first paint.
+  // the Forge UI itself on first paint.
   const [sandboxOpen, setSandboxOpen] = useState(false);
   const [appVersion, setAppVersion] = useState<string>("4.1.0");
   // Bumping this key re-mounts the chat column (F-05: when the provider /
@@ -361,7 +361,7 @@ export default function Page() {
   }), [messages, sessionId, onSend, onSelect]);
 
   return (
-    <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "var(--nexa-bg, #0D0E10)", color: "var(--nexa-text, #ECECEC)" }}>
+    <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "var(--forge-bg, #0D0E10)", color: "var(--forge-text, #ECECEC)" }}>
       {/* F-10: on mobile the sidebar renders as an overlay drawer. */}
       {isMobile && sidebarMode === "open" && (
         <div
@@ -405,19 +405,19 @@ export default function Page() {
             alignItems: "center",
             gap: 8,
             padding: "8px 14px",
-            borderBottom: "1px solid var(--nexa-border, #24262B)",
-            background: "var(--nexa-panel, #111214)",
+            borderBottom: "1px solid var(--forge-border, #24262B)",
+            background: "var(--forge-panel, #111214)",
           }}
         >
           <button
             onClick={toggleSidebar}
             title="Toggle sidebar (Ctrl+B)"
-            style={{ background: "none", border: "none", color: "var(--nexa-dim, #9A9A9A)", cursor: "pointer", padding: 4, borderRadius: 6 }}
+            style={{ background: "none", border: "none", color: "var(--forge-dim, #9A9A9A)", cursor: "pointer", padding: 4, borderRadius: 6 }}
           >
             {sidebarMode === "open" ? <X size={18} /> : <Menu size={18} />}
           </button>
-          <span style={{ fontSize: 14, fontWeight: 700, color: "var(--nexa-text, #ECECEC)" }}>OpenForge</span>
-          <span style={{ fontSize: 11, color: "var(--nexa-mute, #6A6A6A)" }}>v{appVersion}</span>
+          <span style={{ fontSize: 14, fontWeight: 700, color: "var(--forge-text, #ECECEC)" }}>OpenForge</span>
+          <span style={{ fontSize: 11, color: "var(--forge-mute, #6A6A6A)" }}>v{appVersion}</span>
           <div style={{ marginLeft: "auto", display: "flex", gap: 4, alignItems: "center" }}>
             <ModelPicker
               onProviderChange={(name) => {
@@ -434,14 +434,14 @@ export default function Page() {
             <button
               onClick={toggleSandbox}
               title="Toggle sandbox (Ctrl+J)"
-              style={{ background: "none", border: "none", color: sandboxOpen ? "var(--nexa-accent, #4A9EFF)" : "var(--nexa-dim, #9A9A9A)", cursor: "pointer", padding: 4, borderRadius: 6 }}
+              style={{ background: "none", border: "none", color: sandboxOpen ? "var(--forge-accent, #4A9EFF)" : "var(--forge-dim, #9A9A9A)", cursor: "pointer", padding: 4, borderRadius: 6 }}
             >
               <PanelRight size={17} />
             </button>
             <button
               onClick={toggleSidebar}
               title="Toggle sidebar (Ctrl+B)"
-              style={{ background: "none", border: "none", color: sidebarMode === "open" ? "var(--nexa-accent, #4A9EFF)" : "var(--nexa-dim, #9A9A9A)", cursor: "pointer", padding: 4, borderRadius: 6 }}
+              style={{ background: "none", border: "none", color: sidebarMode === "open" ? "var(--forge-accent, #4A9EFF)" : "var(--forge-dim, #9A9A9A)", cursor: "pointer", padding: 4, borderRadius: 6 }}
             >
               <PanelLeft size={17} />
             </button>
@@ -471,7 +471,7 @@ export default function Page() {
                 <div style={{ padding: "12px 0", color: "#6A6A6A", fontSize: 13, display: "flex", alignItems: "center", gap: 8 }}>
                   <span style={{ display: "inline-flex", gap: 3 }}>
                     {[0, 1, 2].map((i) => (
-                      <span key={i} style={{ width: 5, height: 5, borderRadius: "50%", background: "#4A9EFF", animation: `nexa-blink 1.2s ease-in-out ${i * 0.15}s infinite` }} />
+                      <span key={i} style={{ width: 5, height: 5, borderRadius: "50%", background: "#4A9EFF", animation: `forge-blink 1.2s ease-in-out ${i * 0.15}s infinite` }} />
                     ))}
                   </span>
                   OpenForge is thinking…

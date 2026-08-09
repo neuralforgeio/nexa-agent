@@ -42,7 +42,7 @@ _SENTIMENTS = ("positive", "negative", "neutral")
 _DETAIL_LEVELS = ("basic", "detailed")
 
 SYSTEM = (
-    "You are a sentiment analysis engine inside the Nexa Agent skills "
+    "You are a sentiment analysis engine inside the OpenForge skills "
     "system. Analyse the sentiment of the user's text at the requested "
     "detail level (basic or detailed). Base your judgement only on the given "
     "text — never assume context that is not present. Respond with a single "

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- WiX installer descriptor for OpenForge (v5 line). -->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package Name="OpenForge" Version="5.0.2" Manufacturer="Dearly Febriano Irwansyah" UpgradeCode="11111111-2222-3333-4444-555555555555">
+    <MajorUpgrade DowngradeErrorMessage="A newer version is already installed." />
+  </Package>
+</Wix>

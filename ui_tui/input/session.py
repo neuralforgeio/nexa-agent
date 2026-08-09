@@ -23,11 +23,11 @@ from prompt_toolkit.styles import Style
 from ui_tui.core.theme import ACCENT, SUCCESS
 
 
-_PROMPT_HTML = "<nexa>nexa</nexa> <b>&gt;</b> "
+_PROMPT_HTML = "<forge>forge</forge> <b>&gt;</b> "
 
 
 def _hist_path() -> Path:
-    p = Path.home() / ".nexa" / "tui_history"
+    p = Path.home() / ".openforge" / "tui_history"
     p.parent.mkdir(parents=True, exist_ok=True)
     return p
 
@@ -36,7 +36,7 @@ def make_prompt_style() -> Style:
     """Toolbar + prompt colours."""
     return Style.from_dict(
         {
-            "nexa": f"fg:{SUCCESS} bold",
+            "forge": f"fg:{SUCCESS} bold",
             "prompt": f"fg:{ACCENT}",
         }
     )

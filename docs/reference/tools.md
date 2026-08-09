@@ -1,6 +1,6 @@
 # OpenForge — Tools Reference
 
-This document describes all available tools in Nexa Agent.
+This document describes all available tools in OpenForge.
 
 ## Tool Registry
 
@@ -14,7 +14,7 @@ Tools are managed by `ToolRegistry` (`tools/registry.py`). Each tool has:
 
 ### read_file
 
-Read the contents of a text file from the Nexa workspace.
+Read the contents of a text file from the Forge workspace.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
@@ -27,7 +27,7 @@ Read the contents of a text file from the Nexa workspace.
 
 ### write_file
 
-Write text content to a file in the Nexa workspace.
+Write text content to a file in the Forge workspace.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
@@ -40,7 +40,7 @@ Write text content to a file in the Nexa workspace.
 
 ### run_terminal_command
 
-Execute a shell command in the Nexa workspace.
+Execute a shell command in the Forge workspace.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|

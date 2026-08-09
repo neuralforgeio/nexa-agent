@@ -41,7 +41,7 @@ __all__ = ["handle"]
 _FOCUS_VALUES = ("bugs", "security", "style", "all")
 
 SYSTEM = (
-    "You are Nexa's code-review engine. You are given the REAL contents of a "
+    "You are Forge's code-review engine. You are given the REAL contents of a "
     "single source file plus a review focus (bugs | security | style | all). "
     "Review only what is actually in the file — report issues that genuinely "
     "exist in the shown code and reference the real line numbers where they "

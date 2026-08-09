@@ -6,7 +6,7 @@ Centralizes all configuration for the OpenForge backend. Loads environment
 variables from a `.env` file (if present) and exposes them as module-level
 constants.
 
-Environment variables (canonical `FORGE_*`; legacy `NEXA_*` honored):
+Environment variables (canonical `FORGE_*`; legacy `FORGE_*` honored):
     FORGE_HOME          — runtime home (default: ~/.openforge)
     FORGE_WORKSPACE     — file/terminal sandbox (default: ~/.openforge/workspace)
     OPENAI_API_KEY      — API key for OpenAI-compatible providers
@@ -56,7 +56,7 @@ def _read_version_from_pyproject() -> str:
 # ---------------------------------------------------------------------------
 # Brand identity
 # ---------------------------------------------------------------------------
-NEXA_NAME: str = "OpenForge"
+FORGE_NAME: str = "OpenForge"
 """The human-readable product name (kept for legacy; use FORGE_NAME in new code)."""
 
 # Canonical constants after the OpenForge rebrand.
@@ -65,14 +65,14 @@ FORGE_AUTHOR: str = "Dearly Febriano Irwansyah"
 
 # v5.0.0 canonical name after the consolidated rebrand: single source of truth.
 FORGE_VERSION: str = _read_version_from_pyproject()
-NEXA_VERSION: str = FORGE_VERSION  # deprecated alias, kept for one MINOR cycle
+FORGE_VERSION: str = FORGE_VERSION  # deprecated alias, kept for one MINOR cycle
 """
 The current semantic version of OpenForge. Read from ``pyproject.toml``
 so there is a single source of truth (no drift between package metadata and
 the runtime banner).
 """
 
-NEXA_AUTHOR: str = FORGE_AUTHOR  # deprecated alias
+FORGE_AUTHOR: str = FORGE_AUTHOR  # deprecated alias
 """The copyright holder and primary author."""
 
 
@@ -80,7 +80,7 @@ NEXA_AUTHOR: str = FORGE_AUTHOR  # deprecated alias
 # v4.1.6: canonical config.yaml as a secondary, human-editable source of truth
 # ---------------------------------------------------------------------------
 
-_NEXA_REPO_META_CACHE: Optional[Dict[str, Any]] = None
+_FORGE_REPO_META_CACHE: Optional[Dict[str, Any]] = None
 
 
 def read_repo_meta() -> Dict[str, Any]:
@@ -96,9 +96,9 @@ def read_repo_meta() -> Dict[str, Any]:
         A dict with keys like ``project.name``, ``project.creator``,
         ``project.repository``; empty dict if the file is unreadable.
     """
-    global _NEXA_REPO_META_CACHE
-    if _NEXA_REPO_META_CACHE is not None:
-        return _NEXA_REPO_META_CACHE
+    global _FORGE_REPO_META_CACHE
+    if _FORGE_REPO_META_CACHE is not None:
+        return _FORGE_REPO_META_CACHE
     try:
         import yaml  # pyyaml from pyproject dependencies
     except ImportError:  # pragma: no cover
@@ -107,12 +107,12 @@ def read_repo_meta() -> Dict[str, Any]:
         cfg_path = Path(__file__).resolve().parent.parent / "config.yaml"
         raw = yaml.safe_load(cfg_path.read_text(encoding="utf-8"))
         # yaml.safe_load returns None on empty file
-        _NEXA_REPO_META_CACHE = dict(raw) if isinstance(raw, dict) else {}
+        _FORGE_REPO_META_CACHE = dict(raw) if isinstance(raw, dict) else {}
     except Exception:
-        _NEXA_REPO_META_CACHE = {}
-    return _NEXA_REPO_META_CACHE
+        _FORGE_REPO_META_CACHE = {}
+    return _FORGE_REPO_META_CACHE
 
-NEXA_TAGLINE: str = "Forge intelligent code, locally."
+FORGE_TAGLINE: str = "Forge intelligent code, locally."
 """A short marketing tagline (deprecated alias; use FORGE_TAGLINE)."""
 
 FORGE_TAGLINE: str = "Forge intelligent code, locally."
@@ -125,7 +125,7 @@ FORGE_HOME: Path = Path(os.environ.get("FORGE_HOME", Path.home() / ".openforge")
 """
 The logical home directory for OpenForge runtime artifacts (sessions, memory,
 logs). Defaults to ``~/.openforge/``. Created on first use. Honors FORGE_HOME
-or legacy NEXA_HOME (via the resolver) but the default lands on .openforge.
+or legacy FORGE_HOME (via the resolver) but the default lands on .openforge.
 """
 
 FORGE_WORKSPACE: Path = Path(
@@ -187,14 +187,14 @@ Optional custom base URL for OpenAI-compatible endpoints (e.g.
 OpenAI endpoint.
 """
 
-NEXA_MODEL: str = os.environ.get("FORGE_MODEL") or os.environ.get("NEXA_MODEL", "gpt-4o")
+FORGE_MODEL: str = os.environ.get("FORGE_MODEL") or os.environ.get("FORGE_MODEL", "gpt-4o")
 """
 The model identifier sent to the provider. Defaults to ``gpt-4o``.
-Reads FORGE_MODEL first; falls back to legacy NEXA_MODEL for one MINOR cycle.
+Reads FORGE_MODEL first; falls back to legacy FORGE_MODEL for one MINOR cycle.
 """
 
-FORGE_MODEL: str = NEXA_MODEL
-"""Canonical name for the model; mirror of NEXA_MODEL until v5.x."""
+FORGE_MODEL: str = FORGE_MODEL
+"""Canonical name for the model; mirror of FORGE_MODEL until v5.x."""
 
 
 # ---------------------------------------------------------------------------

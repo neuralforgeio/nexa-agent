@@ -12,7 +12,7 @@ Design decisions (honest, not over-claimed):
       Paths outside the workspace are rejected. The subprocess still has
       host/network access — this is a boundary, not a sandbox.
     - **Cross-platform executable**: uses :data:`sys.executable` so the
-      same Python interpreter that runs Nexa executes the code (works on
+      same Python interpreter that runs Forge executes the code (works on
       Windows where ``python3`` is usually absent).
     - **HITL approval**: when ``requires_approval`` is ``True`` (the
       default), the ``approval_callback`` is invoked with the code. The
@@ -37,6 +37,7 @@ from pathlib import Path
 from typing import Any, Awaitable, Callable, Dict, Optional
 
 from openforge.config import FORGE_WORKSPACE
+from openforge.path_protection import ensure_safe_write
 
 #: Maximum execution time in seconds.
 DEFAULT_CODE_TIMEOUT: float = 10.0
@@ -114,6 +115,10 @@ async def code_execution(
     workspace = FORGE_WORKSPACE.resolve()
     resolved_cwd = _validate_cwd(cwd, workspace)
 
+    # v3.0.0/v5.0.2: additionally block any request that tries to chdir into
+    # the protected core (~/.openforge/lib) before running.
+    ensure_safe_write(resolved_cwd, "execute")
+
     # --- HITL approval -----------------------------------------------------
     if requires_approval:
         approved = await _request_approval(code, approval_callback)
@@ -124,7 +129,7 @@ async def code_execution(
     # --- Write code to a temp file -----------------------------------------
     # Use a temp file (not python -c) to handle multi-line code reliably.
     with tempfile.NamedTemporaryFile(
-        mode="w", suffix=".py", delete=False, prefix="nexa_exec_", encoding="utf-8"
+        mode="w", suffix=".py", delete=False, prefix="forge_exec_", encoding="utf-8"
     ) as f:
         f.write(code)
         temp_path = f.name
@@ -216,7 +221,7 @@ def _validate_cwd(cwd: Optional[str], workspace: Path) -> Path:
         candidate.relative_to(workspace)
     except ValueError as exc:
         raise ValueError(
-            f"cwd '{cwd}' escapes the nexa workspace ({workspace}). "
+            f"cwd '{cwd}' escapes the forge workspace ({workspace}). "
             f"Code execution is project-scoped for safety."
         ) from exc
     return candidate

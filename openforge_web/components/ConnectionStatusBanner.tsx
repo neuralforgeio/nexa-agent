@@ -96,8 +96,8 @@ export function ConnectionStatusBanner({
 
   const isReconnecting = state === "reconnecting";
   const bg = isReconnecting
-    ? "var(--nexa-warning, #FBBF24)"
-    : "var(--nexa-error, #F87171)";
+    ? "var(--forge-warning, #FBBF24)"
+    : "var(--forge-error, #F87171)";
   const textColor = "#1B1D21";
   const Icon = isReconnecting ? RefreshCw : WifiOff;
 
@@ -117,11 +117,11 @@ export function ConnectionStatusBanner({
         fontWeight: 600,
       }}
     >
-      <Icon size={14} style={isReconnecting ? { animation: "nexa-spin 1.4s linear infinite" } : undefined} />
+      <Icon size={14} style={isReconnecting ? { animation: "forge-spin 1.4s linear infinite" } : undefined} />
       <span style={{ flex: 1 }}>
         {isReconnecting
-          ? "Reconnecting to the Nexa backend…"
-          : "Lost connection to the Nexa backend. Retrying automatically."}
+          ? "Reconnecting to the Forge backend…"
+          : "Lost connection to the Forge backend. Retrying automatically."}
       </span>
       {onRetry && (
         <button

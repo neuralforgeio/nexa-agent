@@ -374,8 +374,8 @@ class TestPromptExpander:
 
     def test_infer_subject_finds_file(self) -> None:
         """A file mention becomes the subject."""
-        result = expand_prompt("fix the bug in nexa/provider.py")
-        assert "nexa/provider.py" in result.subject
+        result = expand_prompt("fix the bug in forge/provider.py")
+        assert "forge/provider.py" in result.subject
 
     def test_expand_for_llm_returns_dict(self) -> None:
         """expand_for_llm returns a plain dict."""

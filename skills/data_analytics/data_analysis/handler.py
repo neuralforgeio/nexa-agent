@@ -43,7 +43,7 @@ __all__ = ["handle"]
 
 
 SYSTEM = (
-    "You are Nexa's data-analysis engine. You are given a data file's REAL "
+    "You are Forge's data-analysis engine. You are given a data file's REAL "
     "contents and, for numeric work, the REAL statistics that were computed "
     "from it by code. Interpret ONLY the numbers and sample rows you are "
     "shown — do not invent figures or findings. Respond with a SINGLE JSON "

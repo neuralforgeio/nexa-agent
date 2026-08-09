@@ -26,10 +26,10 @@ interface SandboxPanelProps {
   width: number;
 }
 
-const STORAGE_KEY = "nexa-sandbox-split";
+const STORAGE_KEY = "forge-sandbox-split";
 
 // If a dev server is detected we prefer that live preview; otherwise the
-// sandbox falls back to Nexa's /api/sandbox/preview (static file serving
+// sandbox falls back to Forge's /api/sandbox/preview (static file serving
 // from the workspace). This lets a plain HTML/CSS/JS project render
 // immediately — no build step needed.
 const DEV_SERVER_CANDIDATES = [
@@ -55,7 +55,7 @@ export function SandboxPanel({ onClose, width }: SandboxPanelProps) {
   }, []);
 
   // Try to detect a running preview server in the workspace.
-  // IMPORTANT: skip Nexa's own dev port (3000) — that would just render the
+  // IMPORTANT: skip Forge's own dev port (3000) — that would just render the
   // agent's own UI inside its own panel (the "recursive iframe" bug).
   const detectPreview = useCallback(async () => {
     // Manual override: a workspace-relative path to render via
@@ -66,7 +66,7 @@ export function SandboxPanel({ onClose, width }: SandboxPanelProps) {
       setPreviewUrl(url);
       return url;
     }
-    // Filter out Nexa's own UI (port 3000) and the llama.cpp router port.
+    // Filter out Forge's own UI (port 3000) and the llama.cpp router port.
     const skip = new Set(["http://localhost:3000", "http://localhost:8080"]);
     for (const url of DEV_SERVER_CANDIDATES) {
       if (skip.has(url)) continue;
@@ -257,7 +257,7 @@ export function SandboxPanel({ onClose, width }: SandboxPanelProps) {
               >
                 <Globe size={28} style={{ opacity: 0.3 }} />
                 <span>
-                  Ask Nexa to build a web project — the preview appears here automatically when a dev server starts.
+                  Ask Forge to build a web project — the preview appears here automatically when a dev server starts.
                 </span>
               </div>
             )}

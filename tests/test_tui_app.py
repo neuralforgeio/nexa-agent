@@ -257,13 +257,13 @@ class TestInputBox:
     """Tests for the input box rendering."""
 
     def test_input_box_renders_prompt(self) -> None:
-        """The input box shows the 'nexa >' prompt."""
+        """The input box shows the 'forge >' prompt."""
         from rich.console import Console
         snap = render_snapshot(TUIState(), current_input="hello")
         console = Console(record=True, width=120)
         console.print(snap)
         output = console.export_text()
-        assert "nexa" in output.lower()
+        assert "forge" in output.lower()
         assert "hello" in output
 
     def test_input_box_shows_streaming_cursor(self) -> None:

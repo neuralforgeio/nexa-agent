@@ -1,7 +1,7 @@
 # Research: Autonomous Agent Development Loop (NADL)
 
 ## Summary
-The "NADL" (Nexa Agent Development Loop) is the on-going autonomy cadence:
+The "NADL" (OpenForge Development Loop) is the on-going autonomy cadence:
 an agent that periodically reviews its own state, plans improvements (or
 fixes), executes them with test gates, and reports metrics. The goal is
 to eliminate rote work without turning the agent into a runaway
@@ -18,7 +18,7 @@ self-modifier.
 - **Cons:** OpenAI-style plans tend to drift; long autonomy requires a
   strong "safety budget" (cost, time, side-effects). A second
   opinion/reviewer agent becomes necessary.
-- **Applied to nexa-agent:** The existing orchestrator already models
+- **Applied to openforge:** The existing orchestrator already models
   phase transitions; the Planner/Coder/Reviewer roles align well with
   this pattern.
 
@@ -27,7 +27,7 @@ self-modifier.
   per-turn affordances (run command / browse / edit / answer).
 - **Pros:** Strong isolation; bundled web server; flexible messaging.
 - **Cons:** Heavyweight; not local-first. Requires infrastructure.
-- **Applied to nexa-agent:** The virtual-agent states map neatly onto
+- **Applied to openforge:** The virtual-agent states map neatly onto
   OpenHands's flow state, but we keep local execution (llama.cpp,
   Ornith) as first-class.
 
@@ -46,7 +46,7 @@ self-modifier.
 | Devin | High | Container | No | Session | Rich | $$$ SaaS |
 | OpenHands | High | Docker | Partial | Session | Medium | $$ Cloud |
 | ZCode (current) | Medium | Per-tool allowlist | Yes | Persistent | Tool API | Free |
-| nexa-agent today | Medium-High | Workspace sandbox | Yes | Persistent | Built-in | Free |
+| openforge today | Medium-High | Workspace sandbox | Yes | Persistent | Built-in | Free |
 
 ## Recommendations
 
@@ -58,7 +58,7 @@ self-modifier.
    to it (no forking).
 
 ## Open Questions
-- Should Nexa expose a "long-running autonomous mode" toggle that
+- Should Forge expose a "long-running autonomous mode" toggle that
   disables human-in-the-loop prompts?
 - Should the v4.3 work be conservative (smaller features spread across
   versions) or move to a unified v5.0 board with bigger alternatives?

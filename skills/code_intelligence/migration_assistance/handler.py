@@ -40,7 +40,7 @@ from skills.registry import SkillInputError
 __all__ = ["handle"]
 
 SYSTEM = (
-    "You are Nexa's migration-planning engine. You are given the REAL "
+    "You are Forge's migration-planning engine. You are given the REAL "
     "contents of a single source file plus a migration FROM a named "
     "framework/language/library version TO another. Produce a practical, "
     "ordered migration plan grounded in the code actually shown: reference "

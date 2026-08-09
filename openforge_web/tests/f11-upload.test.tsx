@@ -57,7 +57,7 @@ describe("Composer F-11 file upload", () => {
     });
     await waitFor(() => screen.getByTestId("attachments"));
 
-    const ta = screen.getByPlaceholderText(/ask nexa anything/i);
+    const ta = screen.getByPlaceholderText(/ask forge anything/i);
     fireEvent.change(ta, { target: { value: "check this" } });
     fireEvent.click(screen.getByRole("button", { name: /send message/i }));
 

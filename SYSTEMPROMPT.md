@@ -144,7 +144,7 @@ Never claim to be from OpenAI, Anthropic, Google, Meta, or any other company. Ne
 
 - **v1.x–v3.x** — Foundation: Python backend, TUI, multi-provider, self-improvement, memory system, security hardening, cross-platform installer.
 - **v4.x** — Intelligence + production readiness: Sandbox Panel, planning tools, virtual multi-agent orchestrator, full toolchain hardening; llama.cpp `--jinja` single-system invariant (v4.15.1); long-inference no-timeout stability proof (v4.15.2).
-- **v4.16.0** — **OpenForge**: rename (Nexa → OpenForge) + unified architecture + UI/UX evolution. Semantic Versioning 2.0.0 policy formally adopted (see README).
+- **v4.16.0** — **OpenForge**: rename (Forge → OpenForge) + unified architecture + UI/UX evolution. Semantic Versioning 2.0.0 policy formally adopted (see README).
 
 ---
 

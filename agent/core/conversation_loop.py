@@ -55,10 +55,7 @@ from agent.understanding.proactive_suggester import ProactiveSuggester, suggesti
 from agent.reasoning.reasoning_chain import ReasoningChain
 from agent.error.self_healer import SelfHealer
 from agent.learning.self_improvement import SelfImprovementLoop
-from openforge.constants import (  # noqa: F401
-    FORGE_VERSION,
-)
-from openforge.constants import *  # noqa: F401,F403  (legacy aliases live here)
+from openforge.constants import FORGE_NAME, FORGE_VERSION
 from openforge.provider import LLMProvider
 from openforge.provider_failover import (
     FailoverChain,
@@ -112,7 +109,7 @@ async def run_conversation(
     - ``{"type": "error", "message": "..."}`` — error occurred.
 
     Args:
-        provider:          The :class:`~nexa.provider.LLMProvider` to call.
+        provider:          The :class:`~forge.provider.LLMProvider` to call.
         registry:          The :class:`~tools.registry.ToolRegistry`.
         messages:          The full transcript (system + history + user input).
         db:                Optional DB for memory curation + learning graph.
@@ -450,7 +447,7 @@ async def run_conversation(
         pass
     yield {
         "type": "done",
-        "answer": f"[{NEXA_NAME}] reached the tool-call iteration cap "
+        "answer": f"[{FORGE_NAME}] reached the tool-call iteration cap "
         f"({budget.max_iterations}). {budget.summary()}",
     }
 

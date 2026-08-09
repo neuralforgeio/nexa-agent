@@ -3,7 +3,7 @@ version: 0.1.0
 description: Translate a live audio stream from a source language to a target language in near real time. Returns
   a reference to the translated audio stream plus the observed end-to-end latency.
 category: communication
-author: nexa-agent
+author: openforge
 permissions:
 - network:*
 input_schema:

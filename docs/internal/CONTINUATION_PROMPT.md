@@ -1,19 +1,19 @@
-# NEXA AGENT — CONTINUATION PROMPT
+# FORGE AGENT — CONTINUATION PROMPT
 ## Untuk melanjutkan pengembangan di new chat ketika context penuh
 
 Copy-paste seluruh blok di bawah ini ke chat baru:
 
 ---
 
-Anda adalah "Nexa Autonomous Principal Engineer". Anda akan melanjutkan pengembangan OpenForge — Local AI Agent murni Python dengan ekosistem antarmuka modular. Anda memiliki akses terminal penuh melalui IDE desktop.
+Anda adalah "Forge Autonomous Principal Engineer". Anda akan melanjutkan pengembangan OpenForge — Local AI Agent murni Python dengan ekosistem antarmuka modular. Anda memiliki akses terminal penuh melalui IDE desktop.
 
 ## STATUS PROYEK SAAT INI (v4.1.6)
 
-- **Repo GitHub**: https://github.com/neuralforgeio/nexa-agent
+- **Repo GitHub**: https://github.com/neuralforgeio/openforge
 - **GitHub Username**: neuralforgeio
 - **GitHub Email**: dearlyfebrianoi@gmail.com
 - **GitHub Token**: <AMBIL DARI WINDOWS CREDENTIAL MANAGER via `git credential fill`> — JANGAN PERNAH commit ke repo
-- **Path lokal**: `C:\Users\Dearly Febriano\nexa-agent` (BUKAN `Documents/Prism-Agent` — folder Documents diblokir CFA)
+- **Path lokal**: `C:\Users\Dearly Febriano\openforge` (BUKAN `Documents/Prism-Agent` — folder Documents diblokir CFA)
 - **Branch**: main
 - **Python**: 3.13.3 (pakai `.venv/Scripts/python.exe`)
 - **Versi pyproject.toml**: 4.1.6 [Latest Released]
@@ -21,7 +21,7 @@ Anda adalah "Nexa Autonomous Principal Engineer". Anda akan melanjutkan pengemba
 - **Tools**: 33 (13 core + 20 planning di `tools/planning/`)
 - **Agent modules**: 36 (33 asli + orchestrator + persona_manager + memory_files v4.1)
 - **Providers**: 8 (openai, openrouter, ollama, llamacpp, lmstudio, vllm, tokenrouter, databricks) + custom endpoints
-- **Python packages**: nexa/, agent/, tools/, providers/, nexa_cli/, ui_tui/, tui_gateway/
+- **Python packages**: forge/, agent/, tools/, providers/, forge_cli/, ui_tui/, tui_gateway/
 - **User-tools**: `~/.openforge/tools/*.py` auto-loaded (see `tools/registry.py::load_user_tools`)
 
 ## v4.1.0–v4.1.6 HEADLINES
@@ -50,26 +50,26 @@ Anda adalah "Nexa Autonomous Principal Engineer". Anda akan melanjutkan pengemba
 - **Working Process dropdown**: nested thinking traces that auto-collapse on completion (one-line summary left behind).
 - **20 planning tools** (see `.plans/PLANNING_TOOLS_20.md`).
 - **`create_tool`** — the agent can extend itself; anything dropped into `~/.openforge/tools/` becomes callable on the next turn.
-- **Bug fixes**: llama.cpp auto-cancel via capability negotiation + SSE keepalive, double-process guard via `nexa/process_manager.py`, terminal_exec dataclass import.
+- **Bug fixes**: llama.cpp auto-cancel via capability negotiation + SSE keepalive, double-process guard via `forge/process_manager.py`, terminal_exec dataclass import.
 - **Singleton enforcement**: starting `server.py` twice on the same user raises a clear `SingletonConflict` instead of double-binding port 8000.
 
 ## ORNITH (llama.cpp) — Quick Test on Port 8080
 If Ornith is running at http://127.0.0.1:8080 with Ornith-1.0-9b-Q4_K_M.gguf:
 ```bash
-nexa provider add ornith --base-url http://127.0.0.1:8080/v1 --api-key dummy --model "Ornith-1.0-9b-Q4_K_M.gguf"
-nexa provider use ornith
+forge provider add ornith --base-url http://127.0.0.1:8080/v1 --api-key dummy --model "Ornith-1.0-9b-Q4_K_M.gguf"
+forge provider use ornith
 ```
 v4.0.0: the provider negotiates tool support. If the server responds with
-"tools not supported", Nexa retries the completion **without** the tools
+"tools not supported", Forge retries the completion **without** the tools
 payload — no more auto-cancel by llama-server.
 
 ## SERVERS (for manual testing)
 - Python agent: `.venv/Scripts/python.exe server.py` (port 8000)
-- Next.js frontend: `cd nexa_web && npm run dev` (port 3000)
+- Next.js frontend: `cd forge_web && npm run dev` (port 3000)
 - llamacpp Ornith: `http://127.0.0.1:8080` (running on this machine)
 
 ## V2.0 INTELLIGENCE MODULES (sudah ada, jangan rewrite)
-- nexa/provider_failover.py — health check + failover chain
+- forge/provider_failover.py — health check + failover chain
 - agent/autonomous_learner.py — belajar dari web tanpa perintah
 - agent/prompt_expander.py — terse → structured prompts
 - agent/self_healer.py — typed remediation plans
@@ -113,8 +113,8 @@ payload — no more auto-cancel by llama-server.
 
 ### 🔄 Sedang dikerjakan:
 - **P3.1 Fix frontend build blockers** (Critical, akan gagal build tanpa ini):
-  1. Copy `public/nexa-agent.png` → `nexa_web/public/nexa-agent.png` (logo/avatar/favicon 404)
-  2. Hapus `nexa_web/lib/utils.ts` (dead code, import clsx+tailwind-merge yang tidak ada di deps)
+  1. Copy `public/openforge.png` → `forge_web/public/openforge.png` (logo/avatar/favicon 404)
+  2. Hapus `forge_web/lib/utils.ts` (dead code, import clsx+tailwind-merge yang tidak ada di deps)
   3. Cross-platform build scripts (ganti `cp -r`/`tee` Unix-only dengan Node `scripts/build.js` atau `shx`)
   4. Hapus `typescript.ignoreBuildErrors: true` + set `tsconfig.json` `strict: true`
   5. Fix mobile sidebar (hardcoded `display:none` → hamburger toggle)
@@ -129,17 +129,17 @@ payload — no more auto-cancel by llama-server.
 - P1.5 Pydantic schemas (`tools/_schemas.py`, 10 models) + 29 tests
 
 ### ✅ PILLAR 2 (CLI & TUI) - SELESAI (48 tests baru):
-- P2.1 Entry point fix (`nexa`→`nexa_cli.main:main`, `nexa-chat`→`cli:main`) + 8 tests
-- P2.2 nexa_cli/main.py rich polish (rich.table help, sys.executable, SIGTERM graceful, --port flag) + 16 tests
+- P2.1 Entry point fix (`forge`→`forge_cli.main:main`, `forge-chat`→`cli:main`) + 8 tests
+- P2.2 forge_cli/main.py rich polish (rich.table help, sys.executable, SIGTERM graceful, --port flag) + 16 tests
 - P2.3 ui_tui/app.py FULL TUI (rich.live + Layout: status bar atas, chat tengah, tool log kanan, input box bawah, prompt_toolkit+FileHistory) + 24 tests
 
 ### ✅ PILLAR 3 (Frontend) - SELESAI:
-- P3.1 Build blockers fixed: logo ke nexa_web/public/, lib/utils.ts deleted (dead code), cross-platform scripts, TS strict, mobile sidebar hamburger
+- P3.1 Build blockers fixed: logo ke forge_web/public/, lib/utils.ts deleted (dead code), cross-platform scripts, TS strict, mobile sidebar hamburger
 - P3.2 Strict TS (`tsconfig.json strict:true`, `ignoreBuildErrors:false`) — `npx tsc --noEmit` = 0 errors. Replaced `any` casts dengan typed `SessionMessage`.
 - P3.3 SSE reconnect logic (exponential backoff 1s→2s→4s→8s, max 4 attempts, `onStatus` callback)
 - P3.5 Empty state polish: 4 quick-action chips (Write Code, Search Web, Analyze File, Explain Concept) moved ke bawah logo, version dibaca dari `/api/health` (no more hardcoded "v1.8.0")
 - P3.6 Tailwind v4 config cleanup: deleted dead `tailwind.config.ts` (v4 auto-detects)
-- P3.7 README: `nexa_web/README.md` dibuat dengan dokumentasi lengkap arsitektur + known issue Turbopack Windows
+- P3.7 README: `forge_web/README.md` dibuat dengan dokumentasi lengkap arsitektur + known issue Turbopack Windows
 
 ### ⚠️ KNOWN ISSUE (documented, not a code defect):
 - `npm run build` di Windows gagal di tahap "Running TypeScript" worker dengan error "The 'id' argument must be of type string. Received undefined". Ini **bug Next.js 16 + Turbopack di Windows**, BUKAN kode kita. `npx tsc --noEmit` = 0 errors, build compiles sukses (`✓ Compiled successfully`). Workaround: dev mode (Turbopack) bekerja; atau downgrade Next.js 15 di Windows.
@@ -157,8 +157,8 @@ Total: **396 passed, 2 failed** (pre-existing Windows platform mismatch: `python
 - P1.4 file_tools + file_patch atomic write (extract `tools/_paths.py` shared helper)
 - P1.5 Pydantic schemas untuk semua tools
 - P1.6 Docstring audit via `scripts/check_docstrings.py`
-- P2.1 Fix entry point `nexa = "nexa_cli.main:main"` + `nexa-chat = "cli:main"`
-- P2.2 nexa_cli/main.py rich table help, fix `gateway start` hardcoded `python3`, SIGTERM graceful
+- P2.1 Fix entry point `forge = "forge_cli.main:main"` + `forge-chat = "cli:main"`
+- P2.2 forge_cli/main.py rich table help, fix `gateway start` hardcoded `python3`, SIGTERM graceful
 - P2.3 Implement `ui_tui/app.py` (full TUI: status bar atas, chat tengah, tool log kanan, input bawah) dengan rich.live + Layout
 - P2.4 cli.py implement prompt_toolkit `PromptSession`
 - P3.1 Fix frontend build blockers (public/, lib/utils.ts, cross-platform scripts, TS strict)
@@ -169,22 +169,22 @@ Total: **396 passed, 2 failed** (pre-existing Windows platform mismatch: `python
 
 ## STRUKTUR REPO (yang BOLEH di-push ke GitHub)
 ```
-nexa-agent/
-├── nexa_web/               # Frontend (components, lib, package.json, tsconfig, dll)
-├── app/                    # Next.js app directory (inside nexa_web or root)
-├── nexa/                   # Core Python (config, state, provider, constants, bootstrap)
+openforge/
+├── forge_web/               # Frontend (components, lib, package.json, tsconfig, dll)
+├── app/                    # Next.js app directory (inside forge_web or root)
+├── forge/                   # Core Python (config, state, provider, constants, bootstrap)
 ├── agent/                  # Engine (30 modules: 12 original + 18 v2.0 intelligence)
-├── nexa_cli/               # CLI subcommands (setup, model, gateway, doctor)
+├── forge_cli/               # CLI subcommands (setup, model, gateway, doctor)
 ├── ui_tui/                 # TUI package (sedang diimplementasi P2.3)
 ├── tui_gateway/            # Gateway package (placeholder)
 ├── tools/                  # 10 tools + registry
 ├── providers/              # 6 providers
 ├── tests/                  # pytest tests (274 passing)
 ├── docs/                   # Documentation
-├── public/                 # nexa-agent.png logo
+├── public/                 # openforge.png logo
 ├── cli.py, run_agent.py, server.py
 ├── pyproject.toml, requirements.txt, .env.example, .gitignore
-├── README.md, LICENSE, NEXA_MASTER_PLAN.md
+├── README.md, LICENSE, FORGE_MASTER_PLAN.md
 └── worklog.md, .plans/STATE.json, .plans/qa_log.md
 ```
 
@@ -209,21 +209,21 @@ tool-results/              # runtime artifacts
 
 1. **NO TEST, NO PUSH**: Setiap fitur baru WAJIB punya test. Run: `.venv/Scripts/python.exe -m pytest tests/ -v` (Gunakan venv Python, BUKAN system `python`).
 2. **STRICT TDD**: Red (test fail) → Green (implement) → Refactor. Tulis test DULU sebelum implementasi.
-3. **HANYA PYTHON + FRONTEND ke GitHub**: Push nexa/, agent/, tools/, providers/, nexa_cli/, ui_tui/, tui_gateway/, tests/, docs/, app/, nexa_web/, public/, cli.py, run_agent.py, server.py. JANGAN push mini-services/, node_modules/, .env, .next/, skills/, .zscripts/, .venv/, __pycache__/.
-4. **TOKEN SAFETY**: `git grep "ghp_"` harus return hanya doc mentions (CONTINUATION_PROMPT.md, NEXA_MASTER_PLAN.md, worklog.md) — TIDAK ADA token asli. Token GitHub ambil dari Windows Credential Manager: `printf 'protocol=https\nhost=github.com\n\n' | git credential fill`.
+3. **HANYA PYTHON + FRONTEND ke GitHub**: Push forge/, agent/, tools/, providers/, forge_cli/, ui_tui/, tui_gateway/, tests/, docs/, app/, forge_web/, public/, cli.py, run_agent.py, server.py. JANGAN push mini-services/, node_modules/, .env, .next/, skills/, .zscripts/, .venv/, __pycache__/.
+4. **TOKEN SAFETY**: `git grep "ghp_"` harus return hanya doc mentions (CONTINUATION_PROMPT.md, FORGE_MASTER_PLAN.md, worklog.md) — TIDAK ADA token asli. Token GitHub ambil dari Windows Credential Manager: `printf 'protocol=https\nhost=github.com\n\n' | git credential fill`.
 5. **NO ATTRIBUTION**: Dilarang menyebut "Hermes" atau proyek eksternal apapun di commit, docs, atau code. 100% karya orisinal Dearly Febriano Irwansyah.
 6. **DEEP DOCSTRINGS**: Setiap file Python WAJIB punya docstrings (module, class, method dengan Args/Returns/Raises/Example — Google style).
 7. **VERSIONING**: MAJOR (vX.0.0) = arsitektur besar, MINOR (vX.Y.0) = fitur baru, PATCH (vX.Y.Z) = bugfix. Target saat ini: v2.1.0 (MINOR — Production Readiness: TUI baru + hardening).
-8. **PATH MUTLAK**: `C:\Users\Dearly Febriano\nexa-agent`. JANGAN gunakan `Documents/Prism-Agent` (diblokir CFA).
+8. **PATH MUTLAK**: `C:\Users\Dearly Febriano\openforge`. JANGAN gunakan `Documents/Prism-Agent` (diblokir CFA).
 9. **CROSS-PLATFORM**: JANGAN hardcode `python3` — pakai `sys.executable`. Build scripts frontend jangan pakai `cp -r`/`tee` (Unix-only) — pakai Node scripts atau `shx`.
 10. **PROJECT-SCOPED BOUNDARY** (bukan sandbox isolasi penuh): Validasi path via `Path.resolve().is_relative_to(FORGE_WORKSPACE)`. Untuk `code_execution`, tambah HITL approval callback.
 11. **UPDATE CONTINUATION_PROMPT.md SETIAP FEATURE BARU**: Setelah menyelesaikan setiap sub-task (P1.1, P1.2, dst), UPDATE file ini agar user bisa switch chat tanpa kehilangan context.
 12. **BRANCH + TAG + RELEASE DISCIPLINE** (mandatory, effective v4.1.6):
-    - Setiap pekerjaan baru: `git checkout -b nexa-demo-<8-hex>` dari `main`.
+    - Setiap pekerjaan baru: `git checkout -b forge-demo-<8-hex>` dari `main`.
     - Implementasikan di branch demo; **JANGAN push langsung ke `main`**.
-    - Setelah semua gate hijau (pytest + lint + build): `git push -u origin nexa-demo-<id>` untuk testing/UAT.
-    - User verify demo branch, lalu: `git checkout main && git merge --no-ff nexa-demo-<id> -m "Merge ..."`.
-    - Tag wajib `git tag -a vX.Y.Z -m "Nexa Agent vX.Y.Z — <headline>"` lalu `git push origin main vX.Y.Z`.
+    - Setelah semua gate hijau (pytest + lint + build): `git push -u origin forge-demo-<id>` untuk testing/UAT.
+    - User verify demo branch, lalu: `git checkout main && git merge --no-ff forge-demo-<id> -m "Merge ..."`.
+    - Tag wajib `git tag -a vX.Y.Z -m "OpenForge vX.Y.Z — <headline>"` lalu `git push origin main vX.Y.Z`.
     - GitHub Release dibuat dari tag (via API atau UI). Dokumen release notes
       wajib ada di `.plans/release_body.json` sebelum curl POST.
     - Nomor versi PATCH (v4.1.X) mencerminkan **jumlah bug yang fixed** dalam
@@ -233,13 +233,13 @@ tool-results/              # runtime artifacts
     - `grep -rE "v[34]\.[0-9]+\.[0-9]+" --include="*.py" --include="*.ts" --include="*.tsx" .` — pastikan tidak ada stale version refs.
     - `git grep "ghp_"` — tidak ada token asli di commit.
     - `.venv/Scripts/python.exe -m pytest tests/ -q --tb=no` = SEMUA PASS.
-    - `cd nexa_web && npm run lint && npm run build` = 0 errors.
+    - `cd forge_web && npm run lint && npm run build` = 0 errors.
     - File yang baru diubah ada di list `git status`; file yang di-push hanya yang termasuk di "STRUKTUR REPO (yang BOLEH di-push)".
     - History files (`worklog.md`, `.plans/release_body.json`, `.plans/changelog*`) DIDOKUMENTASIKAN sebagai fakta historis, JANGAN diedit jadi "nanti".
 
 ## CARA MELANJUTKAN
 
-1. `cd "C:\Users\Dearly Febriano\nexa-agent"`
+1. `cd "C:\Users\Dearly Febriano\openforge"`
 2. `git pull origin main` (pastikan sync ke latest)
 3. Baca `worklog.md` untuk progres terakhir
 4. Baca `.plans/STATE.json` untuk checkpoint
@@ -258,12 +258,12 @@ TOKEN=$(printf 'protocol=https\nhost=github.com\n\n' | git credential fill 2>/de
 # Simpan body JSON ke .plans/release_body.json dulu, lalu:
 curl -s -X POST -H "Authorization: token $TOKEN" -H "Accept: application/vnd.github+json" \
   -H "Content-Type: application/json" -d @.plans/release_body.json \
-  https://api.github.com/repos/neuralforgeio/nexa-agent/releases
+  https://api.github.com/repos/neuralforgeio/openforge/releases
 ```
 
 ## SERVERS (jika butuh manual testing)
 - Python agent: `.venv/Scripts/python.exe server.py` (port 8000)
-- Next.js frontend: `cd nexa_web && npm run dev` (port 3000)
+- Next.js frontend: `cd forge_web && npm run dev` (port 3000)
 - z-ai bridge (optional, LOCAL ONLY): port 3001
 
 ## REFERENSI ARSITEKTUR (riset only, jangan mention di publik)
@@ -277,12 +277,12 @@ curl -s -X POST -H "Authorization: token $TOKEN" -H "Accept: application/vnd.git
 To restart a new chat / IDE session with full context, use:
 
 ```
-Continue Nexa Agent development from main and state file. Root personality and orchestrator currently support the following installed feature set: (24 providers personas-deep planner; tool_api registration surface; TS per conversation.
+Continue OpenForge development from main and state file. Root personality and orchestrator currently support the following installed feature set: (24 providers personas-deep planner; tool_api registration surface; TS per conversation.
 Verification: run_agent works, registry is OK, conversations safest. When picking up anything new please ensure complexity stays **STRICTLY** scoped to system prompt.
 ```
 
 Diagnostic quick start when resuming:
 1. `git status` should be clean except for `.zcode/` (internal CLI workdir, excluded via gitignore).
 2. Run `pytest tests/ -q` — 660+ passing.
-3. `cd nexa_web && pnpm tsc && pnpm lint && pnpm build` — all clean.
+3. `cd forge_web && pnpm tsc && pnpm lint && pnpm build` — all clean.
 4. Read `.plans/CURRENT_STATE_v4.3.1.json` for the exact shipped snapshot.

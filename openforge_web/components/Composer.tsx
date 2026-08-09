@@ -169,7 +169,7 @@ export function Composer({ onSend, onStop, disabled, thinking, showSuggestions }
 
   return (
     <div
-      style={{ background: "linear-gradient(to top, var(--nexa-surface, #141618), transparent)", padding: "0 16px 16px" }}
+      style={{ background: "linear-gradient(to top, var(--forge-surface, #141618), transparent)", padding: "0 16px 16px" }}
       onDrop={onDrop}
       onDragOver={onDragOver}
       onDragLeave={() => setDragging(false)}
@@ -284,7 +284,7 @@ export function Composer({ onSend, onStop, disabled, thinking, showSuggestions }
             onChange={(e) => setValue(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); } }}
             onPaste={onPaste}
-            placeholder={dragging ? "Drop files to attach…" : "Ask Nexa anything…"}
+            placeholder={dragging ? "Drop files to attach…" : "Ask Forge anything…"}
             rows={1}
             disabled={disabled}
             style={{
@@ -329,7 +329,7 @@ export function Composer({ onSend, onStop, disabled, thinking, showSuggestions }
           </button>
         </div>
         <div style={{ textAlign: "center", fontSize: 11, color: "#6A6A6A", marginTop: 8 }}>
-          Nexa can make mistakes. Verify important info.{canSend ? "" : " Drop files here to attach."}
+          Forge can make mistakes. Verify important info.{canSend ? "" : " Drop files here to attach."}
         </div>
       </div>
     </div>

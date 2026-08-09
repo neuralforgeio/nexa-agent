@@ -25,14 +25,14 @@ async def db_with_data(tmp_path, monkeypatch):
     """Provide a DB with seeded conversations for search testing.
 
     v4.15.1: isolate the DB inside the fixture. ``ConversationDB`` reads
-    ``nexa.state.FORGE_DB_PATH`` while :func:`search_sessions` reads
-    ``nexa.config.FORGE_DB_PATH`` (both are by-value snapshot imports taken
+    ``forge.state.FORGE_DB_PATH`` while :func:`search_sessions` reads
+    ``forge.config.FORGE_DB_PATH`` (both are by-value snapshot imports taken
     at module import time), so BOTH module namespaces must be re-pointed to
     ``tmp_path``. Without this the fixture opens the real ``~/.openforge/openforge.db``
     and fails with ``sqlite3.OperationalError`` whenever another test has
     left the global FORGE_HOME/FORGE_DB_PATH in a polluted state.
     """
-    forge_home = tmp_path / ".nexa"
+    forge_home = tmp_path / ".openforge"
     db_path = forge_home / "openforge.db"
     monkeypatch.setattr(_nexa_config, "FORGE_HOME", forge_home)
     monkeypatch.setattr(_nexa_config, "FORGE_DB_PATH", db_path)
@@ -48,7 +48,7 @@ async def db_with_data(tmp_path, monkeypatch):
     await db.add_message(conv1["id"], "assistant", "Python decorators are a powerful feature...")
 
     # Create conversation 2 about file operations.
-    conv2 = await db.create_conversation("File operations with Nexa")
+    conv2 = await db.create_conversation("File operations with Forge")
     await db.add_message(conv2["id"], "user", "Can you write a file for me?")
     await db.add_message(conv2["id"], "assistant", "I will use the write_file tool to create it.")
 

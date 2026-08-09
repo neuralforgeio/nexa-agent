@@ -39,7 +39,7 @@ from skills.registry import SkillInputError
 __all__ = ["handle"]
 
 _SYSTEM_OPTIMIZE = (
-    "You are Nexa's SQL optimization assistant. You are given a REAL SQL "
+    "You are Forge's SQL optimization assistant. You are given a REAL SQL "
     "query and, when available, the database schema it runs against. Suggest "
     "ONLY improvements that genuinely apply to the shown query (indexes, "
     "select-list reduction, JOIN/WHERE restructuring, avoiding SELECT *, "

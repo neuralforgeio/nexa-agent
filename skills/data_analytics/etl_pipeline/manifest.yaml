@@ -3,7 +3,7 @@ version: 0.1.0
 description: Design an ETL pipeline from a source config to a destination config with transformation steps and an
   optional schedule. Returns pipeline code, its config, and validation test results.
 category: data_analytics
-author: nexa-agent
+author: openforge
 permissions:
 - filesystem:workspace:write
 - terminal:execute

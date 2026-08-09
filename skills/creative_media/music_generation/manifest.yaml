@@ -3,7 +3,7 @@ version: 0.1.0
 description: Generate a short music track from a prompt with a target duration and optional genre and mood. Returns
   the workspace path of the audio file plus generation metadata.
 category: creative_media
-author: nexa-agent
+author: openforge
 permissions:
 - network:*
 - filesystem:workspace:write

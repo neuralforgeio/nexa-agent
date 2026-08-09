@@ -3,7 +3,7 @@ version: 0.1.0
 description: Deploy an application directory to a chosen hosting target with a deploy config. Returns the deployment
   URL, the captured deploy logs, and the command to roll back.
 category: devops_operations
-author: nexa-agent
+author: openforge
 permissions:
 - terminal:execute
 - network:*

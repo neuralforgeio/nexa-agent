@@ -1,12 +1,12 @@
 # OpenForge — Project Worklog
 
 > Source of truth for project state across development phases.
-> Owned by: Nexa Architect flow. Last updated: 2026-08-08.
+> Owned by: Forge Architect flow. Last updated: 2026-08-08.
 
 ---
 
 ## Task ID: BUGFIX-v4.15.1 (2026-08-08)
-Agent: Principal Engineer (Autonomous Protocol v8 + Nexa Amandemen v1)
+Agent: Principal Engineer (Autonomous Protocol v8 + Forge Amandemen v1)
 Task: Fix BUG 1 (llama.cpp --jinja P0) + BUG 2 (session_search test pollution P1) per user bug report; release v4.15.1.
 
 Work Log:
@@ -14,7 +14,7 @@ Work Log:
   Audit found BOTH live Jinja violators: conversation_loop.py (mid-array system [already fixed in diff]) AND
   context_compressor.py:142 (summary inserted as a system msg at index 1 — reported by user audit mandate, fixed).
 - S6 EXECUTE: conversation_loop.py (kept diff), run_agent.py (kept diff + restored quick-strip + virtual-agent persona prepend),
-  context_compressor.py (fold summary INTO system[0]), tests/test_session_search.py (monkeypatch nexa.config AND nexa.state -> tmp_path),
+  context_compressor.py (fold summary INTO system[0]), tests/test_session_search.py (monkeypatch forge.config AND forge.state -> tmp_path),
   tests/test_context_compressor.py (NEW regression file).
 - S7 VERIFY (Triad 3/3):
     [E] llama.cpp HTTP probe: mid-system transcript -> HTTP 500 "System message must be at the beginning."; system-first -> accepted.
@@ -35,19 +35,19 @@ POST-RELEASE FOLLOW-UP (v4.15.2, same day):
 ---
 
 ## Task ID: 1
-Agent: Nexa Engineer (main orchestrator)
-Task: Build Nexa Agent v1.0.0 — a clean-room, web-based AI agent (Next.js 16) inspired by the [AI agent] architecture, authored by Dearly Febriano Irwansyah. Implement core agent loop, tool registry, persistent memory, terminal-themed UI.
+Agent: Forge Engineer (main orchestrator)
+Task: Build OpenForge v1.0.0 — a clean-room, web-based AI agent (Next.js 16) inspired by the [AI agent] architecture, authored by Dearly Febriano Irwansyah. Implement core agent loop, tool registry, persistent memory, terminal-themed UI.
 
 Work Log:
-- Invoked the LLM skill to learn the Nexa SDK API (system prompts use role 'assistant'; thinking toggle; chat.completions.create).
-- Created the Nexa core library under `src/lib/nexa/`:
-  - `constants.ts` — NEXA_NAME, NEXA_VERSION (1.0.0), NEXA_AUTHOR, FORGE_HOME (~/.openforge), boot banner/sequence.
+- Invoked the LLM skill to learn the Forge SDK API (system prompts use role 'assistant'; thinking toggle; chat.completions.create).
+- Created the Forge core library under `src/lib/forge/`:
+  - `constants.ts` — FORGE_NAME, FORGE_VERSION (1.0.0), FORGE_AUTHOR, FORGE_HOME (~/.openforge), boot banner/sequence.
   - `types.ts` — NexaMessage, ProviderMessage, ToolSchema, ToolRequest, ToolResult, AgentStep, AgentTurnResult, NexaSession, NexaMemory.
   - `tools/base.ts` — abstract NexaTool contract.
   - `tools/registry.ts` — ToolRegistry (register/has/get/list/schemas/describe/execute with timing).
   - `tools/builtins.ts` — EchoTool, GetTimeTool, CalculateTool (safe recursive-descent parser, no eval), GenerateUuidTool, Base64Tool.
   - `tools/memory-tools.ts` — SaveMemoryTool, RecallMemoryTool, ListMemoryTool, ForgetMemoryTool.
-  - `provider.ts` — LLMProvider wrapping Nexa SDK with a singleton client.
+  - `provider.ts` — LLMProvider wrapping Forge SDK with a singleton client.
   - `memory.ts` — persistent memory CRUD (saveMemory/recallMemory/listMemory/deleteMemory/renderMemoryDigest) backed by Prisma.
   - `agent.ts` — OpenForgeAgent core loop: assembles system prompt (identity + tool catalog + memory digest), calls LLM, parses tool calls (5-level tolerant parser), executes via registry, feeds results back, iterates until final answer or FORGE_MAX_TOOL_ITERATIONS.
 - Prisma schema (`prisma/schema.prisma`): NexaSession, NexaMessage, NexaMemory. Ran `bun run db:push` — DB in sync.
@@ -58,7 +58,7 @@ Work Log:
   - `GET/POST/DELETE /api/memory` — list / create / delete memories.
 - UI (terminal-themed, emerald-on-dark, no indigo/blue):
   - `globals.css` — custom dark palette with emerald accents, scanlines, glow, blink cursor, custom scrollbar, grid background, fade-in animations.
-  - `layout.tsx` — dark mode default, Nexa metadata, Geist Mono primary.
+  - `layout.tsx` — dark mode default, Forge metadata, Geist Mono primary.
   - `page.tsx` — orchestrator: boot sequence → header → sidebar/transcript/composer/memory panel → sticky status bar.
   - Components: BootSequence (typewriter), Markdown (react-markdown + copyable code blocks), ToolStepView (collapsible tool call/result cards), MessageBlock (user/assistant/tool rendering), StatusBar (model/session/status), MemoryPanel (add/search/delete), Sidebar (sessions list), Composer (auto-resize textarea + suggestion chips), Transcript (messages + live pending steps + welcome screen).
 - Fixed two bugs found during agent-browser verification:
@@ -74,7 +74,7 @@ Stage Summary:
   - No duplication, no leaked markup. ✅
   - Mobile (390×844) responsive: hamburger drawer sidebar works. ✅
   - No console errors, no page errors. ✅
-- Branding is 100% Nexa Agent / Dearly Febriano Irwansyah throughout (no references to any upstream project).
+- Branding is 100% OpenForge / Dearly Febriano Irwansyah throughout (no references to any upstream project).
 
 Unresolved Issues / Risks:
 - None blocking. Tool-calling relies on prompt-based structured output (not native function-calling); the tolerant parser handles observed malformations, but edge cases with exotic model outputs could still occur. Mitigated by iteration cap + markup stripping.
@@ -92,17 +92,17 @@ Priority Recommendations for Next Phase:
 ---
 
 ## Task ID: 2
-Agent: Nexa Engineer (cron self-improvement cycle #1)
+Agent: Forge Engineer (cron self-improvement cycle #1)
 Task: Scheduled 15-min self-review. Assess project status, QA via agent-browser, fix bugs, add features, improve styling, update worklog.
 
 Work Log:
-- Read worklog.md (Task 1 complete: Nexa Agent v1.0.0 stable). Checked dev log — all 200s, no errors.
+- Read worklog.md (Task 1 complete: OpenForge v1.0.0 stable). Checked dev log — all 200s, no errors.
 - QA via agent-browser: app loads clean, sessions intact, no console/page errors. Phase 1 stable.
 - Invoked web-search skill to learn `zai.functions.invoke('web_search', ...)` API for a live web_search tool.
 
 ### New features added
-- **Web tools** (`src/lib/nexa/tools/web-tools.ts`):
-  - `WebSearchTool` — live web search via Nexa SDK `functions.invoke('web_search')`. Returns ranked results (title, url, snippet, domain, date). Caps payload.
+- **Web tools** (`src/lib/forge/tools/web-tools.ts`):
+  - `WebSearchTool` — live web search via Forge SDK `functions.invoke('web_search')`. Returns ranked results (title, url, snippet, domain, date). Caps payload.
   - `WebFetchTool` — reads a single URL's content via `functions.invoke('web_reader')` with HTML stripping + truncation.
   - Both registered in `createDefaultToolSet()` (agent now has 11 tools total).
 - **Export-as-Markdown** (`src/app/api/export/[id]/route.ts`):
@@ -117,7 +117,7 @@ Work Log:
   - Per-session export button (download icon → opens `/api/export/:id`).
   - "clear all" action with two-step confirm (click once → "confirm?" → click again → deletes all).
   - Session count badge + total message counter in footer.
-  - Live pulse dot on the Nexa brand logo.
+  - Live pulse dot on the Forge brand logo.
 
 ### Styling polish
 - **Message timestamps**: user/assistant/tool messages now show HH:MM time beside the avatar.
@@ -143,7 +143,7 @@ Work Log:
 - Lint: 0 errors, 0 warnings. ✅
 
 Stage Summary:
-- **Status: STABLE & ENHANCED.** Nexa Agent now has live web access (search + fetch), a slash command system, session export/rename/clear-all, and richer terminal styling. The 429 retry fix makes the agent resilient to transient rate limits.
+- **Status: STABLE & ENHANCED.** OpenForge now has live web access (search + fetch), a slash command system, session export/rename/clear-all, and richer terminal styling. The 429 retry fix makes the agent resilient to transient rate limits.
 - Tool count: 11 (echo, get_time, calculate, generate_uuid, base64, save_memory, recall_memory, list_memory, forget_memory, web_search, web_fetch).
 - All features verified end-to-end via agent-browser with real LLM + real web search calls.
 
@@ -164,12 +164,12 @@ Priority Recommendations for Next Phase:
 ---
 
 ## Task ID: 3
-Agent: Nexa Engineer (user-directed Phase 2 + UI redesign + GitHub release)
-Task: Implement file & terminal tools (Phase 2), redesign UI to modern style, integrate Nexa logo, prepare GitHub release with zip.
+Agent: Forge Engineer (user-directed Phase 2 + UI redesign + GitHub release)
+Task: Implement file & terminal tools (Phase 2), redesign UI to modern style, integrate Forge logo, prepare GitHub release with zip.
 
 Work Log:
 - **Backend Phase 2 — File & Terminal Tools**:
-  - Created `src/lib/nexa/tools/fs-tools.ts` with 4 tools:
+  - Created `src/lib/forge/tools/fs-tools.ts` with 4 tools:
     - `ReadFileTool` — reads text files from a sandboxed workspace (path escape prevention, 100KB/4000-char caps)
     - `WriteFileTool` — writes files (creates parent dirs, overwrites existing)
     - `ListDirTool` — lists directory entries with file/folder icons
@@ -184,18 +184,18 @@ Work Log:
     - Dark: `--bg-primary:#0F0F0F`, `--bg-secondary:#181818`, `--bg-tertiary:#212121`, `--accent-primary:#4A9EFF`
     - Light: `--bg-primary:#FFF`, `--accent-primary:#2563EB`
     - Inter + JetBrains Mono fonts, 6/8/12/16px radius scale
-  - Updated `layout.tsx`: Inter + JetBrains Mono via next/font, Nexa logo in metadata/icons/OG
+  - Updated `layout.tsx`: Inter + JetBrains Mono via next/font, Forge logo in metadata/icons/OG
   - Redesigned `sidebar.tsx`: clean brand header with logo, "New chat" pill button, search bar, sessions grouped by date (Today/Yesterday/Previous 7 Days/Older), hover-reveal export/rename/delete actions, footer with clear-all + author
   - Redesigned `message-block.tsx`: user messages as right-aligned rounded bubbles, assistant messages full-width (no bubble) with logo + name, per-message hover actions (copy/regenerate/like/dislike)
   - Redesigned `markdown.tsx`: code blocks with language label header + copy button, GitHub-flavored tables, styled links/headings/lists/blockquotes
   - Redesigned `tool-step.tsx`: collapsible tool-call cards with accent-subtle background, status dot (success/error), duration display
-  - Redesigned `composer.tsx`: pill-shaped (24px radius), "+" menu button, auto-grow textarea, send button (accent circle), suggestion chips, "Nexa can make mistakes" hint
-  - Redesigned `transcript.tsx`: empty state with large logo + "Halo, saya Nexa" greeting + tagline, thinking dots animation, tool-call counter badge
+  - Redesigned `composer.tsx`: pill-shaped (24px radius), "+" menu button, auto-grow textarea, send button (accent circle), suggestion chips, "Forge can make mistakes" hint
+  - Redesigned `transcript.tsx`: empty state with large logo + "Halo, saya Forge" greeting + tagline, thinking dots animation, tool-call counter badge
   - Redesigned `status-bar.tsx`: slim, model name, session id, message count, ready/running/error status
   - Redesigned `page.tsx`: 3-column layout (sidebar 260px + main + optional panels), slim header with editable title + model selector pill + ⌘K/theme/notes/memory toggles, removed boot sequence (clean ChatGPT-style)
 
 - **Logo Integration**:
-  - Copied `upload/nexa-agent.png` → `public/nexa-agent.png`
+  - Copied `upload/openforge.png` → `public/openforge.png`
   - Used in: sidebar header, assistant message avatar, empty state, layout metadata (favicon, apple icon, OG image)
 
 - **Bug Fix — Malformed JSON tool calls**:
@@ -209,18 +209,18 @@ Work Log:
 - **GitHub Release Preparation**:
   - Set git identity: `neuralforgeio` / `dearlyfebrianoi@gmail.com`
   - Created comprehensive `.gitignore` excluding: node_modules, .next, db/*.db, dev.log, forge-workspace/, upload/, skills/, examples/, Caddyfile, test screenshots
-  - Committed as `feat: Nexa Agent v1.0.0 — initial release` (31 files changed, 2082 insertions, 1352 deletions)
+  - Committed as `feat: OpenForge v1.0.0 — initial release` (31 files changed, 2082 insertions, 1352 deletions)
   - Created annotated tag `v1.0.0`
-  - Added remote: `origin → https://github.com/neuralforgeio/nexa-agent.git`
-  - Created `nexa-agent-v1.0.0.zip` (1.1MB) excluding all panel/runtime files
+  - Added remote: `origin → https://github.com/neuralforgeio/openforge.git`
+  - Created `openforge-v1.0.0.zip` (1.1MB) excluding all panel/runtime files
   - Verified: 0 panel-default files in git tree, logo included, all source files present
   - Note: push requires user authentication (old token compromised, not used)
 
 Stage Summary:
-- **Status: COMPLETE & RELEASE-READY.** Nexa Agent v1.0.0 has 18 tools (including real file & terminal operations), a polished modern-style UI with the Nexa logo, and is committed + tagged + zipped.
+- **Status: COMPLETE & RELEASE-READY.** OpenForge v1.0.0 has 18 tools (including real file & terminal operations), a polished modern-style UI with the Forge logo, and is committed + tagged + zipped.
 - **Verified end-to-end**: write_file creates real files in workspace, run_terminal_command executes shell commands (ls, echo), all UI components render correctly, 0 errors.
 - Tool count: 18 (echo, get_time, calculate, generate_uuid, base64, save_memory, recall_memory, list_memory, forget_memory, web_search, web_fetch, save_note, list_notes, clear_notes, read_file, write_file, list_dir, run_terminal_command)
-- Git: commit `ad2b4f9`, tag `v1.0.0`, remote `origin` set, zip `nexa-agent-v1.0.0.zip` ready.
+- Git: commit `ad2b4f9`, tag `v1.0.0`, remote `origin` set, zip `openforge-v1.0.0.zip` ready.
 
 Unresolved Issues / Risks:
 - **GitHub push requires user action**: the previously-shared token is compromised and must not be used. User must create a new PAT and push. Instructions provided.
@@ -230,12 +230,12 @@ Unresolved Issues / Risks:
 ---
 
 ## Task ID: 4
-Agent: Nexa Engineer (user-directed Master Plan + streaming + color fix)
+Agent: Forge Engineer (user-directed Master Plan + streaming + color fix)
 Task: TUGAS 0-5: Create master plan, analyze [agent architecture], remove all green colors, build streaming backend, integrate frontend streaming, test.
 
 Work Log:
-- **TUGAS 0 — Master Plan**: Created `NEXA_MASTER_PLAN.md` documenting architecture adaptation (Python/FastAPI → Next.js/TS), folder structure, tech stack, execution flow, risk identification. Key adaptation: SSE instead of WebSocket (simpler, native browser support for one-way chat streaming).
-- **TUGAS 1 — Architecture Analysis**: Created `.plans/nexa-architecture-analysis.md` decomposing the agent into 5 subsystems (agent loop, tool system, provider, state, memory) and their Nexa counterparts. Noted: repo can't be fetched from sandbox; analysis based on documented patterns.
+- **TUGAS 0 — Master Plan**: Created `FORGE_MASTER_PLAN.md` documenting architecture adaptation (Python/FastAPI → Next.js/TS), folder structure, tech stack, execution flow, risk identification. Key adaptation: SSE instead of WebSocket (simpler, native browser support for one-way chat streaming).
+- **TUGAS 1 — Architecture Analysis**: Created `.plans/forge-architecture-analysis.md` decomposing the agent into 5 subsystems (agent loop, tool system, provider, state, memory) and their Forge counterparts. Noted: repo can't be fetched from sandbox; analysis based on documented patterns.
 - **TUGAS 2 — Color Cleanup**: Found and removed ALL emerald/green/teal from secondary components (`boot-sequence.tsx` deleted as unused, `command-palette.tsx` and `memory-panel.tsx` sed-replaced emerald→primary). Verified: `grep -rn "emerald\|green-[0-9]\|teal-[0-9]" src/` → 0 results.
 - **TUGAS 3 — Streaming Backend**:
   - Added `LLMProvider.chatCompletionStream()` async generator — tries SDK `stream:true`, handles ReadableStream/SSE/async-iterable Response shapes, falls back to pseudo-streaming.
@@ -245,7 +245,7 @@ Work Log:
   - Added `StreamEvent` type to `types.ts`, `isPureMarkup()` helper to filter tool-call markup from token stream.
 - **TUGAS 4 — Frontend Integration**:
   - Rewrote `send()` in `page.tsx` to consume SSE stream via `fetch` + `ReadableStream` reader.
-  - Real-time token append to assistant message with blinking `nexa-caret`.
+  - Real-time token append to assistant message with blinking `forge-caret`.
   - Tool call/result cards appear inline during streaming.
   - After stream: calls `/api/chat` with `action:"persist"` to save, then reloads authoritative transcript.
   - Added `streamingText` state, `streaming` prop to Transcript/MessageBlock for caret display.
@@ -257,7 +257,7 @@ Work Log:
   - Note: Dev server unstable after manual restarts (Turbopack + Prisma SQLite readonly issue in new route chunks). Server restart resolves it. Browser testing limited by server instability, but all curl tests pass.
 
 Stage Summary:
-- **Status: STREAMING COMPLETE.** Nexa Agent now streams responses token-by-token via SSE, with live tool-call visualization and reliable persistence.
+- **Status: STREAMING COMPLETE.** OpenForge now streams responses token-by-token via SSE, with live tool-call visualization and reliable persistence.
 - Architecture: Master Plan + analysis docs created. All green colors removed. Streaming backend (provider + agent + SSE route) + persistence route working.
 - Tool count: 18 (unchanged). Streaming adds: `chatCompletionStream()`, `runStreaming()`, `/api/chat/stream`, `/api/chat?action=persist`.
 - Key discovery: modern SDK returns a `ReadableStream` (not async-iterable of objects) when `stream:true` — handled with SSE line parser.
@@ -270,7 +270,7 @@ Unresolved Issues / Risks:
 ---
 
 ## Task ID: 5
-Agent: Nexa Engineer (Python backend + UI fix + GitHub push)
+Agent: Forge Engineer (Python backend + UI fix + GitHub push)
 Task: Fix unreadable text, build Python backend, push to GitHub with token, create tags & releases.
 
 Work Log:
@@ -282,12 +282,12 @@ Work Log:
 
 - **Python Backend (backend/)**:
   - Created standalone FastAPI implementation mirroring [agent architecture]:
-    - `nexa/agent.py` — OpenForgeAgent with `run_conversation()` (non-streaming) + `run_streaming()` (async generator yielding events)
-    - `nexa/provider.py` — LLMProvider wrapping AsyncOpenAI with retry/backoff + streaming via `stream=True`
-    - `nexa/state.py` — SQLite + FTS5 (conversations, messages, full-text search via virtual table + triggers)
-    - `nexa/memory.py` — MemoryManager for ~/.openforge/memory/MEMORY.md and USER.md
-    - `nexa/tools/` — 8 tools: echo, calculate, get_time, generate_uuid, read_file, write_file, list_dir, run_terminal_command
-    - `nexa/main.py` — FastAPI gateway: REST endpoints + WebSocket `/ws/chat` for streaming
+    - `forge/agent.py` — OpenForgeAgent with `run_conversation()` (non-streaming) + `run_streaming()` (async generator yielding events)
+    - `forge/provider.py` — LLMProvider wrapping AsyncOpenAI with retry/backoff + streaming via `stream=True`
+    - `forge/state.py` — SQLite + FTS5 (conversations, messages, full-text search via virtual table + triggers)
+    - `forge/memory.py` — MemoryManager for ~/.openforge/memory/MEMORY.md and USER.md
+    - `forge/tools/` — 8 tools: echo, calculate, get_time, generate_uuid, read_file, write_file, list_dir, run_terminal_command
+    - `forge/main.py` — FastAPI gateway: REST endpoints + WebSocket `/ws/chat` for streaming
     - `pyproject.toml` + `requirements.txt` + `README.md`
   - Python syntax validated (ast.parse on all modules)
 
@@ -297,33 +297,33 @@ Work Log:
   - Force pushed main branch (overwrote auto-generated README on remote)
   - Pushed tag `v1.0.0`
   - Created GitHub Release v1.0.0 via API with full release notes
-  - Release URL: https://github.com/neuralforgeio/nexa-agent/releases/tag/v1.0.0
+  - Release URL: https://github.com/neuralforgeio/openforge/releases/tag/v1.0.0
 
 Stage Summary:
-- **Status: PUSHED & RELEASED.** Nexa Agent v1.0.0 is live on GitHub with both TypeScript (Next.js) and Python (FastAPI) backends.
-- Repo: https://github.com/neuralforgeio/nexa-agent
-- Release: https://github.com/neuralforgeio/nexa-agent/releases/tag/v1.0.0
+- **Status: PUSHED & RELEASED.** OpenForge v1.0.0 is live on GitHub with both TypeScript (Next.js) and Python (FastAPI) backends.
+- Repo: https://github.com/neuralforgeio/openforge
+- Release: https://github.com/neuralforgeio/openforge/releases/tag/v1.0.0
 - Token stored securely in ~/.git-credentials for future pushes (never in repo files)
 - UI readability fixed (suggestion chips now clearly visible)
 - 119 source files committed, 0 panel-default files, 0 token leaks
 
 Unresolved Issues / Risks:
 - Dev server instability after manual restarts (Turbopack + Prisma SQLite issue). Original environment-managed server works fine.
-- Python backend is standalone (not running in this environment) — user can run it separately with `uvicorn nexa.main:app --port 8000`
+- Python backend is standalone (not running in this environment) — user can run it separately with `uvicorn forge.main:app --port 8000`
 - Frontend currently uses Next.js API routes (TypeScript backend). To use Python backend, update fetch URLs to point to localhost:8000.
 
 ---
 
 ## Task ID: 6
-Agent: Nexa Engineer (root-level restructure + multi-provider TUI + GitHub cleanup)
+Agent: Forge Engineer (root-level restructure + multi-provider TUI + GitHub cleanup)
 Task: Restructure to root-level ([original]), remove frontend from GitHub, add Ollama/llama.cpp support, build TUI, test in terminal.
 
 Work Log:
 - Analyzed [AI agent] repo structure (subagent research): root-level Python modules, agent/ package, tools/ package, prompt_toolkit + rich TUI.
-- Created NEXA_MASTER_PLAN.md with 6-phase roadmap (restructure → multi-provider → TUI → hardening → tools → distribution).
+- Created FORGE_MASTER_PLAN.md with 6-phase roadmap (restructure → multi-provider → TUI → hardening → tools → distribution).
 - Phase 1 — Root-Level Restructure:
   - Moved all Python from backend/ to repo root (flat structure, no backend/ wrapper).
-  - Root files: cli.py, run_agent.py, provider.py, storage.py, config.py, nexa_bootstrap.py, nexa_constants.py.
+  - Root files: cli.py, run_agent.py, provider.py, storage.py, config.py, forge_bootstrap.py, forge_constants.py.
   - Packages: agent/ (conversation_loop.py, prompt_builder.py), tools/ (registry, file_tools, terminal_tool), providers/ (catalog.py).
   - Removed old agent.py (conflicted with agent/ package) and main.py (FastAPI server — not needed for terminal agent).
 - Removed frontend from git tracking: src/, prisma/, public/, components.json, next.config.ts, tailwind.config.ts, tsconfig.json, package.json, bun.lock, eslint.config.mjs, postcss.config.mjs. Frontend stays local in dev panel only.
@@ -342,22 +342,22 @@ Work Log:
   - CLI help works (cli.py --help, run_agent.py --help).
   - Provider catalog lists all 6 providers.
   - TUI slash commands work (/help shows commands + providers, /provider switches, /model changes, /exit exits).
-  - All 4 tools work: generate_uuid (62445f48-...), write_file (16 bytes), read_file (Hello from Nexa!), run_terminal_command (exit code 0).
+  - All 4 tools work: generate_uuid (62445f48-...), write_file (16 bytes), read_file (Hello from Forge!), run_terminal_command (exit code 0).
   - Agent loop with mock provider: streaming events (thinking → token → done) + SQLite persistence (2 messages saved).
 
 Stage Summary:
 - **Status: ROOT-LEVEL PYTHON AGENT COMPLETE & PUSHED.** GitHub repo now contains ONLY the terminal agent (no frontend, no panel artifacts).
-- Repo: https://github.com/neuralforgeio/nexa-agent — 26 Python files at root level.
+- Repo: https://github.com/neuralforgeio/openforge — 26 Python files at root level.
 - Multi-provider: OpenAI, Ollama, llama.cpp, LM Studio, vLLM, OpenRouter.
 - TUI tested: banner, slash commands, provider switching all functional.
 - Tools tested: all 4 tools (read_file, write_file, terminal, uuid) verified.
 - Agent loop tested: streaming + persistence verified with mock provider.
-- ZIP: nexa-agent-v1.0.0.zip (33KB, 26 files).
+- ZIP: openforge-v1.0.0.zip (33KB, 26 files).
 
 ---
 
 ## Task ID: 7
-Agent: Nexa Engineer (Phase 4 deepening — self-improvement + hardening)
+Agent: Forge Engineer (Phase 4 deepening — self-improvement + hardening)
 Task: Deepen original implementation to match the target feature set: self-improvement loop, context compression, error classifier, self-health, learning graph.
 
 Work Log:
@@ -441,16 +441,16 @@ Work Log:
 - /memories command: accumulated memories displayed with confidence stars ✓
 
 Stage Summary:
-- **Status: PHASE 4 COMPLETE.** Nexa Agent now has self-improvement (gets smarter over time), context compression, error classification, and self-health diagnostics.
+- **Status: PHASE 4 COMPLETE.** OpenForge now has self-improvement (gets smarter over time), context compression, error classification, and self-health diagnostics.
 - 7 new agent/ modules + enhanced storage + enhanced TUI.
 - GitHub: pushed to main, tagged v1.1.0, release created.
-- Release: https://github.com/neuralforgeio/nexa-agent/releases/tag/v1.1.0
-- ZIP: nexa-agent-v1.1.0.zip (66KB, 36 files)
+- Release: https://github.com/neuralforgeio/openforge/releases/tag/v1.1.0
+- ZIP: openforge-v1.1.0.zip (66KB, 36 files)
 
 ---
 
 ## Task ID: 8
-Agent: Nexa Engineer (cron setup + tests + /tools + server.py + v1.0.1 release)
+Agent: Forge Engineer (cron setup + tests + /tools + server.py + v1.0.1 release)
 Task: Replace old cron with complex 30-min cycle, create tests/, add /tools TUI command, add server.py for web UI, version bump to v1.0.1, push.
 
 Work Log:
@@ -480,8 +480,8 @@ Work Log:
 - Updated requirements.txt with all deps (fastapi, uvicorn, rich, prompt_toolkit, tenacity, httpx, pyyaml, pytest)
 - Version bump: 1.0.0 → 1.0.1 (PATCH)
 - Git: commit 945e0f6, tag v1.0.1, pushed to GitHub
-- GitHub release: https://github.com/neuralforgeio/nexa-agent/releases/tag/v1.0.1
-- ZIP: nexa-agent-v1.0.1.zip (75KB, 41 files)
+- GitHub release: https://github.com/neuralforgeio/openforge/releases/tag/v1.0.1
+- ZIP: openforge-v1.0.1.zip (75KB, 41 files)
 
 Stage Summary:
 - **Status: v1.0.1 RELEASED.** 22 tests passing, /tools command working, server.py for web UI, complex cron job active.
@@ -493,7 +493,7 @@ Stage Summary:
 ---
 
 ## Task ID: 9 (Autonomous Cycle — Memory System)
-Agent: Nexa Autonomous Engineer (cron job 274406)
+Agent: Forge Autonomous Engineer (cron job 274406)
 Task: Roadmap item #3 — Memory System: file-based memory (MEMORY.md + USER.md), /memory command, tests.
 
 Work Log:
@@ -515,7 +515,7 @@ Work Log:
   - Digest: empty + with content
   - Sync: rebuild from DB list, empty list
   - Curator integration: writes to files, digest includes files
-- Fixed nexa/provider.py import: '..tools.registry' → 'tools.registry' (absolute import)
+- Fixed forge/provider.py import: '..tools.registry' → 'tools.registry' (absolute import)
 - Fixed test dedup issue: use unique phrase to avoid DB leftover dedup
 - Version bump: 1.1.0 → 1.2.0 (MINOR — new feature)
 - All 45 tests passing (30 existing + 15 new)
@@ -523,14 +523,14 @@ Work Log:
 Stage Summary:
 - **Status: v1.2.0 RELEASED.** Memory system with file persistence complete.
 - GitHub: commit ea98a30 + 01ba560, tag v1.2.0, pushed
-- Release: https://github.com/neuralforgeio/nexa-agent/releases/tag/v1.2.0
+- Release: https://github.com/neuralforgeio/openforge/releases/tag/v1.2.0
 - Tests: 45 passing
 - Next roadmap item: #4 (Subagent Delegation — tools/delegate_tool.py)
 
 ---
 
 ## Task ID: 10 (Autonomous Cycle — Subagent Delegation + Documentation)
-Agent: Nexa Autonomous Engineer (cron job 274439)
+Agent: Forge Autonomous Engineer (cron job 274439)
 Task: Roadmap item #4 — Subagent Delegation + comprehensive documentation update.
 
 Work Log:
@@ -561,7 +561,7 @@ Work Log:
 Stage Summary:
 - **Status: v1.3.0 RELEASED.** Subagent delegation + comprehensive docs complete.
 - GitHub: commit d22aa41, tag v1.3.0, pushed
-- Release: https://github.com/neuralforgeio/nexa-agent/releases/tag/v1.3.0
+- Release: https://github.com/neuralforgeio/openforge/releases/tag/v1.3.0
 - Tests: 58 passing
 - Cron: 274439 (every 30m, merged with documentation + uv/bun requirements)
 - Next roadmap item: #5 (Prompt Builder — dynamic system prompt with active tools + memory + user profile)
@@ -569,7 +569,7 @@ Stage Summary:
 ---
 
 ## Task ID: 11 (Autonomous Cycle — Dynamic Prompt Builder)
-Agent: Nexa Autonomous Engineer (cron job 274439)
+Agent: Forge Autonomous Engineer (cron job 274439)
 Task: Roadmap item #5 — Prompt Builder: dynamic system prompt with active tools + memory + user profile.
 
 Work Log:
@@ -603,14 +603,14 @@ Work Log:
 Stage Summary:
 - **Status: v1.4.0 RELEASED.** Dynamic prompt builder complete.
 - GitHub: commit 8e89645, tag v1.4.0, pushed
-- Release: https://github.com/neuralforgeio/nexa-agent/releases/tag/v1.4.0
+- Release: https://github.com/neuralforgeio/openforge/releases/tag/v1.4.0
 - Tests: 85 passing
 - Next roadmap item: #6 (Terminal Backends — PTY support, output truncation, background processes)
 
 ---
 
 ## Task ID: 12 (QA Cycle #1 — Bug Fix)
-Agent: Nexa QA Specialist (cron job 274527, every 10 min)
+Agent: Forge QA Specialist (cron job 274527, every 10 min)
 Task: Run full test suite + edge case testing. Found and fixed 1 bug.
 
 Work Log:
@@ -636,7 +636,7 @@ Work Log:
 - Version bump: v1.4.0 → v1.4.1 (PATCH)
 - Created .plans/qa_log.md for tracking QA cycles
 - Git: commit 3df48d0, tag v1.4.1, pushed
-- Release: https://github.com/neuralforgeio/nexa-agent/releases/tag/v1.4.1
+- Release: https://github.com/neuralforgeio/openforge/releases/tag/v1.4.1
 
 Stage Summary:
 - **Status: v1.4.1 RELEASED (PATCH).** Bug found by QA cycle, fixed, tested, pushed.
@@ -647,7 +647,7 @@ Stage Summary:
 ---
 
 ## Task ID: 13 (Cron 2 Cycle — Terminal Backends v1.5.0)
-Agent: Nexa Autonomous Principal Engineer (Cron 2: Dev, job 274568)
+Agent: Forge Autonomous Principal Engineer (Cron 2: Dev, job 274568)
 Task: Roadmap #6 — Terminal Backends: PTY support, output truncation, background processes.
 
 Work Log:
@@ -655,8 +655,8 @@ Work Log:
   - Cron 1 (274567): R&D, every 60 min, priority 5
   - Cron 2 (274568): Dev & TDD, every 30 min, priority 10
   - Cron 3 (274569): QA & Release, every 10 min, priority 15
-- Rewrote NEXA_MASTER_PLAN.md: removed all z.ai references, added enterprise roadmap, 3-cron system documentation
-- Cleaned worklog.md: replaced all "Z.ai Code" → "Nexa Engineer"
+- Rewrote FORGE_MASTER_PLAN.md: removed all z.ai references, added enterprise roadmap, 3-cron system documentation
+- Cleaned worklog.md: replaced all "Z.ai Code" → "Forge Engineer"
 - Deepened tools/terminal_tool.py with enterprise features:
   - Configurable timeout (default 15s, custom, max 60s enforcement)
   - Output truncation with [truncated] indicator
@@ -672,7 +672,7 @@ Work Log:
   - Background (spawn, list, kill, nonexistent, empty PID)
   - Env & CWD, blocked patterns, registry integration
 - Updated test_tool_registry.py: 7 tools (was 5)
-- Updated README.md, docs/tools.md, NEXA_MASTER_PLAN.md
+- Updated README.md, docs/tools.md, FORGE_MASTER_PLAN.md
 - Version: v1.4.1 → v1.5.0 (MINOR)
 - All 107 tests passing (87 + 20 new)
 
@@ -685,10 +685,10 @@ Stage Summary:
 ---
 
 ## Task ID: 14 (Cron 1 — R&D: state.py connection pool analysis)
-Agent: Nexa Autonomous Principal Engineer (Cron 1: R&D, job 274567)
+Agent: Forge Autonomous Principal Engineer (Cron 1: R&D, job 274567)
 
 ### R&D FINDINGS
-**Module analyzed**: nexa/state.py (ConversationDB)
+**Module analyzed**: forge/state.py (ConversationDB)
 **Weakness found**: Connection-per-method anti-pattern
 - Every method (15 total) opens a NEW aiosqlite.connect() call
 - No connection pooling or reuse
@@ -708,10 +708,10 @@ Agent: Nexa Autonomous Principal Engineer (Cron 1: R&D, job 274567)
 ---
 
 ## Task ID: 15 (Cron 1+2+3 Combined Cycle — v1.6.0)
-Agent: Nexa Autonomous Principal Engineer (Cron 1+2+3, jobs 274567+274568+274569)
+Agent: Forge Autonomous Principal Engineer (Cron 1+2+3, jobs 274567+274568+274569)
 
 ### Cron 1 (R&D): state.py Connection Pool Analysis
-- Analyzed nexa/state.py: 15 methods, each opens a NEW aiosqlite.connect()
+- Analyzed forge/state.py: 15 methods, each opens a NEW aiosqlite.connect()
 - Weakness: connection-per-method anti-pattern (overhead, no batching, race risk)
 - Superior design: singleton connection pool + transaction context manager
 - Spec written to worklog for future Cron 2 implementation
@@ -740,10 +740,10 @@ Stage Summary:
 ---
 
 ## Task ID: 16 (Cron 1 — R&D: state.py + conversation_loop analysis)
-Agent: Nexa Autonomous Principal Engineer (Cron 1: R&D, job 274692)
+Agent: Forge Autonomous Principal Engineer (Cron 1: R&D, job 274692)
 
 ### R&D FINDINGS
-**Module analyzed**: nexa/state.py (ConversationDB) + agent/conversation_loop.py
+**Module analyzed**: forge/state.py (ConversationDB) + agent/conversation_loop.py
 
 **state.py analysis**:
 - 15 async methods, each opens a NEW aiosqlite.connect()
@@ -771,7 +771,7 @@ Agent: Nexa Autonomous Principal Engineer (Cron 1: R&D, job 274692)
 ---
 
 ## Task ID: 17 (Cron 2+3 — TUI Enhancement + Bug Fix)
-Agent: Nexa Autonomous Principal Engineer (Cron 2+3, jobs 274694+274696)
+Agent: Forge Autonomous Principal Engineer (Cron 2+3, jobs 274694+274696)
 
 ### Cron 2 (Dev): TUI Enhancement
 - Added 3 new slash commands to cli.py:
@@ -782,7 +782,7 @@ Agent: Nexa Autonomous Principal Engineer (Cron 2+3, jobs 274694+274696)
 - Version: v1.6.0 → v1.7.0 (MINOR)
 
 ### Cron 3 (QA): Bug Found + Auto-Heal
-- Bug: /config command imported NEXA_PROVIDER which doesn't exist in nexa/config.py
+- Bug: /config command imported FORGE_PROVIDER which doesn't exist in forge/config.py
 - Fix: removed unused import
 - Tested: /config show and /sessions commands now work correctly
 - Version: v1.7.0 → v1.7.1 (PATCH)
@@ -806,7 +806,7 @@ Agent: Full-Stack Developer
 Task: Restore Next.js Web UI frontend (src/ directory was deleted). Recreate a functional chat UI that connects to the Python agent server on port 8000 via Next.js proxy rewrites.
 
 Work Log:
-- Read worklog.md to understand project context: Nexa Agent v1.7.1 — a Python/FastAPI backend (server.py on port 8000) with SSE streaming chat, sessions CRUD, memory, and self-health endpoints. The Next.js frontend was previously removed from git tracking (kept local only); the `src/` directory had been deleted and needed full restoration.
+- Read worklog.md to understand project context: OpenForge v1.7.1 — a Python/FastAPI backend (server.py on port 8000) with SSE streaming chat, sessions CRUD, memory, and self-health endpoints. The Next.js frontend was previously removed from git tracking (kept local only); the `src/` directory had been deleted and needed full restoration.
 - Installed missing Python backend deps (`fastapi`, `uvicorn[standard]`) into the existing `.venv` via `uv pip install` (with `UV_CACHE_DIR=/tmp/uv-cache` to bypass a permission issue) so the FastAPI server could boot.
 - Started the Python backend: `.venv/bin/python server.py` on port 8000 (verified `GET /api/health` → 200 with tool catalog, `GET /api/sessions` → 200 with conversation list).
 - Created the Next.js 16 frontend (8 files):
@@ -815,17 +815,17 @@ Work Log:
   3. `postcss.config.mjs` — Tailwind v4 `@tailwindcss/postcss` plugin.
   4. `tailwind.config.ts` — content globs + custom dark palette (`bg-primary:#0F0F0F`, `bg-secondary:#181818`, `bg-tertiary:#212121`, `accent:#4A9EFF`, `fg:#ECECEC`, `fg-muted:#9A9A9A`) + Inter / JetBrains Mono font variables.
   5. `src/lib/utils.ts` — `cn()` (clsx + tailwind-merge), `formatTime()`, `formatDate()` helpers.
-  6. `src/app/globals.css` — `@import "tailwindcss"`, CSS variables for the dark theme, custom scrollbar, blinking `nexa-caret` animation for streaming tokens, `fadeIn` animation, `thinking-dot` pulse animation, `.prose-chat` markdown styles (code blocks, headings, lists, blockquotes, links).
+  6. `src/app/globals.css` — `@import "tailwindcss"`, CSS variables for the dark theme, custom scrollbar, blinking `forge-caret` animation for streaming tokens, `fadeIn` animation, `thinking-dot` pulse animation, `.prose-chat` markdown styles (code blocks, headings, lists, blockquotes, links).
   7. `src/app/layout.tsx` — Root layout with `Inter` + `JetBrains_Mono` via `next/font/google`, `<html class="dark">`, metadata title "OpenForge", viewport themeColor `#0F0F0F`, body bg `#0F0F0F` / fg `#ECECEC`.
   8. `src/app/page.tsx` — Single-file functional chat UI (`"use client"`):
      - **Message list**: user messages as right-aligned rounded bubbles; assistant messages full-width with a spark-logo avatar, name, timestamp, and markdown-rendered content (`renderMarkdown()` handles code blocks, inline code, bold, headings, line breaks).
      - **Streaming tokens**: `handleSSE()` reads the response body via `ReadableStreamDefaultReader`, buffers `\n\n`-delimited SSE events, parses `data:` JSON lines, and dispatches on `type`: `session` (sets activeId), `thinking` (shows pulsing dots), `token` (appends text + shows blinking caret), `tool_result` (adds collapsible card), `done` (finalizes answer), `error` (shows error), `end` (clears streaming flag).
      - **Tool result cards**: collapsible (`ToolCard` component) — shows tool name, ok/err badge, duration_ms, and expandable output `<pre>`; border turns red on error.
      - **Composer**: auto-growing `<textarea>` (max 200px), pill-shaped input with accent send button, spinner while sending, Enter to send / Shift+Enter for newline, disabled while streaming.
-     - **Sidebar**: brand header (spark logo + "Nexa Agent v1.6.0"), "New chat" pill button, scrollable sessions list (title, formatted timestamp, message count, hover-reveal delete button), empty state, footer with copyright. Desktop: fixed 260px left column. Mobile: hamburger drawer overlay with backdrop.
+     - **Sidebar**: brand header (spark logo + "OpenForge v1.6.0"), "New chat" pill button, scrollable sessions list (title, formatted timestamp, message count, hover-reveal delete button), empty state, footer with copyright. Desktop: fixed 260px left column. Mobile: hamburger drawer overlay with backdrop.
      - **Session management**: `loadSessions()` from `GET /api/sessions`, `selectSession()` loads messages from `GET /api/sessions/:id` and groups tool messages into the preceding assistant bubble, `deleteSession()` calls `DELETE /api/sessions/:id`, `newChat()` clears state.
      - **Persistence**: after a stream completes, calls `POST /api/chat` with `{action:"persist", sessionId, userMessage, assistantAnswer, toolResults}` then refreshes the sessions list.
-     - **Welcome screen**: large spark logo, "Hello, I'm Nexa" heading, tagline, and a 2×2 grid of clickable suggestion chips ("What time is it in Tokyo?", "Calculate (128 × 9) + 14.5", "Search the web for latest AI news", "List files in the workspace").
+     - **Welcome screen**: large spark logo, "Hello, I'm Forge" heading, tagline, and a 2×2 grid of clickable suggestion chips ("What time is it in Tokyo?", "Calculate (128 × 9) + 14.5", "Search the web for latest AI news", "List files in the workspace").
      - **Error handling**: non-2xx stream responses surface an inline red error banner + an assistant error message; AbortController supports future cancel.
      - **Responsive**: mobile-first, `max-w-3xl` message column, mobile drawer sidebar, touch-friendly 36px+ tap targets, sticky header + composer.
 - Created `eslint.config.mjs` (flat config, ESLint v9) using `@typescript-eslint/parser` with the Next.js globals; ignored `skills/`, `examples/`, `mini-services/`, `tool-results/`, config files. Fixed one `prefer-const` warning → **lint: 0 errors, 0 warnings**.
@@ -834,7 +834,7 @@ Work Log:
 Stage Summary:
 - **Status: FRONTEND RESTORED & VERIFIED.** All 8 requested files created; the Next.js 16 app renders on `http://localhost:3000` with a dark-themed, responsive, streaming chat UI that proxies all `/api/*` calls to the Python FastAPI backend on port 8000.
 - **Verification (curl):**
-  - `GET /` → 200, returns `<!DOCTYPE html><html lang="en" class="dark">…` containing "OpenForge", "Hello, I", "Message Nexa…", and "New chat". ✅
+  - `GET /` → 200, returns `<!DOCTYPE html><html lang="en" class="dark">…` containing "OpenForge", "Hello, I", "Message Forge…", and "New chat". ✅
   - `GET /api/health` (proxied) → 200, returns `{"status":"ok","name":"OpenForge","version":"1.0.0","tools":["read_file","write_file",...],"model":"gpt-4o",...}`. ✅
   - `GET /api/sessions` (proxied) → 200, returns `{"sessions":[{"id":"conv-…","title":"new session","createdAt":…,"updatedAt":…,"messageCount":0},…]}`. ✅
 - **Lint:** `bun run lint` → 0 errors, 0 warnings. ✅
@@ -842,13 +842,13 @@ Stage Summary:
 - **Architecture:** frontend is local-only (never pushed to git, matching the Task 6 decision). The Python backend (`server.py`) is the single source of truth for agent logic, sessions, memory, and tools; the Next.js app is a thin SSE-consuming client + proxy.
 
 Unresolved Issues / Risks:
-- **LLM responses require an API key.** The `.env` only contains `DATABASE_URL`; there is no `OPENAI_API_KEY` / `NEXA_PROVIDER` / `NEXA_MODEL` configured, so `POST /api/chat/stream` currently hangs while the OpenAI client retries against `https://api.openai.com/v1` with no key. The frontend is fully wired to display streaming tokens, tool results, and errors the moment a valid provider is configured (set `OPENAI_API_KEY` for OpenAI, or `NEXA_PROVIDER=ollama` + `OPENAI_BASE_URL=http://localhost:11434/v1` for a local Ollama instance). This is a backend configuration concern, not a frontend defect.
+- **LLM responses require an API key.** The `.env` only contains `DATABASE_URL`; there is no `OPENAI_API_KEY` / `FORGE_PROVIDER` / `FORGE_MODEL` configured, so `POST /api/chat/stream` currently hangs while the OpenAI client retries against `https://api.openai.com/v1` with no key. The frontend is fully wired to display streaming tokens, tool results, and errors the moment a valid provider is configured (set `OPENAI_API_KEY` for OpenAI, or `FORGE_PROVIDER=ollama` + `OPENAI_BASE_URL=http://localhost:11434/v1` for a local Ollama instance). This is a backend configuration concern, not a frontend defect.
 - **Dev-server lifecycle in sandbox:** background processes are reaped when their launching bash session fully exits despite `nohup` + `setsid` + `disown`. Both servers were verified alive and responding within the same command that launched them; if the preview panel shows a connection error, re-run `nohup setsid .venv/bin/python server.py > server.log 2>&1 &` and `nohup setsid bash -c 'cd /home/z/my-project && exec node node_modules/next/dist/bin/next dev -p 3000' > dev.log 2>&1 &`.
 - **Persist grouping heuristic:** when reloading a session's messages from `GET /api/sessions/:id`, tool messages are bucketed into the preceding assistant message; if the backend ever emits tool messages before any assistant message they would be dropped from view (not observed in practice).
 
 
 ## Task ID: 18 (Full-Stack Integration — z-ai Bridge + Web UI + Pipeline)
-Agent: Nexa Autonomous Principal Engineer
+Agent: Forge Autonomous Principal Engineer
 
 ### Achievements
 1. Created 3 new cron jobs (old 3 deleted):
@@ -866,11 +866,11 @@ Agent: Nexa Autonomous Principal Engineer
    - Dark theme (#0F0F0F, #4A9EFF)
    - Proxy: /api/* → http://127.0.0.1:8000/api/*
 4. Configured Python agent to use z-ai bridge:
-   - .env: NEXA_BASE_URL=http://localhost:3001/v1, NEXA_MODEL=glm-4.6
+   - .env: FORGE_BASE_URL=http://localhost:3001/v1, FORGE_MODEL=glm-4.6
 5. Full pipeline verified:
    - Frontend (3000) → Python Agent (8000) → z-ai Bridge (3001) → z-ai SDK → LLM
    - Streaming tokens flow end-to-end
-   - "Say hello" → "Hello! I'm Nexa Agent, ready to assist you with..."
+   - "Say hello" → "Hello! I'm OpenForge, ready to assist you with..."
 6. Keepalive script running (auto-restarts all 3 services if they die)
 
 ### Architecture
@@ -887,12 +887,12 @@ Browser → Next.js (3000) → /api/* proxy → Python Agent (8000) → z-ai Bri
 ---
 
 ## Task ID: 19 (Modular Monorepo + Server Fix)
-Agent: Nexa Autonomous Principal Engineer
+Agent: Forge Autonomous Principal Engineer
 
 ### Achievements
 1. Fixed missing ~/.git-credentials (was deleted, restored with token)
 2. Created modular monorepo packages:
-   - nexa_cli/: CLI subcommands (setup, model, gateway start/stop/status, doctor)
+   - forge_cli/: CLI subcommands (setup, model, gateway start/stop/status, doctor)
    - ui_tui/: TUI package (placeholder for multi-pane dashboard)
    - tui_gateway/: Gateway package (placeholder for WebSocket + static UI)
 3. Created tests/test_nexa_cli.py: 8 new tests
@@ -913,12 +913,12 @@ Agent: Nexa Autonomous Principal Engineer
 ---
 
 ## Task ID: 20 (v2.0.0 — Intelligence Explosion: 18 New Brain Modules)
-Agent: Nexa Autonomous Principal Engineer (Desktop IDE — ZCode)
+Agent: Forge Autonomous Principal Engineer (Desktop IDE — ZCode)
 
 ### Summary
 **MAJOR release v2.0.0.** Added 18 new intelligence modules + 110 tests + full
 integration into the prompt builder, conversation loop, CLI, and HTTP server.
-Nexa Agent can now: failover across providers, learn autonomously from the web,
+OpenForge can now: failover across providers, learn autonomously from the web,
 expand terse prompts, self-heal from errors, reflect on its own behavior, cache
 knowledge, score its own confidence, classify intent, recognize patterns,
 remember errors, synthesize multi-source answers, adapt its persona, suggest
@@ -927,7 +927,7 @@ consolidate memory, and reformulate vague queries.
 
 ### New Modules (18 files)
 
-**nexa/provider_failover.py** — Provider Failover Engine
+**forge/provider_failover.py** — Provider Failover Engine
 - `ProviderHealth`, `ProviderHealthTracker`, `FailoverChain`, `FailoverPolicy`
 - `check_provider_health()` async probe (httpx)
 - `build_default_chain()` + `is_failover_enabled()` env switch
@@ -1067,7 +1067,7 @@ consolidate memory, and reformulate vague queries.
 - **Total: 252 passed, 7 failed (pre-existing Windows platform mismatch)**
 
 ### Bug Fixes
-- `nexa/config.py`: `NEXA_VERSION` now reads from `pyproject.toml` (single source
+- `forge/config.py`: `FORGE_VERSION` now reads from `pyproject.toml` (single source
   of truth). Was hardcoded "1.0.0" — agent had been reporting v1.0.0 in its
   system prompt this whole time despite pyproject being at 1.9.x.
 - `agent/autonomous_learner.py`: expanded `_STOPWORDS` set (was missing "Tell",
@@ -1083,7 +1083,7 @@ consolidate memory, and reformulate vague queries.
 
 ### Security
 - `git grep "ghp_"` returns only documentation mentions (CONTINUATION_PROMPT.md,
-  NEXA_MASTER_PLAN.md, worklog.md) — no actual tokens in tracked files.
+  FORGE_MASTER_PLAN.md, worklog.md) — no actual tokens in tracked files.
 - No new secrets introduced.
 
 ### Verification
@@ -1092,11 +1092,11 @@ consolidate memory, and reformulate vague queries.
 - Full suite: 252 passed, 7 failed (pre-existing, platform-only)
 - server.py imports cleanly, all 8 new routes registered
 - cli.py parses cleanly
-- NEXA_VERSION correctly reads "2.0.0" from pyproject.toml
+- FORGE_VERSION correctly reads "2.0.0" from pyproject.toml
 
 Stage Summary:
 - **Status: v2.0.0 RELEASE-READY.** 18 intelligence modules + 110 tests + full
-  integration. This is the largest single release in Nexa Agent's history.
+  integration. This is the largest single release in OpenForge's history.
 - Tests: 252 passing (up from 142) | Tools: 10 | Agent modules: 12 → 30
 - Next: Push to GitHub, tag v2.0.0, create GitHub Release.
 
@@ -1104,7 +1104,7 @@ Stage Summary:
 ---
 
 ## Task ID: 21 (v2.1.0 — Production Readiness & Full-Stack Polish)
-Agent: Nexa Autonomous Principal Engineer (Desktop IDE — ZCode)
+Agent: Forge Autonomous Principal Engineer (Desktop IDE — ZCode)
 
 ### Summary
 **MINOR release v2.1.0.** Production readiness polish across all 4 pillars:
@@ -1171,13 +1171,13 @@ build blockers.
 ### PILLAR 2 — CLI & TUI (48 new tests)
 
 **P2.1 Entry point fix**
-- Bug: `nexa = "cli:main"` → `nexa setup/model/gateway` fell into the REPL.
-- Fix: `nexa = "nexa_cli.main:main"` (subcommand dispatcher) +
-  `nexa-chat = "cli:main"` (interactive REPL).
-- Updated `packages.find` to include `nexa_cli*`, `ui_tui*`, `tui_gateway*`.
+- Bug: `forge = "cli:main"` → `forge setup/model/gateway` fell into the REPL.
+- Fix: `forge = "forge_cli.main:main"` (subcommand dispatcher) +
+  `forge-chat = "cli:main"` (interactive REPL).
+- Updated `packages.find` to include `forge_cli*`, `ui_tui*`, `tui_gateway*`.
 - 8 tests pass (test_entry_points.py).
 
-**P2.2 nexa_cli/main.py rich polish**
+**P2.2 forge_cli/main.py rich polish**
 - `rich.table.Table` for subcommand help (was plain argparse).
 - Fixed `gateway start` hardcoded `python3` → `sys.executable` (cross-platform).
 - Fixed `gateway stop` `SIGKILL` → `SIGTERM` (graceful) with 3s grace period
@@ -1197,7 +1197,7 @@ build blockers.
 ### PILLAR 3 — Frontend Polish (Next.js)
 
 **P3.1 Critical build blockers fixed:**
-- Copied `public/nexa-agent.png` → `nexa_web/public/nexa-agent.png` (was 404).
+- Copied `public/openforge.png` → `forge_web/public/openforge.png` (was 404).
 - Deleted `lib/utils.ts` (dead code, imported clsx + tailwind-merge not in deps).
   Moved `formatTime`/`formatDate` into `lib/theme.ts`.
 - Cross-platform scripts (removed Unix-only `cp -r`/`tee`).
@@ -1224,7 +1224,7 @@ build blockers.
 - Deleted dead `tailwind.config.ts` (v4 auto-detects content paths).
 
 **P3.7 README:**
-- Created `nexa_web/README.md` with architecture, quick start, known issues.
+- Created `forge_web/README.md` with architecture, quick start, known issues.
 
 ### PILLAR 4 — QA & Release
 
@@ -1238,27 +1238,27 @@ failures (`python3` alias + bash env var expansion) — not regressions.
   in the Next.js 16 Turbopack build worker. This is a Turbopack-on-Windows bug,
   NOT a code defect: `npx tsc --noEmit` passes with 0 errors, and the build
   compiles successfully before the worker crashes. Dev mode works fine.
-  Documented in `nexa_web/README.md` with workarounds.
+  Documented in `forge_web/README.md` with workarounds.
 
 ### Versioning
 - v2.0.0 → **v2.1.0 (MINOR)** — production readiness polish + new TUI module.
 - `pyproject.toml`: 2.0.0 → 2.1.0.
-- `nexa_web/package.json`: 1.6.0 → 2.1.0 (sync).
+- `forge_web/package.json`: 1.6.0 → 2.1.0 (sync).
 
 ### Files Changed
 - New: tools/_paths.py, tools/_schemas.py, ui_tui/app.py,
   tests/test_delegate_tool_fixed.py, test_code_execution_hardened.py,
   test_terminal_tool_hardened.py, test_file_tools_hardened.py,
   test_pydantic_schemas.py, test_entry_points.py, test_nexa_cli_polished.py,
-  test_tui_app.py, nexa_web/README.md, nexa_web/public/nexa-agent.png.
+  test_tui_app.py, forge_web/README.md, forge_web/public/openforge.png.
 - Modified: tools/delegate_tool.py, tools/code_execution_tool.py,
   tools/terminal_tool.py, tools/file_tools.py, tools/file_patch_tool.py,
-  run_agent.py, nexa_cli/main.py, pyproject.toml, nexa_web/{package.json,
+  run_agent.py, forge_cli/main.py, pyproject.toml, forge_web/{package.json,
   tsconfig.json, next.config.ts, app/{layout.tsx,page.tsx}, lib/
 
   stream.ts, theme.ts}}, tests/test_more_tools.py, tests/test_terminal_tool.py,
   CONTINUATION_PROMPT.md, worklog.md, .plans/STATE.json.
-- Deleted: nexa_web/lib/utils.ts, nexa_web/tailwind.config.ts.
+- Deleted: forge_web/lib/utils.ts, forge_web/tailwind.config.ts.
 
 Stage Summary:
 - **Status: v2.1.0 RELEASE-READY.** All 4 pillars complete. 144 new tests.
@@ -1268,7 +1268,7 @@ Stage Summary:
 ---
 
 ## Task ID: 22 (v3.0.0 — Ultimate Enterprise Evolution)
-Agent: Nexa Autonomous Principal Engineer (Desktop IDE — ZCode)
+Agent: Forge Autonomous Principal Engineer (Desktop IDE — ZCode)
 
 ### Summary
 **MAJOR release v3.0.0.** Ultimate Enterprise Evolution: provider expansion
@@ -1291,8 +1291,8 @@ terminal panel with WebSocket backend. 84 new tests (396 → 480 passing).
   `provider.base_url`/`api_key`/`model`/`_client=None` (was dead-code
   scaffold in v2.0).
 - **P0.4 Terminal security**: `is_protected_path_reference()` blocks
-  `~/.openforge/`, `$HOME/.nexa`, `$FORGE_HOME`, `openforge.db`, `.nexa/secrets`,
-  `.nexa/memory`, `.nexa/knowledge`, `.nexa/history`, `.nexa/logs`, and
+  `~/.openforge/`, `$HOME/.openforge`, `$FORGE_HOME`, `openforge.db`, `.openforge/secrets`,
+  `.openforge/memory`, `.openforge/knowledge`, `.openforge/history`, `.openforge/logs`, and
   absolute paths resolving inside FORGE_HOME. The LLM can no longer
   exfiltrate API keys via `cat ~/.openforge/.env`.
 - **P0.5 FORGE_SECRETS_DIR**: new `~/.openforge/secrets/` directory (chmod 700
@@ -1302,10 +1302,10 @@ terminal panel with WebSocket backend. 84 new tests (396 → 480 passing).
 - **P1.1 Catalog**: added `tokenrouter` (https://api.tokenrouter.io/v1,
   default model `auto:balance`) and `databricks` (user-supplied base_url,
   default `databricks-claude-sonnet-4-6`). 8 providers total.
-- **P1.2 ProviderRegistry** (`nexa/provider_registry.py`): runtime
+- **P1.2 ProviderRegistry** (`forge/provider_registry.py`): runtime
   management with secrets stored in `~/.openforge/secrets/providers.json`.
   `list_all()` masks API keys as `tr_...wxyz`.
-- **P1.3 Interactive CLI**: `nexa provider add/use/list/remove/test`
+- **P1.3 Interactive CLI**: `forge provider add/use/list/remove/test`
   subcommands. `add` prompts for name, base_url, api_key (hidden), model.
 - **P1.4 Slash commands**: `/provider list|use|test|add|remove` in CLI
   + TUI dispatcher (`_handle_tui_slash_command`).
@@ -1337,7 +1337,7 @@ terminal panel with WebSocket backend. 84 new tests (396 → 480 passing).
 
 ### P4 — Services & E2E
 - Backend `server.py` running on port 8000 (30 routes, health 200).
-- Frontend `nexa_web` dev server on port 3000 (HTTP 200).
+- Frontend `forge_web` dev server on port 3000 (HTTP 200).
 - Provider API tested: POST /api/provider add tokenrouter → masked key
   `tr_...2345`, active switched.
 - Terminal security tested: `cat ~/.openforge/.env` → blocked with clear message.
@@ -1352,14 +1352,14 @@ terminal panel with WebSocket backend. 84 new tests (396 → 480 passing).
 ### Stats
 - **Tests**: 396 → 480 (+84 new: 20 terminal security, 16 provider
   registry, 7 catalog extended, 10 provider CLI, 28 systemprompt/license).
-- **New files**: SYSTEMPROMPT.md, nexa/provider_registry.py,
-  nexa_web/components/SettingsPanel.tsx, nexa_web/components/TerminalPanel.tsx,
+- **New files**: SYSTEMPROMPT.md, forge/provider_registry.py,
+  forge_web/components/SettingsPanel.tsx, forge_web/components/TerminalPanel.tsx,
   .plans/ROADMAP_20_FEATURES.md, .plans/TODO_MASTER.md.
 - **Modified**: run_agent.py, agent/conversation_loop.py, tools/terminal_tool.py,
-  nexa/config.py, providers/catalog.py, nexa_cli/main.py, cli.py,
-  ui_tui/app.py, server.py, nexa_web/{app/page.tsx, components/{Sidebar.tsx,
+  forge/config.py, providers/catalog.py, forge_cli/main.py, cli.py,
+  ui_tui/app.py, server.py, forge_web/{app/page.tsx, components/{Sidebar.tsx,
   MessageBubble.tsx}, lib/{stream.ts, theme.ts}}, pyproject.toml,
-  nexa_web/package.json, docs/providers.md, LICENSE, worklog.md,
+  forge_web/package.json, docs/providers.md, LICENSE, worklog.md,
   .plans/STATE.json, CONTINUATION_PROMPT.md.
 - **Frontend**: TypeScript strict mode, 0 errors (`npx tsc --noEmit`).
 
@@ -1377,7 +1377,7 @@ Stage Summary:
 ---
 
 ## Task ID: 23 (v3.1.0 — Enterprise Features + Installer + Windows Fixes)
-Agent: Nexa Autonomous Principal Engineer (Desktop IDE — ZCode)
+Agent: Forge Autonomous Principal Engineer (Desktop IDE — ZCode)
 
 ### Summary
 **MINOR release v3.1.0.** Added 4 enterprise features from the 20-feature
@@ -1396,7 +1396,7 @@ Python+uv setup), comprehensive manual testing guide, and fixed the last
 ### Installer Scripts (cross-platform one-liner)
 - `scripts/install.sh` (Linux/macOS): `curl -fsSL ... | bash` — auto-detects/
   installs Python 3.11+ via apt/brew/dnf/yum/pacman, installs uv, clones
-  repo, creates venv, installs deps, runs `nexa setup`.
+  repo, creates venv, installs deps, runs `forge setup`.
 - `scripts/install.ps1` (Windows): `irm ... | iex` — auto-installs Python
   via winget, git, uv, clones, venv, deps, setup.
 
@@ -1424,7 +1424,7 @@ Python+uv setup), comprehensive manual testing guide, and fixed the last
 - `TurnTrajectory` dataclass with session_id, turn_id, user_message,
   system_prompt (truncated to 2KB), tool_calls, assistant_response, errors,
   confidence, timestamp.
-- Enabled via `NEXA_TRAJECTORY=1`.
+- Enabled via `FORGE_TRAJECTORY=1`.
 - Wired into `conversation_loop` (records on `done` event).
 - 15 tests.
 
@@ -1468,7 +1468,7 @@ Stage Summary:
 ---
 
 ## Task ID: 24 (v3.1.0+ — Ornith Integration + Manual Guide + v3.1.0 Release)
-Agent: Nexa Autonomous Principal Engineer (Desktop IDE)
+Agent: Forge Autonomous Principal Engineer (Desktop IDE)
 
 ### Summary
 - Fixed 2 pre-existing Windows test failures (0 failures now, 552 passing)
@@ -1486,7 +1486,7 @@ Agent: Nexa Autonomous Principal Engineer (Desktop IDE)
 
 ### v3.1.0 Release Content
 - **Ask Question Mode**: Quick Q&A shortcut for factual questions
-- **Trajectory Export**: JSONL for fine-tuning dataset (via NEXA_TRAJECTORY=1)
+- **Trajectory Export**: JSONL for fine-tuning dataset (via FORGE_TRAJECTORY=1)
 - **File Patch Rollback**: `.bak` history + `revert_file` tool (11th tool)
 - **Semantic Vector Memory**: TF-IDF-based recall in `~/.openforge/memory/semantic.jsonl`
 - **70 new tests** (482 → 552 passing)
@@ -1541,7 +1541,7 @@ User-extensible: any ``~/.openforge/tools/*.py`` file exporting ``async def
    keepalive pings prevent the browser from closing during long thinking.
 2. **Double-process startup** — duplicate ``python server.py`` invocations
    now fail fast with instructions instead of silently double-binding.
-   See `nexa/process_manager.py`.
+   See `forge/process_manager.py`.
 3. **'(no response)' bug** — was a cascade from (1) plus a chat UI that
    didn't surface provider-level error events. Fixed by emitting distinct
    SSE error events and rendering them as the assistant's final content.
@@ -1549,7 +1549,7 @@ User-extensible: any ``~/.openforge/tools/*.py`` file exporting ``async def
 5. **v3.1 tests hard-coded tool counts (11)** → updated to 33 for v4.0.
 
 ### Internal hardening
-- `nexa/process_manager.py` — PID-based singleton across processes
+- `forge/process_manager.py` — PID-based singleton across processes
   (Windows ctypes OpenProcess + POSIX kill(pid,0)), stale-lock recovery.
 - `agent/memory_files.py` — reads ``~/.openforge/USER.md`` (root) and
   ``~/.openforge/PROCEDURES.md`` if present, so users can quick-edit from
@@ -1568,20 +1568,20 @@ User-extensible: any ``~/.openforge/tools/*.py`` file exporting ``async def
 - SYSTEMPROMPT.md — to update next release.
 
 ### Files Added
-- nexa/process_manager.py
+- forge/process_manager.py
 - tools/planning/{__init__,todos,scratchpad,fs_intelligence,git_tools,process_tools,knowledge_tools,self_extend}.py
 - tests/test_planning_tools.py
 - .plans/PLANNING_TOOLS_20.md, .plans/FILE_ORGANIZATION.md
 
 ### Files Modified
-- nexa/provider.py (capability negotiation, keepalive-friendly)
+- forge/provider.py (capability negotiation, keepalive-friendly)
 - server.py (singleton guard + sandbox endpoints + SSE keepalive)
 - tools/registry.py (register_planning_tools + load_user_tools)
 - agent/memory_files.py (root USER.md/PROCEDURES.md hooks)
-- nexa_web/app/page.tsx (v4.0 — sandbox + working process + shortcuts)
-- nexa_web/components/SandboxPanel.tsx (workspace-path override + dev-server autodetect)
-- nexa_web/components/TerminalPanel.tsx (StrictMode-safe init)
-- nexa_web/components/Sidebar.tsx (already collapsible; Ctrl+B toggle added)
+- forge_web/app/page.tsx (v4.0 — sandbox + working process + shortcuts)
+- forge_web/components/SandboxPanel.tsx (workspace-path override + dev-server autodetect)
+- forge_web/components/TerminalPanel.tsx (StrictMode-safe init)
+- forge_web/components/Sidebar.tsx (already collapsible; Ctrl+B toggle added)
 - tests/test_planning_tools.py, tests/test_memory_system.py (isolation fixed)
 
 
@@ -1745,7 +1745,7 @@ v4.2.1.
   regression cases for `test_terminal_tool`, `test_delegate_tool`,
   `test_file_patch`, `test_pydantic_schemas`.
 - Result (full suite): **633 → 636** passing; the live llama.cpp E2E run adds
-  7 more under `NEXA_E2E_LLAMACPP=1` (those are gated by env).
+  7 more under `FORGE_E2E_LLAMACPP=1` (those are gated by env).
 
 ### Docs
 - `README.md` version banner, install scripts, `docs/MANUAL_TESTING_GUIDE.md`,
@@ -1755,7 +1755,7 @@ v4.2.1.
 ---
 
 ## Task ID: 28 (v4.3.0 — Agent Skills Registry + Foundation: Tool API + Gateways)
-Agent: Nexa autonomously planned
+Agent: Forge autonomously planned
 
 ### Summary
 - agent/tool_api.py: public API for user tools (register_tool/unregister_tool,
@@ -1779,8 +1779,8 @@ Foundation for the 40-skill system. New `skills/` package:
 - `skills/registry.py` — filesystem-backed registry: YAML manifest parse +
   validate (required fields, semver, snake_case name, 6-category whitelist,
   strict permission grammar like `filesystem:workspace:write` / `network:*`),
-  category scan + register, env-gated enable/disable (`NEXA_SKILLS_ENABLED` /
-  `NEXA_SKILLS_DISABLED`), lazy handler import, and a symmetric JSON-Schema
+  category scan + register, env-gated enable/disable (`FORGE_SKILLS_ENABLED` /
+  `FORGE_SKILLS_DISABLED`), lazy handler import, and a symmetric JSON-Schema
   subset validator (`validate_schema`) used for both input and output.
 - `skills/__init__.py` — facade so callers only need `import skills`.
 - `skills/_llm.py` — provider-agnostic chat adapter (`chat`, `chat_json`,
@@ -1797,7 +1797,7 @@ Foundation for the 40-skill system. New `skills/` package:
   env-gated/skipped (no live server auto-started).
 - Honest-testing note: providers in unit tests are *scripted stand-ins* for
   the LLM boundary only; all registry/schema/filesystem logic runs for real.
-  Live llama.cpp skill tests live under `NEXA_E2E_LLAMACPP=1` (Phase 9).
+  Live llama.cpp skill tests live under `FORGE_E2E_LLAMACPP=1` (Phase 9).
 
 ### Packaging
 - `pyproject.toml` packages.find now includes `skills*`.
@@ -1837,7 +1837,7 @@ infrastructure_as_code, deployment_automation (honest no-creds stub), monitoring
 ### Tests
 - 40 skill handler test files (≥4-8 tests each) + infra + integration.
 - Full suite at Phase 8 entry: 957 passing (up from 660 baseline), 0 failures.
-- Skipped: 17 (17 llama.cpp E2E gated by NEXA_E2E_LLAMACPP=1).
+- Skipped: 17 (17 llama.cpp E2E gated by FORGE_E2E_LLAMACPP=1).
 
 ### Key bugfixes during implementation
 - `.gitignore` removed `skills/` entry (was silently blocking all 40).
@@ -1860,7 +1860,7 @@ Agent: ZCode
   with full manifest metadata) and `POST /api/skills/{name}/execute` (run a skill
   with input validation, permission gating, and output validation; 400 on bad
   input, 403 on disabled skill, 404 on unknown name, 502 on invalid model output).
-- `nexa_web/components/SettingsPanel.tsx`: added a "Skills" tab to the settings
+- `forge_web/components/SettingsPanel.tsx`: added a "Skills" tab to the settings
   dialog. Grid of category filters, live search, per-skill expand/collapse to
   show manifest details + example input, execute button, and inline result
   viewer. Non-blocking; panel works alongside the existing Providers tab.
@@ -1871,7 +1871,7 @@ Agent: ZCode
 - `tests/test_skills_api.py`: 12 integration tests for the two endpoints
   (list shape, category filter, 404/403/400 paths, execute round-trip).
 - `tests/test_skills_real_llm.py`: 10 tests against live llama.cpp (skipped
-  by default; run with `NEXA_E2E_LLAMACPP=1`).
+  by default; run with `FORGE_E2E_LLAMACPP=1`).
 
 Stage Summary:
 - v4.4.0 Phase 8 — API + frontend + docs wired up.
@@ -1893,7 +1893,7 @@ Agent: ZCode autonomy loop (POST-WORKLOG)
 
 ### Tests
 - 957 passed, 0 failed (up from 660 baseline).
-- Skipped: 17 (17 llama.cpp E2E gated by NEXA_E2E_LLAMACPP=1).
+- Skipped: 17 (17 llama.cpp E2E gated by FORGE_E2E_LLAMACPP=1).
 - Type-check (tsc --noEmit): clean.
 - Build (next build): clean.
 
@@ -1937,7 +1937,7 @@ Files created:
 - Full suite: 957→980 passing (delta = +23 TUI checks)
 
 ### Breaking changes
-None. Old `python -m ui_tui.app` still works; `nexa-tui` now launched via `pyproject`.
+None. Old `python -m ui_tui.app` still works; `forge-tui` now launched via `pyproject`.
 
 Stage Summary:
 - v4.4.0→v4.5.0 — Batch 9 shipped. TUI can now run without a browser.
@@ -1961,7 +1961,7 @@ mapped in `ui_tui/commands.py`. v4.6.0 adds a few minor fixes in the test suite 
 
 ### Breaking changes
 None. `ui_tui/app.py` is still importable; the `apply_event` state reducer now lives in `ui_tui/state.py`.
-The entry point remains `python -m ui_tui.app` (or `nexa-tui`).
+The entry point remains `python -m ui_tui.app` (or `forge-tui`).
 
 Stage Summary:
 - v4.6.0 — restructure shipped.
@@ -1991,7 +1991,7 @@ of the best, and slash commands can quickly jump from idea through the
 - NEW: `ui_tui/theme.py` — hex palette + text styles
 - NEW: `.plans/TODO.md` → v4.6.0 entry
 - MOD: pyproject.toml version 4.5.0 → 4.6.0
-- MOD: pyproject.toml [scripts] now exports `nexa-tui`
+- MOD: pyproject.toml [scripts] now exports `forge-tui`
 
 ### Tests
 - 24 existing TUI tests preserved (backwards compat)
@@ -2040,9 +2040,9 @@ Three real bugs from GLM's QA pass on v4.6.0, all in the Batch-8 skills surface:
       backslash paths.
 
 - **BUG-03 (P2)** — installers (`install.sh`, `install.ps1`) only TOLD users
-  to run `npm install` for nexa_web — fresh clones hit six "Module not found"
+  to run `npm install` for forge_web — fresh clones hit six "Module not found"
   errors on `npm run build`.
-    * Fixed: both installers now auto-run `npm install` in `nexa_web` when npm
+    * Fixed: both installers now auto-run `npm install` in `forge_web` when npm
       is present, and skip gracefully (with a clear note) when it isn't.
     * Added regression tests asserting the step exists and is graceful.
 

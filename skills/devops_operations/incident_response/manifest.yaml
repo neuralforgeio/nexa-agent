@@ -3,7 +3,7 @@ version: 0.1.0
 description: Triage an incident from its description, severity, and affected services. Returns a triage assessment,
   safe-to-automate runbook steps, and an escalation plan.
 category: devops_operations
-author: nexa-agent
+author: openforge
 permissions:
 - filesystem:workspace
 - terminal:execute

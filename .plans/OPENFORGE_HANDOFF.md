@@ -8,7 +8,7 @@
 
 ## ⚠️ CRITICAL CONTEXT (read first)
 
-**Original folder:** `C:\Users\Dearly Febriano\nexa-agent` → will become `C:\Users\Dearly Febriano\openforge`
+**Original folder:** `C:\Users\Dearly Febriano\openforge` → will become `C:\Users\Dearly Febriano\openforge`
 
 **What just happened before this handoff:** I completed Phases 1–2 of the
 OpenForge refactor (mega-prompt) and everything was committed, tagged, and pushed.
@@ -20,7 +20,7 @@ OpenForge refactor (mega-prompt) and everything was committed, tagged, and pushe
 3896040 feat!: Phase 1 — OpenForge rebrand surface (v4.16.0)
 ```
 
-Remote `origin` still points to `github.com/neuralforgeio/nexa-agent`. That is fine —
+Remote `origin` still points to `github.com/neuralforgeio/openforge`. That is fine —
 the URL name doesn't break anything; GitHub redirects after a repo-rename. If you
 want to change it later for cleanliness:
 
@@ -44,7 +44,7 @@ Do it only after the folder is renamed, in the new session.
       S3.3 → Wire all hardcoded paths through resolver
       S3.4 → Installer rewrite (install.sh/ps1 → lib/)
       S3.5 → CLI subcommands: update, rollback, migrate
-      S3.6 → Migration `~/.nexa`→`~/.openforge` with backup/verify
+      S3.6 → Migration `~/.openforge`→`~/.openforge` with backup/verify
       Gate: pytest ≥1097, doctor green → tag v4.18.0
 - [ ] **Phase 4** — Web UI Overhaul (Tailwind/Next) → v4.19.0
 - [ ] **Phase 5** — TUI Rewrite (Textual) → v4.20.0
@@ -67,7 +67,7 @@ Do it only after the folder is renamed, in the new session.
 
 ## 🛡️ SECURITY/SAFETY REMINDERS
 
-- `tools/terminal_tool.py` blocks BOTH legacy `~/.nexa/` and new `~/.openforge/` — do not remove.
+- `tools/terminal_tool.py` blocks BOTH legacy `~/.openforge/` and new `~/.openforge/` — do not remove.
 - The `~/.openforge/lib/` will be installed read-only in Phase 3; keep chmod semantics in install script.
 - `public/icons/` logos already have transparent backgrounds (Pillow-processed, verified).
 

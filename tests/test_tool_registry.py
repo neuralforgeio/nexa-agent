@@ -108,7 +108,7 @@ async def test_unknown_tool_fails_gracefully(registry: ToolRegistry) -> None:
 @pytest.mark.asyncio
 async def test_write_and_read_file(registry: ToolRegistry) -> None:
     """write_file then read_file must round-trip the content."""
-    content = "Hello from Nexa Agent test!"
+    content = "Hello from OpenForge test!"
     write_result = await registry.execute("write_file", path="test_round_trip.txt", content=content)
     assert write_result.ok is True
     assert "wrote" in write_result.output

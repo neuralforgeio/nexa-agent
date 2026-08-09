@@ -83,7 +83,7 @@ class BackgroundProcess:
     Tracks a background process spawned by the agent.
 
     Attributes:
-        pid:        The unique process ID (Nexa-assigned, not OS PID).
+        pid:        The unique process ID (Forge-assigned, not OS PID).
         command:    The shell command that was executed.
         process:    The underlying ``asyncio.subprocess.Process`` object.
         started_at: The Unix timestamp when the process was started.
@@ -113,7 +113,7 @@ class BackgroundProcess:
         }
 
 
-#: Registry of background processes, keyed by Nexa-assigned PID.
+#: Registry of background processes, keyed by Forge-assigned PID.
 _background_processes: Dict[str, BackgroundProcess] = {}
 
 
@@ -126,7 +126,7 @@ async def run_terminal_command(
     **_: Any,
 ) -> str:
     """
-    Execute a shell command in the nexa workspace.
+    Execute a shell command in the forge workspace.
 
     The command runs via ``asyncio.create_subprocess_shell`` with full
     async I/O. stdout and stderr are captured and truncated to prevent
@@ -316,7 +316,7 @@ async def list_background_processes(**_: Any) -> str:
 
 async def kill_background_process(pid: str, **_: Any) -> str:
     """
-    Terminate a background process by its Nexa-assigned PID.
+    Terminate a background process by its Forge-assigned PID.
 
     Args:
         pid: The process ID (e.g., ``"bg-a1b2c3d4"``).
@@ -391,7 +391,7 @@ def _validate_cwd(cwd: Optional[str]) -> Path:
         candidate.relative_to(workspace)
     except ValueError as exc:
         raise ValueError(
-            f"cwd '{cwd}' escapes the nexa workspace ({workspace}). "
+            f"cwd '{cwd}' escapes the forge workspace ({workspace}). "
             f"Terminal commands are project-scoped for safety."
         ) from exc
     return candidate
@@ -463,36 +463,36 @@ def _prune_completed_processes() -> int:
 import re as _re
 
 #: Patterns that indicate a command tries to access FORGE_HOME (~/.openforge/)
-#: or its legacy alias (~/.nexa/) — both must stay blocked (post-rename backward
+#: or its legacy alias (~/.openforge/) — both must stay blocked (post-rename backward
 #: compat + migration protection).
 #: Each is matched case-insensitively against the command string.
 _PROTECTED_PATH_PATTERNS: list[str] = [
     r"~/\.openforge",        # ~/.openforge/...
-    r"~/\.nexa",             # ~/.nexa/... (legacy)
+    r"~/\.openforge",             # ~/.openforge/... (legacy)
     r"\$HOME/\.openforge",   # $HOME/.openforge/...
-    r"\$HOME/\.nexa",        # $HOME/.nexa/... (legacy)
+    r"\$HOME/\.openforge",        # $HOME/.openforge/... (legacy)
     r"\$FORGE_HOME",         # $FORGE_HOME/...
-    r"\$NEXA_HOME",          # $NEXA_HOME/... (legacy)
+    r"\$FORGE_HOME",          # $FORGE_HOME/... (legacy)
     r"/\.openforge/",        # absolute /.openforge/ (Unix home-relative)
-    r"/\.nexa/",             # absolute /.nexa/ (legacy)
+    r"/\.openforge/",             # absolute /.openforge/ (legacy)
     r"\.openforge/\.env",    # .openforge/.env (relative)
-    r"\.nexa/\.env",         # .nexa/.env (relative legacy)
+    r"\.openforge/\.env",         # .openforge/.env (relative legacy)
     r"\.openforge/memory",   # .openforge/memory (relative)
-    r"\.nexa/memory",        # .nexa/memory (legacy)
+    r"\.openforge/memory",        # .openforge/memory (legacy)
     r"\.openforge/secrets",  # .openforge/secrets (relative)
-    r"\.nexa/secrets",       # .nexa/secrets (legacy)
+    r"\.openforge/secrets",       # .openforge/secrets (legacy)
     r"\bopenforge\.db\b",    # the SQLite db filename (new)
-    r"\bnexa\.db\b",         # the SQLite db filename (legacy)
+    r"\bopenforge\.db\b",         # the SQLite db filename (legacy)
     r"\.openforge/knowledge",
-    r"\.nexa/knowledge",
+    r"\.openforge/knowledge",
     r"\.openforge/sessions",
-    r"\.nexa/sessions",
+    r"\.openforge/sessions",
     r"\.openforge/logs",
-    r"\.nexa/logs",
+    r"\.openforge/logs",
     r"\.openforge/history",  # TUI history (may contain user messages)
-    r"\.nexa/history",
+    r"\.openforge/history",
     r"\.openforge/gateway\.pid",
-    r"\.nexa/gateway\.pid",
+    r"\.openforge/gateway\.pid",
 ]
 
 #: Compiled patterns (case-insensitive).
@@ -505,16 +505,16 @@ def is_protected_path_reference(command: str) -> bool:
 
     This is the v3.0.0 security boundary: it prevents the LLM (via
     ``run_terminal_command``) from reading or writing files in
-    ``~/.openforge/`` (or legacy ``~/.nexa/``) — where API keys, memory,
+    ``~/.openforge/`` (or legacy ``~/.openforge/``) — where API keys, memory,
     secrets, and the SQLite DB live.
 
     Detected references include:
-        - ``~/.openforge/...`` and ``~/.nexa/...``
-        - ``$HOME/.openforge/...`` and ``$HOME/.nexa/...``
-        - ``$FORGE_HOME/...`` and ``$NEXA_HOME/...``
+        - ``~/.openforge/...`` and ``~/.openforge/...``
+        - ``$HOME/.openforge/...`` and ``$HOME/.openforge/...``
+        - ``$FORGE_HOME/...`` and ``$FORGE_HOME/...``
         - ``.openforge/.env``, ``.openforge/memory``, ``.openforge/secrets``
-          (and the ``.nexa/...`` legacy counterparts)
-        - The literal filenames ``openforge.db`` and ``nexa.db``
+          (and the ``.openforge/...`` legacy counterparts)
+        - The literal filenames ``openforge.db`` and ``forge.db``
         - Absolute paths that resolve inside ``FORGE_HOME`` (via ``Path.resolve()``).
 
     Args:

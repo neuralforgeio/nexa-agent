@@ -3,7 +3,7 @@ version: 0.1.0
 description: Generate a bar, line, pie, scatter, or heatmap chart from tabular data. Returns the chart's rendering
   code and the workspace path of the produced image.
 category: creative_media
-author: nexa-agent
+author: openforge
 permissions:
 - filesystem:workspace:write
 - terminal:execute

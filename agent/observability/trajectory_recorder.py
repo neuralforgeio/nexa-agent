@@ -177,5 +177,5 @@ class TrajectoryRecorder:
 
 
 def is_trajectory_enabled() -> bool:
-    """Return True if trajectory recording is enabled via env (NEXA_TRAJECTORY=1)."""
-    return os.environ.get("NEXA_TRAJECTORY", "0").lower() in ("1", "true", "yes")
+    """Return True if trajectory recording is enabled (FORGE_TRAJECTORY=1)."""
+    return os.environ.get("FORGE_TRAJECTORY", "0").lower() in ("1", "true", "yes")

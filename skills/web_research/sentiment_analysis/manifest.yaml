@@ -3,7 +3,7 @@ version: 0.1.0
 description: Analyse the sentiment of a text at basic or detailed level. Returns an overall sentiment label, a numeric
   score, detected emotions with intensities, and the inferred intent.
 category: web_research
-author: nexa-agent
+author: openforge
 permissions:
 - memory:read
 input_schema:

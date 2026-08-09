@@ -174,9 +174,9 @@ class TestProviderRegistryActive:
         assert reg.set_active("nonexistent") is False
 
     def test_default_active_is_from_env_or_openai(self, tmp_path: Path, monkeypatch) -> None:
-        """When no active is set, the default comes from NEXA_PROVIDER or 'openai'."""
+        """When no active is set, the default comes from FORGE_PROVIDER or 'openai'."""
         monkeypatch.setattr("openforge.provider_registry.FORGE_SECRETS_DIR", tmp_path)
-        monkeypatch.delenv("NEXA_PROVIDER", raising=False)
+        monkeypatch.delenv("FORGE_PROVIDER", raising=False)
         reg = ProviderRegistry()
         active = reg.get_active()
         assert active is not None

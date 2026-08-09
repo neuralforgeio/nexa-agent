@@ -7,7 +7,7 @@ Builds the complete ``rich.layout.Layout`` from a :class:`TUIState`.
 Panels::
 
   ┌─ header ───────────────────────────────────────────┐
-  │  Nexa Agent v4.6.0 — provider:model — ~N tok — ● UP │
+  │  OpenForge v4.6.0 — provider:model — ~N tok — ● UP │
   ├─ body ─────────────────────────────────────────────┤
   │  Chat                          Tools / Persona      │
   ├─ footer ───────────────────────────────────────────┤

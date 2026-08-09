@@ -3,7 +3,7 @@ version: 0.1.0
 description: Propose and apply automated refactors (extract method, rename, simplify) to a workspace file. Reports
   each candidate refactor with before/after snippets and whether changes were applied.
 category: code_intelligence
-author: nexa-agent
+author: openforge
 permissions:
 - filesystem:workspace
 - filesystem:workspace:write

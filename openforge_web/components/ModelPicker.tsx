@@ -145,9 +145,9 @@ export function ModelPicker({ onProviderChange }: ModelPickerProps) {
           maxWidth: 240,
           padding: "5px 10px",
           borderRadius: 8,
-          border: "1px solid var(--nexa-border-2, #2E2F34)",
-          background: "var(--nexa-panel-2, #191B1E)",
-          color: "var(--nexa-text, #ECECEC)",
+          border: "1px solid var(--forge-border-2, #2E2F34)",
+          background: "var(--forge-panel-2, #191B1E)",
+          color: "var(--forge-text, #ECECEC)",
           cursor: loading ? "default" : "pointer",
           fontSize: 12,
           fontWeight: 500,
@@ -155,9 +155,9 @@ export function ModelPicker({ onProviderChange }: ModelPickerProps) {
         }}
       >
         {switching ? (
-          <Loader2 size={13} className="animate-spin" color="var(--nexa-accent, #4A9EFF)" />
+          <Loader2 size={13} className="animate-spin" color="var(--forge-accent, #4A9EFF)" />
         ) : (
-          <Cpu size={13} color="var(--nexa-accent, #4A9EFF)" />
+          <Cpu size={13} color="var(--forge-accent, #4A9EFF)" />
         )}
         <span
           style={{
@@ -170,7 +170,7 @@ export function ModelPicker({ onProviderChange }: ModelPickerProps) {
         </span>
         <ChevronDown
           size={12}
-          color="var(--nexa-mute, #6A6A6A)"
+          color="var(--forge-mute, #6A6A6A)"
           style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform 0.15s" }}
         />
       </button>
@@ -188,15 +188,15 @@ export function ModelPicker({ onProviderChange }: ModelPickerProps) {
             maxWidth: 340,
             maxHeight: 320,
             overflowY: "auto",
-            background: "var(--nexa-surface, #1A1B1E)",
-            border: "1px solid var(--nexa-border-2, #2E2F34)",
+            background: "var(--forge-surface, #1A1B1E)",
+            border: "1px solid var(--forge-border-2, #2E2F34)",
             borderRadius: 10,
             boxShadow: "0 10px 32px rgba(0,0,0,0.45)",
             padding: 4,
           }}
         >
           {providers.length === 0 && !error && (
-            <div style={{ padding: "10px 12px", fontSize: 12, color: "var(--nexa-mute, #6A6A6A)" }}>
+            <div style={{ padding: "10px 12px", fontSize: 12, color: "var(--forge-mute, #6A6A6A)" }}>
               No providers configured.
             </div>
           )}
@@ -206,7 +206,7 @@ export function ModelPicker({ onProviderChange }: ModelPickerProps) {
               style={{
                 padding: "8px 12px",
                 fontSize: 12,
-                color: "var(--nexa-error, #F87171)",
+                color: "var(--forge-error, #F87171)",
               }}
             >
               {error}
@@ -231,15 +231,15 @@ export function ModelPicker({ onProviderChange }: ModelPickerProps) {
                   border: "none",
                   borderRadius: 7,
                   background: isActive
-                    ? "var(--nexa-accent-soft, rgba(74,158,255,0.12))"
+                    ? "var(--forge-accent-soft, rgba(74,158,255,0.12))"
                     : "transparent",
-                  color: "var(--nexa-text, #ECECEC)",
+                  color: "var(--forge-text, #ECECEC)",
                   cursor: "pointer",
                   textAlign: "left",
                 }}
                 onMouseEnter={(e) => {
                   if (!isActive)
-                    e.currentTarget.style.background = "var(--nexa-panel-2, #1A1B1E)";
+                    e.currentTarget.style.background = "var(--forge-panel-2, #1A1B1E)";
                 }}
                 onMouseLeave={(e) => {
                   if (!isActive) e.currentTarget.style.background = "transparent";
@@ -273,7 +273,7 @@ export function ModelPicker({ onProviderChange }: ModelPickerProps) {
                           letterSpacing: 0.5,
                           padding: "1px 6px",
                           borderRadius: 999,
-                          background: "var(--nexa-accent, #4A9EFF)",
+                          background: "var(--forge-accent, #4A9EFF)",
                           color: "#fff",
                         }}
                       >
@@ -285,7 +285,7 @@ export function ModelPicker({ onProviderChange }: ModelPickerProps) {
                     style={{
                       display: "block",
                       fontSize: 11,
-                      color: "var(--nexa-mute, #6A6A6A)",
+                      color: "var(--forge-mute, #6A6A6A)",
                       overflow: "hidden",
                       textOverflow: "ellipsis",
                       whiteSpace: "nowrap",
@@ -296,7 +296,7 @@ export function ModelPicker({ onProviderChange }: ModelPickerProps) {
                   </span>
                 </span>
                 {isActive && (
-                  <Check size={13} color="var(--nexa-accent, #4A9EFF)" style={{ flexShrink: 0 }} />
+                  <Check size={13} color="var(--forge-accent, #4A9EFF)" style={{ flexShrink: 0 }} />
                 )}
               </button>
             );

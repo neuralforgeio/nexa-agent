@@ -53,7 +53,7 @@ GOOD_REPLY = json.dumps(
 def ws(tmp_path, monkeypatch):
     logs = tmp_path / "logs"
     logs.mkdir()
-    (logs / "nexa-agent.log").write_text(LOG_TEXT, encoding="utf-8")
+    (logs / "openforge.log").write_text(LOG_TEXT, encoding="utf-8")
     monkeypatch.setenv("FORGE_WORKSPACE", str(tmp_path))
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr("tools._paths.FORGE_WORKSPACE", tmp_path)
@@ -66,7 +66,7 @@ def _manifest():
 
 def _input(**over):
     base = {
-        "log_source": "logs/nexa-agent.log",
+        "log_source": "logs/openforge.log",
         "log_format": "json",
         "analysis_type": "error",
     }
@@ -149,7 +149,7 @@ async def test_prompt_contains_real_log_text(ws):
     assert "CRITICAL database connection refused host=db-primary" in user_prompt
     assert "charge failed code=card_declined user=u_9" in user_prompt
     assert "error" in user_prompt  # analysis_type passed along
-    assert "logs/nexa-agent.log" in user_prompt  # real source named
+    assert "logs/openforge.log" in user_prompt  # real source named
     assert messages[0]["role"] == "system"
     assert "anomalies" in messages[0]["content"]
     assert "root_cause" in messages[0]["content"]

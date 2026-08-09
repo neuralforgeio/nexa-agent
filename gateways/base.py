@@ -6,7 +6,7 @@ Shared lifecycle for chat-platform gateways (Telegram, Discord, Slack,
 Matrix, Email, Webhook). Each gateway:
 
   1. Connects to its platform (polling or event-driven).
-  2. Maps the platform user_id to an app-level nexa session via the session
+  2. Maps the platform user_id to an app-level forge session via the session
      mapper.
   3. Forwards text messages to the orchestrator (`agent.orchestrator`).
   4. Sends the assistant's reply back as a platform-specific message.
@@ -47,7 +47,7 @@ class GatewayBase(ABC):
 
     Attributes:
         config: The :class:`GatewayConfig` for this gateway.
-        session_mapper: Platform user-id → nexa session id mapping.
+        session_mapper: Platform user-id → forge session id mapping.
     """
 
     name: str = "gateway"  # subclass must override

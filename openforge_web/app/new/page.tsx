@@ -3,7 +3,7 @@
  * ========================================
  *
  * Visually identical to the root ``/`` route's empty state ("What can I
- * build for you?" + Nexa logo behind) but always presents a FRESH session:
+ * build for you?" + Forge logo behind) but always presents a FRESH session:
  * hitting ``/new`` immediately clears the ``sessionId`` so the next message
  * starts a brand-new chat rather than appending to the previous one.
  *
@@ -26,7 +26,7 @@ export default function NewSessionPage() {
   useEffect(() => {
     // Clear any lingering session id so the landing state shows.
     try {
-      sessionStorage.removeItem("nexa-session-id");
+      sessionStorage.removeItem("forge-session-id");
     } catch {
       /* ignore */
     }

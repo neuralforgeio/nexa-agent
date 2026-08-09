@@ -4,10 +4,10 @@ OpenForge — Planning Tools: Self-Extension (v4.1.0)
 
 The "getting smarter" tier:
 
-- :func:`create_tool`        — write a brand-new Nexa tool into the
+- :func:`create_tool`        — write a brand-new Forge tool into the
   user-writable directory ``~/.openforge/tools/``. The tool is auto-discovered
   at the *next* registry build (``create_default_registry`` scans that
-  directory). This is how Nexa extends itself on the user's machine.
+  directory). This is how Forge extends itself on the user's machine.
 
 - :func:`plan_and_delegate`  — a meta-tool that runs :func:`task_plan` and
   emits, for each top-level step, a ready-to-use prompt for the existing
@@ -37,7 +37,7 @@ def _user_tools_dir():
     """Return the user-writable tools directory, creating it if needed.
 
     Reads ``FORGE_HOME`` from the config module at *call time* so tests can
-    monkeypatch ``nexa.config.FORGE_HOME`` (or ``process_manager``-style
+    monkeypatch ``forge.config.FORGE_HOME`` (or ``process_manager``-style
     overrides) and have them picked up here.
     """
     d = _config.FORGE_HOME / "tools"
@@ -103,7 +103,7 @@ async def create_tool(
     body: Optional[str] = None,
 ) -> str:
     """
-    Draft a new Nexa tool as a Python file in ``~/.openforge/tools/``.
+    Draft a new Forge tool as a Python file in ``~/.openforge/tools/``.
 
     The tool becomes available the *next* time the registry is built
     (i.e. the next conversation turn), because the registry's user-tool
@@ -183,7 +183,7 @@ async def create_tool(
     load_result = ""
     try:
         import importlib.util, sys
-        mod_name = f"nexa_user_{path.stem}"
+        mod_name = f"forge_user_{path.stem}"
         spec = importlib.util.spec_from_file_location(mod_name, path)
         if spec and spec.loader:
             mod = importlib.util.module_from_spec(spec)

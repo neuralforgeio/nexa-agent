@@ -1,4 +1,4 @@
-# Nexa Agent — Research: UI + Sandbox patterns (v4.0.0)
+# OpenForge — Research: UI + Sandbox patterns (v4.0.0)
 
 Comparison of the dominant AI-native chat surfaces, focused on what they do
 for *thinking transparency*, *code execution*, and *in-chat previews*.
@@ -26,7 +26,7 @@ v0 by Vercel.
 - "Work" panel lists major actions (Search, Read, Generate) as expandable
   rows; thinking is embedded as an indented sub-item.
 
-### Best hybrid for Nexa
+### Best hybrid for Forge
 ``Working Process`` panel (outer, expanded while running), and nested
 ``Thought Process`` (inner, auto-collapsed once done). Bottom line: the
 **outer** shows tool calls + results, the **inner** shows the model's
@@ -49,19 +49,19 @@ reasoning chain.
 ### Vercel v0
 - The preview iframe *is* the product surface. Chat on the left, rendered
   app on the right. The preview is always a real URL on a real CDN, so
-  refresh = new deploy. Nexa's local version of this: serve the workspace
+  refresh = new deploy. Forge's local version of this: serve the workspace
   file through ``/api/sandbox/preview`` (no build step needed for HTML).
 
-### Best hybrid for Nexa
+### Best hybrid for Forge
 Keep the sandbox right-sidebar but make it *content-aware*:
-  - If the workspace has an active dev server on a non-Nexa port → iframe it.
+  - If the workspace has an active dev server on a non-Forge port → iframe it.
   - Otherwise → iframe ``/api/sandbox/preview`` of the current file
     (defaulting to ``index.html`` if the user just asked for a website).
-  - If neither → show a helpful empty state ("Ask Nexa to build a web
+  - If neither → show a helpful empty state ("Ask Forge to build a web
     project") and leave the panel CLOSED unless the user opened it.
 
 The current v3 default of "load localhost:3000 when no project exists"
-recursively renders Nexa inside Nexa — fixed in v4.0.0.
+recursively renders Forge inside Forge — fixed in v4.0.0.
 
 ---
 
@@ -78,7 +78,7 @@ recursively renders Nexa inside Nexa — fixed in v4.0.0.
 - Same xterm.js, but the panel is always visible in a bottom strip and
   its content persists across sessions via a session-store.
 
-### Best hybrid for Nexa
+### Best hybrid for Forge
 - PTY lives on the backend (``server.py``).
 - Frontend talks WebSocket → backend pipes to winpty (Windows) / ptyprocess
   (POSIX).
@@ -94,7 +94,7 @@ a subtle "stop generating" button. Both Claude and ChatGPT smooth-scroll
 to the bottom while keeping the scrollable region snappy (momentum
 scroll).
 
-### Nexa
+### Forge
 Our SSE layer already streams deltas (verified end-to-end through
 llama.cpp). The remaining work is Surfacing:
 - A **live-token cursor** next to the incomplete message (``ThinkingIndicator``).

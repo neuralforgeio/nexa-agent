@@ -1,7 +1,7 @@
 /**
  * F-06 — Theme Toggle tests.
  * Verifies ThemeProvider persistence, system-mode resolution, and that the
- * toggle button cycles light → dark → system while applying --nexa-* tokens.
+ * toggle button cycles light → dark → system while applying --forge-* tokens.
  */
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { cleanup, render, screen, act } from "@testing-library/react";
@@ -63,7 +63,7 @@ describe("F-06 ThemeProvider + ThemeToggle", () => {
     expect(screen.getByTestId("resolved")).toHaveTextContent("dark");
     expect(document.documentElement.classList.contains("dark")).toBe(true);
     expect(
-      document.documentElement.style.getPropertyValue("--nexa-bg")
+      document.documentElement.style.getPropertyValue("--forge-bg")
     ).toBe("#0D0E10");
   });
 
@@ -73,7 +73,7 @@ describe("F-06 ThemeProvider + ThemeToggle", () => {
     expect(await screen.findByTestId("theme")).toHaveTextContent("light");
     expect(document.documentElement.classList.contains("light")).toBe(true);
     expect(
-      document.documentElement.style.getPropertyValue("--nexa-bg")
+      document.documentElement.style.getPropertyValue("--forge-bg")
     ).toBe("#F4F5F7");
   });
 
@@ -96,7 +96,7 @@ describe("F-06 ThemeProvider + ThemeToggle", () => {
     expect(screen.getByTestId("theme")).toHaveTextContent("light");
     expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toBe("light");
     expect(
-      document.documentElement.style.getPropertyValue("--nexa-text")
+      document.documentElement.style.getPropertyValue("--forge-text")
     ).toBe("#1B1D21");
   });
 
@@ -124,11 +124,11 @@ describe("F-06 ThemeProvider + ThemeToggle", () => {
     expect(await screen.findByTestId("resolved")).toHaveTextContent("dark");
     expect(document.documentElement.classList.contains("dark")).toBe(true);
     expect(
-      document.documentElement.style.getPropertyValue("--nexa-accent")
+      document.documentElement.style.getPropertyValue("--forge-accent")
     ).toBe("#4A9EFF");
   });
 
-  it("globals.css reads the --nexa-* variables", async () => {
+  it("globals.css reads the --forge-* variables", async () => {
     // Spot-check that our stylesheet references the tokens (regression guard
     // against someone re-hardcoding the palette).
     const fs = await import("node:fs/promises");
@@ -137,8 +137,8 @@ describe("F-06 ThemeProvider + ThemeToggle", () => {
       path.resolve(__dirname, "../app/globals.css"),
       "utf8"
     );
-    expect(css).toContain("--nexa-bg");
-    expect(css).toContain("var(--nexa-accent)");
+    expect(css).toContain("--forge-bg");
+    expect(css).toContain("var(--forge-accent)");
     expect(css).toContain("html.light");
   });
 });

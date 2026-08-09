@@ -3,7 +3,7 @@ version: 0.1.0
 description: Fetch a URL and extract structured data matching a caller-supplied extraction schema. Returns the extracted
   data object plus a confidence score for the extraction.
 category: web_research
-author: nexa-agent
+author: openforge
 permissions:
 - network:*
 input_schema:

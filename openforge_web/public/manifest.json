@@ -1,9 +1,9 @@
 {
   "name": "OpenForge",
-  "short_name": "Nexa",
+  "short_name": "Forge",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0D0E10",
   "theme_color": "#4A9EFF",
-  "icons": [{ "src": "/nexa-agent.png", "sizes": "512x512", "type": "image/png" }]
+  "icons": [{ "src": "/openforge.png", "sizes": "512x512", "type": "image/png" }]
 }

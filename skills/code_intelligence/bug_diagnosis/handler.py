@@ -41,7 +41,7 @@ from skills.registry import SkillInputError, SkillOutputError
 __all__ = ["handle"]
 
 SYSTEM = (
-    "You are Nexa's bug-diagnosis engine. You are given a REAL stack trace "
+    "You are Forge's bug-diagnosis engine. You are given a REAL stack trace "
     "and, optionally, the REAL contents of related source files. Diagnose "
     "only from the evidence actually shown — never invent files, line "
     "numbers, or causes that the trace and context do not support. Respond "

@@ -4,7 +4,7 @@ Tests for the ``translation`` skill (web_research).
 ``ScriptedProvider`` is a deterministic stand-in for the LLM boundary only —
 prompt construction, input/output schema validation, and the registry's
 executor all run for real. Live llama.cpp coverage lives behind the
-``NEXA_E2E_LLAMACPP=1`` gate.
+``FORGE_E2E_LLAMACPP=1`` gate.
 
 Note: pytest-asyncio is installed but ``asyncio_mode = "auto"`` is NOT set in
 pyproject.toml, so every coroutine test is explicitly decorated with

@@ -3,7 +3,7 @@ version: 0.1.0
 description: Generate a flowchart, sequence, ERD, architecture, or class diagram from a natural-language description.
   Returns the diagram source (Mermaid, PlantUML, or SVG) and optionally a rendered URL.
 category: creative_media
-author: nexa-agent
+author: openforge
 permissions:
 - filesystem:workspace:write
 input_schema:

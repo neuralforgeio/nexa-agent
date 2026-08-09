@@ -1,22 +1,22 @@
 # OpenForge — Provider Setup Guide (v4.2.0)
 
-Nexa Agent supports any OpenAI-compatible LLM provider. Configure via
+OpenForge supports any OpenAI-compatible LLM provider. Configure via
 interactive CLI, env vars, or the Web UI Settings panel.
 
 ## Quick Start
 
 ```bash
 # 1. List available providers (catalog + custom)
-nexa provider list
+forge provider list
 
 # 2. Add TokenRouter (interactive — prompts for API key + model)
-nexa provider add tokenrouter
+forge provider add tokenrouter
 
 # 3. Activate it
-nexa provider use tokenrouter
+forge provider use tokenrouter
 
 # 4. Start chatting
-nexa-chat
+forge-chat
 ```
 
 ## Supported Providers (24 in v4.2.0)
@@ -28,7 +28,7 @@ nexa-chat
 | **openai** | https://api.openai.com/v1 | gpt-4o | OPENAI_API_KEY | – |
 | **anthropic** | https://api.anthropic.com/v1 | claude-sonnet-4 | ANTHROPIC_API_KEY | – |
 | **cohere** | https://api.cohere.com/compatibility/v1 | command-r-plus | COHERE_API_KEY | ✓ |
-| **databricks** | (set `NEXA_BASE_URL`) | databricks-claude-sonnet-4-6 | DATABRICKS_TOKEN | – |
+| **databricks** | (set `FORGE_BASE_URL`) | databricks-claude-sonnet-4-6 | DATABRICKS_TOKEN | – |
 | **deepseek** | https://api.deepseek.com/v1 | deepseek-chat | DEEPSEEK_API_KEY | ✓ |
 | **fireworks** | https://api.fireworks.ai/inference/v1 | llama-v3p3-70b | FIREWORKS_API_KEY | ✓ |
 | **gemini** | https://generativelanguage.googleapis.com/v1beta/openai | gemini-2.0-flash | GEMINI_API_KEY / GOOGLE_API_KEY | ✓ |
@@ -69,15 +69,15 @@ fastest/best model per request.
 
 1. Sign up at https://tokenrouter.io/signup
 2. Console → API Keys → create, copy the `tr_...` value immediately
-3. Add to Nexa:
+3. Add to Forge:
 
 ```bash
-nexa provider add tokenrouter
+forge provider add tokenrouter
 # ? API key (input hidden): tr_your_key_here
 # ? Model ID [auto:balance]:
 ✓ Saved tokenrouter to ~/.openforge/secrets/providers.json
 
-nexa provider use tokenrouter
+forge provider use tokenrouter
 ✓ Switched to tokenrouter (auto:balance)
 ```
 
@@ -116,19 +116,19 @@ Databricks Foundation Model APIs / AI Gateway.
 1. Get a Databricks Personal Access Token (PAT) from your workspace
    (Settings → User → Access Tokens). Prefix `dapi...`.
 2. Note your workspace host (e.g. `https://my-workspace.cloud.databricks.com`).
-3. Add to Nexa:
+3. Add to Forge:
 
 ```bash
 # Set env vars first (databricks has no default base_url)
 export DATABRICKS_TOKEN="dapi..."
-export NEXA_BASE_URL="https://my-workspace.cloud.databricks.com/serving-endpoints"
+export FORGE_BASE_URL="https://my-workspace.cloud.databricks.com/serving-endpoints"
 
-nexa provider add databricks \
+forge provider add databricks \
   --base-url "https://my-workspace.cloud.databricks.com/serving-endpoints" \
   --api-key "dapi..." \
   --model "databricks-claude-sonnet-4-6"
 
-nexa provider use databricks
+forge provider use databricks
 ```
 
 ### Model IDs (current)
@@ -144,22 +144,22 @@ nexa provider use databricks
 For providers not in the catalog (e.g. a private vLLM, Azure OpenAI, Together AI):
 
 ```bash
-nexa provider add my-custom-llm \
+forge provider add my-custom-llm \
   --base-url "https://my-llm.example.com/v1" \
   --api-key "sk-mykey" \
   --model "my-model-v1"
 
-nexa provider use my-custom-llm
+forge provider use my-custom-llm
 ```
 
 ## Provider Management Commands
 
 ```bash
-nexa provider list                 # show all + active
-nexa provider add <name>           # interactive add (or use --flags)
-nexa provider use <name>           # activate
-nexa provider remove <name>        # delete from registry
-nexa provider test <name>          # health-check (GET /v1/models)
+forge provider list                 # show all + active
+forge provider add <name>           # interactive add (or use --flags)
+forge provider use <name>           # activate
+forge provider remove <name>        # delete from registry
+forge provider test <name>          # health-check (GET /v1/models)
 ```
 
 ## Web UI
@@ -202,11 +202,11 @@ export FORGE_FAILOVER_CHAIN=tokenrouter,openai,ollama
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `NEXA_PROVIDER` | openai | Active provider name |
-| `NEXA_MODEL` | gpt-4o | Model override |
-| `NEXA_BASE_URL` | (empty) | Custom base URL (for "custom" provider) |
+| `FORGE_PROVIDER` | openai | Active provider name |
+| `FORGE_MODEL` | gpt-4o | Model override |
+| `FORGE_BASE_URL` | (empty) | Custom base URL (for "custom" provider) |
 | `OPENAI_API_KEY` | (empty) | Universal API key fallback |
-| `NEXA_API_KEY` | (empty) | Universal API key fallback |
+| `FORGE_API_KEY` | (empty) | Universal API key fallback |
 | `<NAME>_API_KEY` | (empty) | Provider-specific key (e.g. TOKENROUTER_API_KEY) |
 | `DATABRICKS_TOKEN` | (empty) | Databricks PAT (alternative to DATABRICKS_API_KEY) |
 | `FORGE_FAILOVER_ENABLED` | 0 | Enable provider failover |

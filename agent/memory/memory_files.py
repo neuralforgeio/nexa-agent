@@ -146,7 +146,7 @@ def append_to_memory(entry: str, kind: str = "insight") -> None:
     current = read_memory_file()
     section_header = f"## {kind.capitalize()}s"
 
-    lines = current.split("\n") if current else ["# Nexa Agent Memory", ""]
+    lines = current.split("\n") if current else ["# OpenForge Memory", ""]
 
     # Find or create the section.
     section_index = None
@@ -292,7 +292,7 @@ def sync_db_to_files(memories: List[Dict[str, Any]]) -> None:
 
     Args:
         memories: A list of memory dicts from
-                  :meth:`~nexa.state.ConversationDB.list_memories`.
+                  :meth:`~forge.state.ConversationDB.list_memories`.
     """
     if not memories:
         return
@@ -305,7 +305,7 @@ def sync_db_to_files(memories: List[Dict[str, Any]]) -> None:
         kind = m.get("kind", "insight")
         by_kind.setdefault(kind, []).append(m["content"])
 
-    lines = ["# Nexa Agent Memory", ""]
+    lines = ["# OpenForge Memory", ""]
     for kind in ("insight", "preference", "fact", "skill"):
         if kind in by_kind:
             lines.append(f"## {kind.capitalize()}s")

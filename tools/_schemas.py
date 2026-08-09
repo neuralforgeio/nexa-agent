@@ -134,7 +134,7 @@ class KillBackgroundProcessArgs(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    pid: str = Field(..., description="The Nexa-assigned background process ID (e.g. 'bg-a1b2c3d4').")
+    pid: str = Field(..., description="The Forge-assigned background process ID (e.g. 'bg-a1b2c3d4').")
 
     @field_validator("pid")
     @classmethod

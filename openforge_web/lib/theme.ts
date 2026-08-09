@@ -44,72 +44,72 @@ export const spacing = {
 
 // ---------------------------------------------------------------------------
 // F-06 — light/dark CSS variable design tokens.
-// <ThemeProvider> applies these to <html> as inline `--nexa-*` custom
-// properties; globals.css + components read them via var(--nexa-*).
+// <ThemeProvider> applies these to <html> as inline `--forge-*` custom
+// properties; globals.css + components read them via var(--forge-*).
 // ---------------------------------------------------------------------------
 
 export type ThemeMode = "light" | "dark" | "system";
 
-export const THEME_STORAGE_KEY = "nexa-theme";
+export const THEME_STORAGE_KEY = "forge-theme";
 
 export interface ThemeTokens {
-  "--nexa-bg": string;
-  "--nexa-surface": string;
-  "--nexa-panel": string;
-  "--nexa-panel-2": string;
-  "--nexa-elev": string;
-  "--nexa-border": string;
-  "--nexa-border-2": string;
-  "--nexa-text": string;
-  "--nexa-dim": string;
-  "--nexa-mute": string;
-  "--nexa-accent": string;
-  "--nexa-accent-soft": string;
-  "--nexa-accent-ring": string;
-  "--nexa-success": string;
-  "--nexa-error": string;
-  "--nexa-warning": string;
-  "--nexa-scroll": string;
+  "--forge-bg": string;
+  "--forge-surface": string;
+  "--forge-panel": string;
+  "--forge-panel-2": string;
+  "--forge-elev": string;
+  "--forge-border": string;
+  "--forge-border-2": string;
+  "--forge-text": string;
+  "--forge-dim": string;
+  "--forge-mute": string;
+  "--forge-accent": string;
+  "--forge-accent-soft": string;
+  "--forge-accent-ring": string;
+  "--forge-success": string;
+  "--forge-error": string;
+  "--forge-warning": string;
+  "--forge-scroll": string;
 }
 
 export const darkTokens: ThemeTokens = {
-  "--nexa-bg": "#0D0E10",
-  "--nexa-surface": "#141618",
-  "--nexa-panel": "#111214",
-  "--nexa-panel-2": "#191B1E",
-  "--nexa-elev": "#222327",
-  "--nexa-border": "#24262B",
-  "--nexa-border-2": "#2E2F34",
-  "--nexa-text": "#ECECEC",
-  "--nexa-dim": "#9A9A9A",
-  "--nexa-mute": "#6A6A6A",
-  "--nexa-accent": "#4A9EFF",
-  "--nexa-accent-soft": "rgba(74, 158, 255, 0.12)",
-  "--nexa-accent-ring": "rgba(74, 158, 255, 0.4)",
-  "--nexa-success": "#4ADE80",
-  "--nexa-error": "#F87171",
-  "--nexa-warning": "#FBBF24",
-  "--nexa-scroll": "#2E2F34",
+  "--forge-bg": "#0D0E10",
+  "--forge-surface": "#141618",
+  "--forge-panel": "#111214",
+  "--forge-panel-2": "#191B1E",
+  "--forge-elev": "#222327",
+  "--forge-border": "#24262B",
+  "--forge-border-2": "#2E2F34",
+  "--forge-text": "#ECECEC",
+  "--forge-dim": "#9A9A9A",
+  "--forge-mute": "#6A6A6A",
+  "--forge-accent": "#4A9EFF",
+  "--forge-accent-soft": "rgba(74, 158, 255, 0.12)",
+  "--forge-accent-ring": "rgba(74, 158, 255, 0.4)",
+  "--forge-success": "#4ADE80",
+  "--forge-error": "#F87171",
+  "--forge-warning": "#FBBF24",
+  "--forge-scroll": "#2E2F34",
 };
 
 export const lightTokens: ThemeTokens = {
-  "--nexa-bg": "#F4F5F7",
-  "--nexa-surface": "#FFFFFF",
-  "--nexa-panel": "#FAFAFB",
-  "--nexa-panel-2": "#F2F3F5",
-  "--nexa-elev": "#EBECF0",
-  "--nexa-border": "#E3E5EA",
-  "--nexa-border-2": "#CFD3DB",
-  "--nexa-text": "#1B1D21",
-  "--nexa-dim": "#5C6270",
-  "--nexa-mute": "#8A91A0",
-  "--nexa-accent": "#2B7CD3",
-  "--nexa-accent-soft": "rgba(43, 124, 211, 0.10)",
-  "--nexa-accent-ring": "rgba(43, 124, 211, 0.4)",
-  "--nexa-success": "#15803D",
-  "--nexa-error": "#DC2626",
-  "--nexa-warning": "#B45309",
-  "--nexa-scroll": "#C6CAD2",
+  "--forge-bg": "#F4F5F7",
+  "--forge-surface": "#FFFFFF",
+  "--forge-panel": "#FAFAFB",
+  "--forge-panel-2": "#F2F3F5",
+  "--forge-elev": "#EBECF0",
+  "--forge-border": "#E3E5EA",
+  "--forge-border-2": "#CFD3DB",
+  "--forge-text": "#1B1D21",
+  "--forge-dim": "#5C6270",
+  "--forge-mute": "#8A91A0",
+  "--forge-accent": "#2B7CD3",
+  "--forge-accent-soft": "rgba(43, 124, 211, 0.10)",
+  "--forge-accent-ring": "rgba(43, 124, 211, 0.4)",
+  "--forge-success": "#15803D",
+  "--forge-error": "#DC2626",
+  "--forge-warning": "#B45309",
+  "--forge-scroll": "#C6CAD2",
 };
 
 export type EventType =

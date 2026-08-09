@@ -42,7 +42,7 @@ _FETCH_TIMEOUT = 5.0  # short, best-effort; hermetic tests fail fast
 _MAX_PAGE_CHARS = 8000  # cap what we hand to the model
 
 SYSTEM = (
-    "You are the content_extraction skill inside the Nexa Agent skills "
+    "You are the content_extraction skill inside the OpenForge skills "
     "system. You are given a real fetched web page body and a caller-supplied "
     "extraction schema mapping field names to expected types. Extract ONLY "
     "what is genuinely present in the page text. Respond with a single JSON "

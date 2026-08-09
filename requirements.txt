@@ -1,7 +1,7 @@
 # OpenForge — Python Dependencies
 # ================================
 #
-# Requirements file for the Nexa Agent Python backend.
+# Requirements file for the OpenForge Python backend.
 #
 # Copyright (c) 2026 Dearly Febriano Irwansyah
 # SPDX-License-Identifier: MIT

@@ -67,7 +67,7 @@ async def delegate(
 
     Example:
         >>> result = await delegate(
-        ...     task="Read nexa/config.py and summarize its purpose",
+        ...     task="Read forge/config.py and summarize its purpose",
         ...     max_iterations=2,
         ... )
         >>> "Sub-agent result" in result
@@ -169,7 +169,7 @@ def _build_subagent_prompt(
         True
     """
     parts = [
-        "You are a Nexa sub-agent. You have been delegated a specific task.",
+        "You are a Forge sub-agent. You have been delegated a specific task.",
         f"Complete this task within {max_iterations} tool-call iterations.",
         "Be focused, efficient, and return a clear summary of your work.",
         "",

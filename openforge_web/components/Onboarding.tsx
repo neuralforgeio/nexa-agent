@@ -2,7 +2,7 @@
  * OpenForge — F-14 Onboarding Wizard (first-run)
  *
  * Multi-step modal shown the first time a user opens the app:
- *   1. Welcome — brand + what Nexa is.
+ *   1. Welcome — brand + what Forge is.
  *   2. Add provider — name select, model, API key, "Test connection"
  *      hitting `/api/provider/test`.
  *   3. Try sample prompt — inserts a sample prompt into the Composer
@@ -23,9 +23,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { CheckCircle2, Loader2, Sparkles, X, XCircle, Zap } from "lucide-react";
 
-export const LS_ONBOARDING = "nexa-onboarding-complete";
+export const LS_ONBOARDING = "forge-onboarding-complete";
 export const SAMPLE_PROMPT =
-  "Say hello to Nexa: introduce yourself and list three things you can help me build today.";
+  "Say hello to Forge: introduce yourself and list three things you can help me build today.";
 
 export type ProviderKind = "openai" | "ollama" | "tokenrouter" | "llamacpp";
 
@@ -259,7 +259,7 @@ export function Onboarding({ open: openProp, onClose, onRunSample }: OnboardingP
                 color: "#ECECEC",
               }}
             >
-              Welcome to Nexa
+              Welcome to Forge
             </h2>
           </div>
           <button
@@ -307,7 +307,7 @@ export function Onboarding({ open: openProp, onClose, onRunSample }: OnboardingP
               Private AI, on your machine.
             </h3>
             <p style={{ margin: 0, fontSize: 13, color: "#9A9A9A", lineHeight: 1.6 }}>
-              Nexa Agent is a local, open-source AI workbench. It chats, edits,
+              OpenForge is a local, open-source AI workbench. It chats, edits,
               runs commands in a sandboxed terminal, and keeps your sessions
               on disk — no third-party cloud required.
             </p>
@@ -450,7 +450,7 @@ export function Onboarding({ open: openProp, onClose, onRunSample }: OnboardingP
             </h3>
             <p style={{ margin: "0 0 12px", fontSize: 13, color: "#9A9A9A", lineHeight: 1.6 }}>
               We&apos;ll drop a sample prompt into your composer and send it,
-              so you can watch Nexa stream a reply in real time.
+              so you can watch Forge stream a reply in real time.
             </p>
             <div
               style={{
@@ -492,7 +492,7 @@ export function Onboarding({ open: openProp, onClose, onRunSample }: OnboardingP
               <h3 style={{ margin: 0, fontSize: 16, color: "#ECECEC" }}>You&apos;re all set!</h3>
             </div>
             <p style={{ margin: 0, fontSize: 13, color: "#9A9A9A", lineHeight: 1.6 }}>
-              Nexa is ready. Press <kbd style={{ fontFamily: "inherit", background: "#0F1012", padding: "1px 4px", borderRadius: 3, border: "1px solid #2E2F34" }}>Ctrl+K</kbd> any time
+              Forge is ready. Press <kbd style={{ fontFamily: "inherit", background: "#0F1012", padding: "1px 4px", borderRadius: 3, border: "1px solid #2E2F34" }}>Ctrl+K</kbd> any time
               to open the command palette, or <kbd style={{ fontFamily: "inherit", background: "#0F1012", padding: "1px 4px", borderRadius: 3, border: "1px solid #2E2F34" }}>Ctrl+B</kbd> to toggle the sidebar.
               You can reopen this wizard later from Settings.
             </p>

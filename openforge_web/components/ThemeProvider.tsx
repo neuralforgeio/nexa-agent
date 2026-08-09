@@ -2,8 +2,8 @@
  * OpenForge — ThemeProvider (F-06)
  *
  * React context exposing ``{theme, setTheme, resolvedTheme}`` where theme is
- * "light" | "dark" | "system". Persists to localStorage key ``nexa-theme``.
- * Applies the chosen token map to <html> as inline ``--nexa-*`` custom
+ * "light" | "dark" | "system". Persists to localStorage key ``forge-theme``.
+ * Applies the chosen token map to <html> as inline ``--forge-*`` custom
  * properties and toggles the ``light``/``dark`` class for CSS selectors.
  *
  * "system" follows ``prefers-color-scheme`` and live-updates on OS change.

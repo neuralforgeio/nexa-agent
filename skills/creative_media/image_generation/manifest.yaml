@@ -3,7 +3,7 @@ version: 0.1.0
 description: Generate one or more images from a text prompt with a chosen size and optional style. Returns image
   references with generation metadata plus the wall-clock generation time.
 category: creative_media
-author: nexa-agent
+author: openforge
 permissions:
 - network:*
 - filesystem:workspace:write

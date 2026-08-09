@@ -159,7 +159,7 @@
       <div class="hero-grid">
         <div class="hero-left">
           <div class="badge">⚡ Local · Offline · Free</div>
-          <h1>Nexa <span>Agent</span></h1>
+          <h1>Forge <span>Agent</span></h1>
           <p class="hero-sub">
             Local AI agent dengan tool-calling, memory, deep research, sandbox execution,
             dan provider-agnostic (OpenAI, Ollama, TokenRouter, Databricks + custom).
@@ -199,28 +199,28 @@
             <span class="term-dot red"></span>
             <span class="term-dot yellow"></span>
             <span class="term-dot green"></span>
-            <span class="terminal-title">nexa-agent — cli</span>
+            <span class="terminal-title">openforge — cli</span>
           </div>
           <div class="terminal-body">
-<span class="dim">$</span> nexa setup
+<span class="dim">$</span> forge setup
 <span class="green">✓</span> Home directory initialized: ~/.openforge
 
-<span class="dim">$</span> nexa provider add tokenrouter
+<span class="dim">$</span> forge provider add tokenrouter
 <span class="green">✓</span> Saved tokenrouter to ~/.openforge/secrets/providers.json
   base_url: https://api.tokenrouter.io/v1
   model:    auto:balance
   api_key:  tr_...wxyz
 
-<span class="dim">$</span> nexa-chat
+<span class="dim">$</span> forge-chat
 
-<span class="blue">You are Nexa Agent v4.1.0</span>
+<span class="blue">You are OpenForge v4.1.0</span>
 <span class="dim">You reason step by step and may use tools.</span>
 
 <span class="blue">User:</span> What's the latest Python version?
-<span class="green">Nexa:</span> I'll check the official Python website...
+<span class="green">Forge:</span> I'll check the official Python website...
 <span class="dim">  → web_search("Python latest version")
   → 5 results found (python.org, wikipedia, etc.)</span>
-<span class="green">Nexa:</span> Python 3.13.3 is the latest stable release (Oct 2024).
+<span class="green">Forge:</span> Python 3.13.3 is the latest stable release (Oct 2024).
 <span class="dim">  Source: https://www.python.org/downloads/</span>
 <span class="cursor-blink"> </span>
           </div>
@@ -236,13 +236,13 @@
       <p class="section-sub">Auto-detect installs Python 3.11+, uv, and all dependencies:</p>
       <div class="install-box">
         <pre><code># Linux / macOS
-curl -fsSL https://raw.githubusercontent.com/neuralforgeio/nexa-agent/main/scripts/install/install.sh| bash
+curl -fsSL https://raw.githubusercontent.com/neuralforgeio/openforge/main/scripts/install/install.sh| bash
 
 # Windows (PowerShell)
-irm https://raw.githubusercontent.com/neuralforgeio/nexa-agent/main/scripts/install/install.ps1 | iex
+irm https://raw.githubusercontent.com/neuralforgeio/openforge/main/scripts/install/install.ps1 | iex
 
 # Try it
-nexa-chat</code></pre>
+forge-chat</code></pre>
       </div>
     </div>
   </section>
@@ -315,16 +315,16 @@ nexa-chat</code></pre>
       <h2>📟 Terminal UI</h2>
       <p class="section-sub">A full-featured TUI (rich + prompt_toolkit) with status bar, chat area, tool log, and streaming.</p>
       <div class="tui-preview">
-<span class="tui-title">╭─ Nexa Agent v4.1.0</span>
+<span class="tui-title">╭─ OpenForge v4.1.0</span>
 <span class="tsep">│</span> Model: ornith (llama.cpp) | Tokens: ~1.2k | Server: UP | 14:32
 <span class="tsep">├────────────────────────────────────────┬─────────────────────────────────────────────┤</span>
 <span class="tsep">│</span> Chat                                   <span class="tsep">│ Tool Log                                    │</span>
-<span class="tsep">│</span> <span class="dim">User: Build a React app</span>          <span class="tsep">│ ✓ read_file (45ms) — read nexa/config.py   │</span>
+<span class="tsep">│</span> <span class="dim">User: Build a React app</span>          <span class="tsep">│ ✓ read_file (45ms) — read forge/config.py   │</span>
 <span class="tsep">│</span>                                      <span class="tsep">│ ✓ write_file (120ms) — src/App.tsx          │</span>
-<span class="tsep">│</span> <span class="green">Nexa: I'll create a React app for you.</span> <span class="tsep">│                                            │</span>
+<span class="tsep">│</span> <span class="green">Forge: I'll create a React app for you.</span> <span class="tsep">│                                            │</span>
 <span class="tsep">│</span> <span class="blue">(streaming markdown...)</span>           <span class="tsep">│                                            │</span>
 <span class="tsep">├────────────────────────────────────────┴─────────────────────────────────────────────┤</span>
-<span class="tsep">│</span> <span class="dim">nexa ></span>                                                               <span class="tsep">│</span>
+<span class="tsep">│</span> <span class="dim">forge ></span>                                                               <span class="tsep">│</span>
 <span class="tsep">╰──────────────────────────────────────────────────────────────────────────────────────╯</span>
       </div>
     </div>
@@ -348,7 +348,7 @@ nexa-chat</code></pre>
 
   <footer>
     <p>Copyright (c) 2026 Dearly Febriano Irwansyah · Solo developer, Indonesia</p>
-    <p><a href="https://github.com/neuralforgeio/nexa-agent" target="_blank" rel="noopener">GitHub</a> · <a href="./SECURITY.md" target="_blank" rel="noopener">Security</a> · <a href="./LICENSE" target="_blank" rel="noopener">License</a></p>
+    <p><a href="https://github.com/neuralforgeio/openforge" target="_blank" rel="noopener">GitHub</a> · <a href="./SECURITY.md" target="_blank" rel="noopener">Security</a> · <a href="./LICENSE" target="_blank" rel="noopener">License</a></p>
   </footer>
 </body>
 </html>

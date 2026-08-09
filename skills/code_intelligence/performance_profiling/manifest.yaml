@@ -3,7 +3,7 @@ version: 0.1.0
 description: Profile a workspace file under a described scenario and report performance bottlenecks. Each bottleneck
   has a type, code location, impact assessment, and an optimisation suggestion.
 category: code_intelligence
-author: nexa-agent
+author: openforge
 permissions:
 - filesystem:workspace
 - terminal:execute

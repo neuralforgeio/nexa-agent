@@ -379,5 +379,5 @@ class SemanticMemory:
 
 
 def is_semantic_memory_enabled() -> bool:
-    """Return True if semantic memory is enabled via env (NEXA_SEMANTIC_MEMORY=1)."""
-    return os.environ.get("NEXA_SEMANTIC_MEMORY", "1").lower() in ("1", "true", "yes")
+    """Return True if semantic memory is enabled (FORGE_SEMANTIC_MEMORY=1)."""
+    return os.environ.get("FORGE_SEMANTIC_MEMORY", "1").lower() in ("1", "true", "yes")

@@ -28,7 +28,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
 from openforge.constants import (
-    NEXA_NAME
+    FORGE_NAME
 )
 
 from .orchestrator import AgentPhase, Orchestrator

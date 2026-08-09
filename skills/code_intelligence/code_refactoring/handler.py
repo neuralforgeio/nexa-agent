@@ -41,7 +41,7 @@ __all__ = ["handle"]
 _REFACTOR_TYPES = ("extract_method", "rename", "simplify", "all")
 
 SYSTEM = (
-    "You are Nexa's code-refactoring engine. You are given the REAL contents "
+    "You are Forge's code-refactoring engine. You are given the REAL contents "
     "of a source file plus a requested refactor type (extract_method, "
     "rename, simplify, or all). Analyse only what is actually in the file — "
     "never invent identifiers, functions, or code that is not present. "

@@ -3,7 +3,7 @@ version: 0.1.0
 description: Translate text from a source language to a target language, with optional domain context. Returns the
   translated text, optionally a detected language, and a confidence score.
 category: web_research
-author: nexa-agent
+author: openforge
 permissions:
 - memory:read
 input_schema:

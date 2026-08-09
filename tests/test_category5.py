@@ -12,7 +12,7 @@ def client(tmp_path, monkeypatch):
     import anyio
     import openforge.config as cfg
     import openforge.state as st
-    forge_home = tmp_path / ".nexa"; forge_home.mkdir(parents=True, exist_ok=True)
+    forge_home = tmp_path / ".openforge"; forge_home.mkdir(parents=True, exist_ok=True)
     monkeypatch.setenv("FORGE_HOME", str(forge_home))
     monkeypatch.setattr(cfg, "FORGE_HOME", forge_home)
     monkeypatch.setattr(cfg, "FORGE_DB_PATH", forge_home / "openforge.db")

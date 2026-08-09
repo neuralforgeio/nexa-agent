@@ -30,7 +30,7 @@ from tools.registry import create_default_registry
 
 
 def test_embed_text_dim_and_norm():
-    v = embed_text("nexa agent")
+    v = embed_text("forge agent")
     assert len(v) == 384
     norm = sum(x * x for x in v) ** 0.5
     assert abs(norm - 1.0) < 0.01
@@ -108,13 +108,13 @@ async def test_read_docx_roundtrip(tmp_path, monkeypatch):
     import docx, importlib
 
     doc = docx.Document()
-    doc.add_paragraph("Nexa document body")
+    doc.add_paragraph("Forge document body")
     p = tmp_path / "sample.docx"
     doc.save(p)
     import tools.core.read_docx as rd
     monkeypatch.setattr(rd, "resolve_in_workspace", lambda p: tmp_path / p)
     text = await rd.read_docx("sample.docx")
-    assert "Nexa document body" in text
+    assert "Forge document body" in text
 
 
 @pytest.mark.asyncio
@@ -139,13 +139,13 @@ async def test_read_pptx_roundtrip(tmp_path, monkeypatch):
 
     prs = Presentation()
     slide = prs.slides.add_slide(prs.slide_layouts[5])
-    slide.shapes.title.text = "Nexa deck"
+    slide.shapes.title.text = "Forge deck"
     p = tmp_path / "deck.pptx"
     prs.save(p)
     import tools.core.read_pptx as rpptx
     monkeypatch.setattr(rpptx, "resolve_in_workspace", lambda p: tmp_path / p)
     text = await rpptx.read_pptx("deck.pptx")
-    assert "slide 1" in text or "Nexa deck" in text
+    assert "slide 1" in text or "Forge deck" in text
 
 
 # ── M-10: read_file dispatches by extension ──────────────────────────────────

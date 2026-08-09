@@ -3,7 +3,7 @@ version: 0.1.0
 description: Analyse a time series for trends and patterns and forecast future values. Returns detected trend segments,
   textual patterns, and a forecast for the requested number of periods.
 category: web_research
-author: nexa-agent
+author: openforge
 permissions:
 - memory:read
 input_schema:

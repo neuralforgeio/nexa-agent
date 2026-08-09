@@ -405,7 +405,7 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
                       {status === "testing" && <Loader2 size={14} color="#9A9A9A" className="animate-spin" />}
                     </div>
                     <div style={{ fontSize: 12, color: "#9A9A9A", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {p.base_url || "(set NEXA_BASE_URL)"} · {p.model || "(default)"} · {p.api_key || "(env)"}
+                      {p.base_url || "(set FORGE_BASE_URL)"} · {p.model || "(default)"} · {p.api_key || "(env)"}
                     </div>
                   </div>
                   <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
@@ -750,7 +750,7 @@ function SkillsView() {
       )}
 
       <div style={{ marginTop: 12, fontSize: 11, color: "#4B5563", textAlign: "center" }}>
-        {skills.length} skills &middot; {filtered.length} shown &middot; disabled via NEXA_SKILLS_ENABLED/DISABLED
+        {skills.length} skills &middot; {filtered.length} shown &middot; disabled via FORGE_SKILLS_ENABLED/DISABLED
       </div>
     </div>
   );

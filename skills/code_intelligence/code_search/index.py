@@ -2,7 +2,7 @@
 OpenForge — workspace code index for the ``code_search`` skill (v4.4.0)
 =========================================================================
 
-A small, honest, on-disk index under ``$FORGE_WORKSPACE/.nexa/index/code_fts.db``
+A small, honest, on-disk index under ``$FORGE_WORKSPACE/.openforge/index/code_fts.db``
 (SQLite). Uses FTS5 when available and falls back to a deterministic
 substring/substring-score scan when it is not — so the skill always returns a
 real index done over real files, never a stub.
@@ -30,7 +30,7 @@ INDEXABLE_EXTS: Tuple[str, ...] = (
 #: Directory names never descended into.
 IGNORE_DIRS = frozenset({
     ".git", "node_modules", ".venv", "venv", "__pycache__", ".next",
-    ".pytest_cache", ".nexa", "dist", "build", ".zcode",
+    ".pytest_cache", ".openforge", "dist", "build", ".zcode",
 })
 
 #: Per-file read cap (skip huge/binary files).
@@ -48,7 +48,7 @@ def _fts5_available() -> bool:
 
 
 def _index_db_path(workspace: Path) -> Path:
-    d = workspace / ".nexa" / "index"
+    d = workspace / ".openforge" / "index"
     d.mkdir(parents=True, exist_ok=True)
     return d / "code_fts.db"
 

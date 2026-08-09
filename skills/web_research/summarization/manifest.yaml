@@ -3,7 +3,7 @@ version: 0.1.0
 description: Summarize inline content or a workspace file at a chosen length and style. Returns the summary, its
   key points, and the summary word count.
 category: web_research
-author: nexa-agent
+author: openforge
 permissions:
 - filesystem:workspace
 - memory:read

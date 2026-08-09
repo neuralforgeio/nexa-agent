@@ -115,8 +115,8 @@ export function TerminalPanel({ onClose, isVisible = true, onToggle, embedded = 
     //  "repeated Y" glyphs in some xterm.js+Turbopack font setups. ASCII
     //  works everywhere: Windows Terminal, PowerShell, Git Bash, WSL, etc.)
     term.writeln("+----------------------------------------------------------+");
-    term.writeln("|  NEXA TERMINAL — real PTY shell (xterm.js)                |");
-    term.writeln("|  Starts in your NEXA workspace. Try `dir` or `ls`.        |");
+    term.writeln("|  FORGE TERMINAL — real PTY shell (xterm.js)                |");
+    term.writeln("|  Starts in your FORGE workspace. Try `dir` or `ls`.        |");
     term.writeln("|  Shortcuts: 'clear' to reset, 'exit' to close.            |");
     term.writeln("+----------------------------------------------------------+");
     term.writeln("");
@@ -163,7 +163,7 @@ export function TerminalPanel({ onClose, isVisible = true, onToggle, embedded = 
     // has no WebSocket upgrade proxy, so we must not route through
     // ``/api/...`` rewrites — those only handle plain HTTP.
     const backendWsUrl =
-      (process.env.NEXT_PUBLIC_NEXA_WS as string | undefined) ??
+      (process.env.NEXT_PUBLIC_FORGE_WS as string | undefined) ??
       "ws://127.0.0.1:8000/ws/terminal";
     const ws = new WebSocket(backendWsUrl);
     wsRef.current = ws;
@@ -172,7 +172,7 @@ export function TerminalPanel({ onClose, isVisible = true, onToggle, embedded = 
       setConnected(true);
       setError(null);
       reconnectAttemptRef.current = 0;
-      term.writeln("\x1b[32m[connected]\x1b[0m Nexa PTY session established.");
+      term.writeln("\x1b[32m[connected]\x1b[0m Forge PTY session established.");
       // Send initial PTY size. The shell was already spawned with the
       // workspace root as cwd by the backend; the user can `cd` anywhere
       // inside the workspace from here.
@@ -308,7 +308,7 @@ export function TerminalPanel({ onClose, isVisible = true, onToggle, embedded = 
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <icons.Terminal size={14} color="#4A9EFF" />
           <span style={{ fontSize: 12, color: "#4A9EFF", fontWeight: 600 }}>
-            Nexa Terminal
+            Forge Terminal
           </span>
           <span
             style={{
@@ -367,7 +367,7 @@ export function TerminalPanel({ onClose, isVisible = true, onToggle, embedded = 
           flexShrink: 0,
         }}
       >
-        Drag the top edge to resize ·<span style={{ color: "#4A9EFF" }}>nexa-v3.2</span>
+        Drag the top edge to resize ·<span style={{ color: "#4A9EFF" }}>forge-v3.2</span>
         {error && <span style={{ color: "#F87171" }}> · {error}</span>}
       </div>
     </div>

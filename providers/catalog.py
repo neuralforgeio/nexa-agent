@@ -12,9 +12,9 @@ Supported providers:
     - llamacpp    (http://localhost:8080/v1)
     - lmstudio    (http://localhost:1234/v1)
     - vllm        (http://localhost:8000/v1)
-    - custom      (user-supplied NEXA_BASE_URL)
+    - custom      (user-supplied FORGE_BASE_URL)
 
-Any OpenAI-compatible endpoint works — set ``NEXA_BASE_URL`` and
+Any OpenAI-compatible endpoint works — set ``FORGE_BASE_URL`` and
 ``FORGE_MODEL`` environment variables.
 
 Copyright (c) 2026 Dearly Febriano Irwansyah
@@ -119,12 +119,12 @@ PROVIDER_CATALOG: Dict[str, ProviderConfig] = {
     ),
     "databricks": ProviderConfig(
         name="databricks",
-        base_url="",  # user must override via NEXA_BASE_URL (workspace host)
+        base_url="",  # user must override via FORGE_BASE_URL (workspace host)
         default_model="databricks-claude-sonnet-4-6",
-        api_key_hint="Requires DATABRICKS_TOKEN (PAT, prefix dapi); also set NEXA_BASE_URL=<workspace>/serving-endpoints",
+        api_key_hint="Requires DATABRICKS_TOKEN (PAT, prefix dapi); also set FORGE_BASE_URL=<workspace>/serving-endpoints",
         description=(
             "Databricks Foundation Model APIs / AI Gateway (OpenAI-compatible). "
-            "Set NEXA_BASE_URL to https://<workspace-host>/serving-endpoints and "
+            "Set FORGE_BASE_URL to https://<workspace-host>/serving-endpoints and "
             "DATABRICKS_TOKEN to your PAT. Models: databricks-claude-sonnet-*, "
             "databricks-gpt-oss-*, databricks-meta-llama-*, etc."
         ),
@@ -392,8 +392,8 @@ def resolve_provider(
 
     Resolution order:
         1. If ``name`` is given and exists in the catalog, use it.
-        2. Else if ``NEXA_PROVIDER`` env var is set, use it.
-        3. Else if ``NEXA_BASE_URL`` env var is set, use it directly (custom).
+        2. Else if ``FORGE_PROVIDER`` env var is set, use it.
+        3. Else if ``FORGE_BASE_URL`` env var is set, use it directly (custom).
         4. Else default to ``"openai"``.
 
     The API key is resolved from ``OPENAI_API_KEY`` (or the provider-specific
@@ -408,37 +408,37 @@ def resolve_provider(
     """
     # Determine the provider name.
     if name is None:
-        name = os.environ.get("NEXA_PROVIDER", "").lower()
+        name = os.environ.get("FORGE_PROVIDER", "").lower()
     if not name:
-        # If NEXA_BASE_URL is set, treat as custom provider.
-        if os.environ.get("NEXA_BASE_URL"):
+        # If FORGE_BASE_URL is set, treat as custom provider.
+        if os.environ.get("FORGE_BASE_URL"):
             name = "custom"
         else:
             name = "openai"
 
     # Custom provider via env var.
     if name == "custom":
-        base_url = os.environ.get("NEXA_BASE_URL", "")
-        model = os.environ.get("NEXA_MODEL", "gpt-4o")
-        api_key = os.environ.get("OPENAI_API_KEY", os.environ.get("NEXA_API_KEY", "dummy"))
+        base_url = os.environ.get("FORGE_BASE_URL", "")
+        model = os.environ.get("FORGE_MODEL", "gpt-4o")
+        api_key = os.environ.get("OPENAI_API_KEY", os.environ.get("FORGE_API_KEY", "dummy"))
         return base_url, model, api_key
 
     # Known provider from catalog.
     config = PROVIDER_CATALOG.get(name, PROVIDER_CATALOG["openai"])
 
     # Allow env override of base_url and model.
-    base_url = os.environ.get("NEXA_BASE_URL", config.base_url)
-    model = os.environ.get("NEXA_MODEL", config.default_model)
+    base_url = os.environ.get("FORGE_BASE_URL", config.base_url)
+    model = os.environ.get("FORGE_MODEL", config.default_model)
 
     # Resolve API key.
     # Resolution order:
     #   1. OPENAI_API_KEY (universal fallback)
-    #   2. NEXA_API_KEY (universal fallback)
+    #   2. FORGE_API_KEY (universal fallback)
     #   3. <NAME>_API_KEY (e.g. TOKENROUTER_API_KEY, OPENROUTER_API_KEY)
     #   4. Provider-specific token env vars (DATABRICKS_TOKEN for databricks).
     api_key = (
         os.environ.get("OPENAI_API_KEY")
-        or os.environ.get("NEXA_API_KEY")
+        or os.environ.get("FORGE_API_KEY")
         or os.environ.get(f"{name.upper()}_API_KEY")
         or ""
     )

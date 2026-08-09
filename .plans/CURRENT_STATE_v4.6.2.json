@@ -6,6 +6,6 @@
   "total_skills": 40,
   "tool_count": 33,
   "provider_count": 24,
-  "release": "https://github.com/neuralforgeio/nexa-agent/releases/tag/v4.6.2",
-  "org": "neuralforgeio/nexa-agent"
+  "release": "https://github.com/neuralforgeio/openforge/releases/tag/v4.6.2",
+  "org": "neuralforgeio/openforge"
 }

@@ -21,12 +21,7 @@ SPDX-License-Identifier: MIT
 
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
-from openforge.constants import (
-    NEXA_AUTHOR,
-    NEXA_NAME,
-    NEXA_TAGLINE,
-    NEXA_VERSION
-)
+from openforge.constants import FORGE_AUTHOR, FORGE_NAME, FORGE_TAGLINE, FORGE_VERSION
 
 if TYPE_CHECKING:
     from tools.registry import ToolRegistry
@@ -148,9 +143,9 @@ def _build_identity_section() -> str:
     return "\n".join(
         [
             "# Agent Identity",
-            f"You are **{NEXA_NAME}** v{NEXA_VERSION}.",
-            f"{NEXA_TAGLINE}.",
-            f"Created by {NEXA_AUTHOR}.",
+            f"You are **{FORGE_NAME}** v{FORGE_VERSION}.",
+            f"{FORGE_TAGLINE}.",
+            f"Created by {FORGE_AUTHOR}.",
         ]
     )
 
@@ -215,7 +210,7 @@ def _build_learning_section(stats: Dict[str, Any]) -> str:
 
     Args:
         stats: A dict with learning statistics (from
-               :meth:`~nexa.state.ConversationDB.get_learning_stats`).
+               :meth:`~forge.state.ConversationDB.get_learning_stats`).
 
     Returns:
         A formatted string with tool usage insights, or empty string

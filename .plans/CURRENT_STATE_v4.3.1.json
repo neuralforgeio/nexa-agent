@@ -7,7 +7,7 @@
   "provider_count": 24,
   "tool_count": 33,
   "test_count": 660,
-  "pyproject_entry_points": ["nexa", "nexa-chat", "nexa-agent", "nexa-gateway"],
+  "pyproject_entry_points": ["forge", "forge-chat", "openforge", "forge-gateway"],
   "folders_reorganized": ["agent/<10-categories>", "src/", "docs/<audience>/", "scripts/<purpose>/", "tests/<suite>/"],
   "notes": "Reorganization is complete; every import still funnels through shims so nothing broke."
 }

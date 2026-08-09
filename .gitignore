@@ -108,9 +108,9 @@ tests/real_integration_e2e.py
 .plans/scratchpad/
 
 # Local development state (never share)
-.nexa-local/
+.openforge-local/
 
 # === End AI assistant exclusions ===
 
-nexa-workspace/
+forge-workspace/
 

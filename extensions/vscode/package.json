@@ -1,14 +1,14 @@
 {
-  "name": "nexa-agent",
+  "name": "openforge",
   "displayName": "OpenForge",
   "version": "4.12.0",
   "publisher": "neuralforgeio",
-  "description": "Nexa Agent integration for VS Code (stub).",
+  "description": "OpenForge integration for VS Code (stub).",
   "engines": { "vscode": "^1.85.0" },
   "categories": ["Other"],
-  "activationEvents": ["onCommand:nexa.hello"],
+  "activationEvents": ["onCommand:forge.hello"],
   "main": "./out/extension.js",
   "contributes": {
-    "commands": [{ "command": "nexa.hello", "title": "Nexa: Hello" }]
+    "commands": [{ "command": "forge.hello", "title": "Forge: Hello" }]
   }
 }

@@ -1,6 +1,6 @@
 ## CONTRIBUTING to OpenForge
 
-We welcome PRs! OpenForge evolved from nexa-agent into a stable, local-first AI agent. To keep quality high, follow these rules.
+We welcome PRs! OpenForge evolved from openforge into a stable, local-first AI agent. To keep quality high, follow these rules.
 
 ### Setup
 

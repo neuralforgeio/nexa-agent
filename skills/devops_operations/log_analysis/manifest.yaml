@@ -3,7 +3,7 @@ version: 0.1.0
 description: Analyse logs from a file or endpoint for anomalies, patterns, errors, or security events. Returns anomalies,
   recurring patterns, a root-cause hypothesis, and recommendations.
 category: devops_operations
-author: nexa-agent
+author: openforge
 permissions:
 - filesystem:workspace
 - memory:read
@@ -41,7 +41,7 @@ output_schema:
     recommendations: *id002
 examples:
 - input:
-    log_source: logs/nexa-agent.log
+    log_source: logs/openforge.log
     log_format: json
     analysis_type: error
 tags:

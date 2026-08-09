@@ -41,7 +41,7 @@ __all__ = ["handle"]
 _SEVERITIES = ("P0", "P1", "P2", "P3")
 
 SYSTEM = (
-    "You are Nexa's incident-response advisor. You are given the REAL "
+    "You are Forge's incident-response advisor. You are given the REAL "
     "incident description supplied by an on-call operator, the declared "
     "severity (P0 | P1 | P2 | P3), and the REAL list of affected services. "
     "Base every assessment ONLY on the information given — never invent "

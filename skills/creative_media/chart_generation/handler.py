@@ -44,7 +44,7 @@ __all__ = ["handle"]
 _CHART_TYPES = ("bar", "line", "pie", "scatter", "heatmap")
 
 SYSTEM = (
-    "You are Nexa's chart-generation engine. You are given REAL tabular data "
+    "You are Forge's chart-generation engine. You are given REAL tabular data "
     "(as JSON rows), a chart type (bar | line | pie | scatter | heatmap), a "
     "title, and optional rendering options. Emit ONLY valid, self-contained "
     "Python matplotlib code that plots EXACTLY the data given — embed the "

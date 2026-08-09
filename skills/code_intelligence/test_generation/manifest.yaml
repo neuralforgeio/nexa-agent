@@ -3,7 +3,7 @@ version: 0.1.0
 description: Generate unit tests (pytest or unittest) for a workspace source file, optionally targeting one function.
   Returns the generated test code, the test file path, and an estimated line coverage percentage.
 category: code_intelligence
-author: nexa-agent
+author: openforge
 permissions:
 - filesystem:workspace
 - filesystem:workspace:write

@@ -2,7 +2,7 @@
 OpenForge — Autonomous Web Learner
 ==================================
 
-This module lets Nexa learn facts *on its own* — without being explicitly
+This module lets Forge learn facts *on its own* — without being explicitly
 asked — by detecting knowledge gaps in the user's question and proactively
 running web searches to fill them.
 
@@ -107,7 +107,7 @@ _STOPWORDS = {
     "This", "That", "These", "Those", "What", "How", "Why", "When",
     "Where", "Who", "Is", "Are", "Was", "Were", "Do", "Does", "Did",
     "Can", "Could", "Should", "Would", "Will", "Have", "Has", "Had",
-    "Nexa", "Hello", "Hi", "Hey", "Thanks", "Thank",
+    "Forge", "Hello", "Hi", "Hey", "Thanks", "Thank",
     "Tell", "Me", "About", "Please", "From", "For", "With", "And",
     "Or", "But", "Of", "In", "On", "At", "To",
 }

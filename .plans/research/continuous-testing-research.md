@@ -1,7 +1,7 @@
-# Research: Continuous Testing for Nexa Agent
+# Research: Continuous Testing for OpenForge
 
 ## Summary
-How the Nexa Agent should test itself periodically, and what levels of
+How the OpenForge should test itself periodically, and what levels of
 confidence we expect per phase.
 
 ## Findings
@@ -10,7 +10,7 @@ confidence we expect per phase.
 - **Unit tests** (`tests/*.py`): 649+ passing.
 - **Smoke tests**: boot + health endpoints.
 - **Integration tests**: `tests/test_llamacpp_real.py` — real HTTP calls
-  to a local llama.cpp server (requires `NEXA_E2E_LLAMACPP=1`).
+  to a local llama.cpp server (requires `FORGE_E2E_LLAMACPP=1`).
 - **E2E tests**: web-UI paths exercised by manual testing.
 
 ### Layers the QA loop currently covers
@@ -39,7 +39,7 @@ confidence we expect per phase.
 1. Persist test-results directory forever under
    `Documents/testing-result/` so a developer can inspect later. Our
    `tests/test_llamacpp_real.py` already does that.
-2. Keep `NEXA_E2E_LLAMACPP=1` as the default-off gate: without it, the
+2. Keep `FORGE_E2E_LLAMACPP=1` as the default-off gate: without it, the
    local model tests are skipped cleanly. CI machines never need to spin
    llama.cpp.
 3. Extend `pytest.ini_options.markers` rather than ad-hoc skip comments.

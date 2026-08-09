@@ -159,8 +159,8 @@ class TestEnvironmentAndCwd:
         # expansion (which differs between bash, cmd.exe, and Git Bash).
         import sys as _sys
         result = await run_terminal_command(
-            f'"{_sys.executable}" -c "import os; print(os.environ.get(\'NEXA_TEST_VAR\', \'NOT_SET\'))"',
-            env={"NEXA_TEST_VAR": "injected_value_42"},
+            f'"{_sys.executable}" -c "import os; print(os.environ.get(\'FORGE_TEST_VAR\', \'NOT_SET\'))"',
+            env={"FORGE_TEST_VAR": "injected_value_42"},
         )
         assert "injected_value_42" in result
 

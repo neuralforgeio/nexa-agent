@@ -41,7 +41,7 @@ _PROVIDERS = ("aws", "gcp", "azure", "cloudflare")
 _IAC_TOOLS = ("terraform", "pulumi", "cloudformation")
 
 SYSTEM = (
-    "You are Nexa's infrastructure-as-code generator. You are given a REAL "
+    "You are Forge's infrastructure-as-code generator. You are given a REAL "
     "infrastructure description provided by the user, a cloud provider "
     "(aws | gcp | azure | cloudflare), and an IaC tool (terraform | pulumi | "
     "cloudformation). Produce syntactically plausible, self-contained source "

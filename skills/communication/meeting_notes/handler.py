@@ -53,7 +53,7 @@ from skills.registry import SkillInputError
 __all__ = ["handle", "SYSTEM"]
 
 SYSTEM = (
-    "You are the meeting_notes skill inside the Nexa Agent skills system. "
+    "You are the meeting_notes skill inside the OpenForge skills system. "
     "CRITICAL CONSTRAINT: you are a text model — you CANNOT hear audio and "
     "no ASR transcript of the referenced recording is available to you. All "
     "you genuinely have is the caller-provided meeting context and attendee "

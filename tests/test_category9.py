@@ -68,8 +68,8 @@ async def test_sql_injection_safe_in_memory_payload(payload, tmp_path, monkeypat
     import openforge.state as st
     from openforge.state import ConversationDB
 
-    monkeypatch.setattr(st, "FORGE_HOME", tmp_path / ".nexa")
-    monkeypatch.setattr(st, "FORGE_DB_PATH", tmp_path / ".nexa" / "openforge.db")
+    monkeypatch.setattr(st, "FORGE_HOME", tmp_path / ".openforge")
+    monkeypatch.setattr(st, "FORGE_DB_PATH", tmp_path / ".openforge" / "openforge.db")
     db = ConversationDB()
     await db.init()
     # Store the payload as message content — parameterized queries must treat

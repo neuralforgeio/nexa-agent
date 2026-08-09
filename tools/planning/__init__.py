@@ -88,11 +88,11 @@ PLANNING_TOOLS = [
     ("list_ports",       list_ports,       "Report which common dev-server ports are listening on this machine.", LIST_PORTS_SCHEMA),
     ("process_snapshot", process_snapshot, "Regex-filtered snapshot of user processes.", PROCESS_SNAPSHOT_SCHEMA),
     # Knowledge
-    ("memory_search",    memory_search,    "FTS5 search over Nexa's long-term memory store.", MEMORY_SEARCH_SCHEMA),
+    ("memory_search",    memory_search,    "FTS5 search over Forge's long-term memory store.", MEMORY_SEARCH_SCHEMA),
     ("session_search",   session_search,   "FTS5 search over past conversation messages.", SESSION_SEARCH_SCHEMA),
     ("web_fetch",        web_fetch,        "Fetch a URL and extract its readable text (32 KB cap).", WEB_FETCH_SCHEMA),
     # Self-extension
-    ("create_tool",      create_tool,      "Write a brand-new Nexa tool into ~/.openforge/tools/ (usable next turn).", CREATE_TOOL_SCHEMA),
+    ("create_tool",      create_tool,      "Write a brand-new Forge tool into ~/.openforge/tools/ (usable next turn).", CREATE_TOOL_SCHEMA),
     ("plan_and_delegate", plan_and_delegate, "Plan a goal AND emit a ready delegate-prompt per step.", PLAN_AND_DELEGATE_SCHEMA),
 ]
 

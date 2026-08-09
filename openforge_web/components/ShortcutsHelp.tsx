@@ -122,8 +122,8 @@ export function ShortcutsHelp({ onClose }: { onClose: () => void }) {
           width: "min(520px, 94vw)",
           maxHeight: "80vh",
           overflowY: "auto",
-          background: "var(--nexa-surface, #1A1B1E)",
-          border: "1px solid var(--nexa-border-2, #2E2F34)",
+          background: "var(--forge-surface, #1A1B1E)",
+          border: "1px solid var(--forge-border-2, #2E2F34)",
           borderRadius: 14,
           boxShadow: "0 20px 60px rgba(0,0,0,0.55)",
           padding: 22,
@@ -142,7 +142,7 @@ export function ShortcutsHelp({ onClose }: { onClose: () => void }) {
               margin: 0,
               fontSize: 16,
               fontWeight: 700,
-              color: "var(--nexa-text, #ECECEC)",
+              color: "var(--forge-text, #ECECEC)",
             }}
           >
             Keyboard shortcuts
@@ -153,7 +153,7 @@ export function ShortcutsHelp({ onClose }: { onClose: () => void }) {
             style={{
               background: "transparent",
               border: "none",
-              color: "var(--nexa-dim, #9A9A9A)",
+              color: "var(--forge-dim, #9A9A9A)",
               cursor: "pointer",
               padding: 4,
               borderRadius: 6,
@@ -170,7 +170,7 @@ export function ShortcutsHelp({ onClose }: { onClose: () => void }) {
                 key={i}
                 style={{
                   borderTop:
-                    i === 0 ? "none" : "1px solid var(--nexa-border, #24262B)",
+                    i === 0 ? "none" : "1px solid var(--forge-border, #24262B)",
                 }}
               >
                 <td
@@ -185,7 +185,7 @@ export function ShortcutsHelp({ onClose }: { onClose: () => void }) {
                       {j > 0 && (
                         <span
                           style={{
-                            color: "var(--nexa-mute, #6A6A6A)",
+                            color: "var(--forge-mute, #6A6A6A)",
                             margin: "0 4px",
                             fontSize: 11,
                           }}
@@ -199,9 +199,9 @@ export function ShortcutsHelp({ onClose }: { onClose: () => void }) {
                           padding: "2px 7px",
                           fontSize: 11,
                           fontFamily: "inherit",
-                          color: "var(--nexa-text, #ECECEC)",
-                          background: "var(--nexa-panel-2, #191B1E)",
-                          border: "1px solid var(--nexa-border-2, #2E2F34)",
+                          color: "var(--forge-text, #ECECEC)",
+                          background: "var(--forge-panel-2, #191B1E)",
+                          border: "1px solid var(--forge-border-2, #2E2F34)",
                           borderBottomWidth: 2,
                           borderRadius: 5,
                         }}
@@ -215,7 +215,7 @@ export function ShortcutsHelp({ onClose }: { onClose: () => void }) {
                   style={{
                     padding: "8px 0",
                     fontSize: 13,
-                    color: "var(--nexa-dim, #9A9A9A)",
+                    color: "var(--forge-dim, #9A9A9A)",
                   }}
                 >
                   {s.description}
@@ -229,7 +229,7 @@ export function ShortcutsHelp({ onClose }: { onClose: () => void }) {
           style={{
             margin: "14px 0 0",
             fontSize: 11,
-            color: "var(--nexa-mute, #6A6A6A)",
+            color: "var(--forge-mute, #6A6A6A)",
             textAlign: "center",
           }}
         >

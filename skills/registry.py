@@ -25,8 +25,8 @@ The registry is::
 
 Environment toggles (honoured, never auto-enabled):
 
-  * ``NEXA_SKILLS_DISABLED``  — comma-separated skill names forced off.
-  * ``NEXA_SKILLS_ENABLED``   — if set, acts as an allow-list: only the
+  * ``FORGE_SKILLS_DISABLED``  — comma-separated skill names forced off.
+  * ``FORGE_SKILLS_ENABLED``   — if set, acts as an allow-list: only the
     named skills are considered enabled.
 
 Copyright (c) 2026 Dearly Febriano Irwansyah
@@ -258,7 +258,7 @@ class Manifest:
     version: str
     description: str
     category: str
-    author: str = "nexa-agent"
+    author: str = "openforge"
     permissions: Tuple[str, ...] = ()
     input_schema: Dict[str, Any] = field(default_factory=dict)
     output_schema: Dict[str, Any] = field(default_factory=dict)
@@ -335,7 +335,7 @@ def parse_manifest(path: Path) -> Manifest:
     if not all(isinstance(t, str) for t in tags):
         raise SkillManifestError(f"manifest {path} tags must be strings")
 
-    author = raw.get("author") or "nexa-agent"
+    author = raw.get("author") or "openforge"
     if not isinstance(author, str):
         raise SkillManifestError(f"manifest {path} author must be a string")
 
@@ -457,13 +457,13 @@ def is_enabled(name: str) -> bool:
     """
     Return True unless the skill is explicitly disabled.
 
-    ``NEXA_SKILLS_DISABLED`` removes skills; ``NEXA_SKILLS_ENABLED`` (when
+    ``FORGE_SKILLS_DISABLED`` removes skills; ``FORGE_SKILLS_ENABLED`` (when
     non-empty) allow-lists. Both exist so operators can lock the runtime
     surface down without editing manifests.
     """
-    if name in _env_list("NEXA_SKILLS_DISABLED"):
+    if name in _env_list("FORGE_SKILLS_DISABLED"):
         return False
-    enabled = _env_list("NEXA_SKILLS_ENABLED")
+    enabled = _env_list("FORGE_SKILLS_ENABLED")
     if enabled and name not in enabled:
         return False
     return True

@@ -106,7 +106,7 @@ class TestExportCommand:
             if m["role"] == "user":
                 lines.append(f"## User\n\n{m['content']}\n")
             elif m["role"] == "assistant":
-                lines.append(f"## Nexa\n\n{m['content']}\n")
+                lines.append(f"## Forge\n\n{m['content']}\n")
 
         export_text = "\n".join(lines)
         export_path = tmp_path / f"export_{target_id[:12]}.md"

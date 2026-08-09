@@ -42,7 +42,7 @@ __all__ = ["handle"]
 _PLATFORMS = ("prometheus", "datadog", "newrelic")
 
 SYSTEM = (
-    "You are Nexa's observability-config generator. You are given the REAL "
+    "You are Forge's observability-config generator. You are given the REAL "
     "directory listing of an application (read from the caller's workspace), "
     "the REAL list of metrics the caller wants tracked, their alerting "
     "specification (JSON), and a platform (prometheus | datadog | newrelic). "

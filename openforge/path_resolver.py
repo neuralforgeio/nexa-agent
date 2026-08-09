@@ -3,7 +3,7 @@
 Every module in OpenForge MUST resolve runtime paths through this module.
 It centralizes the FORGE_HOME / FORGE_LIB / FORGE_WORKSPACE / … layout so
 the rest of the codebase never hardcodes a path.
-NEXA_* env vars are still honored for one MINOR cycle (backward compat).
+FORGE_* env vars are still honored for one MINOR cycle (backward compat).
 
 Spec (unified):
   FORGE_HOME      default:  ~/.openforge
@@ -32,22 +32,22 @@ from pathlib import Path
 def get_forge_home() -> Path:
     """Return the OpenForge home directory.
 
-    Honours FORGE_HOME, falls back to legacy NEXA_HOME, then uses
+    Honours FORGE_HOME, falls back to legacy FORGE_HOME, then uses
     the new default ~/.openforge.
     """
-    env = os.environ.get("FORGE_HOME") or os.environ.get("NEXA_HOME")
+    env = os.environ.get("FORGE_HOME") or os.environ.get("FORGE_HOME")
     return Path(env).expanduser().resolve() if env else Path.home() / ".openforge"
 
 
 def get_forge_lib() -> Path:
     """Return the read-only core library directory."""
-    env = os.environ.get("FORGE_LIB") or os.environ.get("NEXA_LIB")
+    env = os.environ.get("FORGE_LIB") or os.environ.get("FORGE_LIB")
     return Path(env).expanduser().resolve() if env else get_forge_home() / "lib"
 
 
 def get_forge_workspace() -> Path:
     """Return the user workspace for writes/scratch."""
-    env = os.environ.get("FORGE_WORKSPACE") or os.environ.get("NEXA_WORKSPACE")
+    env = os.environ.get("FORGE_WORKSPACE") or os.environ.get("FORGE_WORKSPACE")
     return Path(env).expanduser().resolve() if env else get_forge_home() / "workspace"
 
 

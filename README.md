@@ -25,7 +25,7 @@ OpenForge adalah **local-first AI agent** yang sangat powerful — terminal, TUI
 
 ## 🧠 Kenapa OpenForge?
 
-> OpenForge adalah evolusi **The Great Consolidation** — penggabungan nama (dari Nexa Agent), arsitektur terpadu `~/.openforge/`, dan ekspansi UI/UX ke Web, TUI, dan Desktop.
+> OpenForge adalah evolusi **The Great Consolidation** — penggabungan nama (dari OpenForge), arsitektur terpadu `~/.openforge/`, dan ekspansi UI/UX ke Web, TUI, dan Desktop.
 
 - **🔒 Private by default** — tidak ada cloud, tidak kirim data, semua memory di `~/.openforge/`
 - **⚡ Tools & Skills ekstensif** — 43 built-in tools, 44 skills (6 kategori), 41 intelligence modules
@@ -229,7 +229,7 @@ python -m pytest tests/ -q --ignore=tests/integration
 cd openforge_web && npm run build && npx vitest run
 
 # Live llama.cpp E2E (optional)
-$env:NEXA_E2E_LLAMACPP="1"
+$env:FORGE_E2E_LLAMACPP="1"
 python -m pytest tests/test_llamacpp_real.py -v
 ```
 
@@ -240,7 +240,7 @@ python -m pytest tests/test_llamacpp_real.py -v
 Struktur baru (`~/.openforge/`) bersifat **user-friendly**. Migrasi dari format lama diletakkan di Phase 3:
 
 ```bash
-openforge migrate    # otomatis: ~/.nexa → ~/.openforge, backups, setup LOCK, verifikasi doctor
+openforge migrate    # otomatis: ~/.openforge → ~/.openforge, backups, setup LOCK, verifikasi doctor
 ```
 
 Semua langkah migrasi dijamin **reversible** dengan backup di `~/.openforge/.backups/`.

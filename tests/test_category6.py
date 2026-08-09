@@ -79,7 +79,7 @@ async def test_scheduler_runs_job():
 
 
 def test_plugin_manifest_parses(tmp_path):
-    p = tmp_path / "nexa-plugin.toml"
+    p = tmp_path / "forge-plugin.toml"
     p.write_text(
         '[plugin]\nname="x"\nversion="0.1.0"\ndescription="d"\nentry="x:main"\n',
         encoding="utf-8",

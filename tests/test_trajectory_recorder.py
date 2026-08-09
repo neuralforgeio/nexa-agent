@@ -8,7 +8,7 @@ Verifies:
     - count() returns the line count.
     - clear() deletes the file.
     - System prompt is truncated to SYSTEM_PROMPT_TRUNCATE.
-    - is_trajectory_enabled reads NEXA_TRAJECTORY env.
+    - is_trajectory_enabled reads FORGE_TRAJECTORY env.
 
 Copyright (c) 2026 Dearly Febriano Irwansyah
 SPDX-License-Identifier: MIT
@@ -165,15 +165,22 @@ class TestIsTrajectoryEnabled:
 
     def test_default_off(self, monkeypatch) -> None:
         """Trajectory recording is off by default."""
-        monkeypatch.delenv("NEXA_TRAJECTORY", raising=False)
+        monkeypatch.delenv("FORGE_TRAJECTORY", raising=False)
+        monkeypatch.delenv("FORGE_TRAJECTORY", raising=False)
         assert is_trajectory_enabled() is False
 
     def test_enabled_when_set(self, monkeypatch) -> None:
-        """NEXA_TRAJECTORY=1 enables it."""
-        monkeypatch.setenv("NEXA_TRAJECTORY", "1")
+        """FORGE_TRAJECTORY=1 enables it."""
+        monkeypatch.setenv("FORGE_TRAJECTORY", "1")
+        assert is_trajectory_enabled() is True
+
+    def test_nexa_fallback(self, monkeypatch) -> None:
+        """Legacy FORGE_TRAJECTORY still honored for one MINOR cycle."""
+        monkeypatch.delenv("FORGE_TRAJECTORY", raising=False)
+        monkeypatch.setenv("FORGE_TRAJECTORY", "1")
         assert is_trajectory_enabled() is True
 
     def test_enabled_when_true(self, monkeypatch) -> None:
-        """NEXA_TRAJECTORY=true enables it."""
-        monkeypatch.setenv("NEXA_TRAJECTORY", "true")
+        """FORGE_TRAJECTORY=true enables it."""
+        monkeypatch.setenv("FORGE_TRAJECTORY", "true")
         assert is_trajectory_enabled() is True

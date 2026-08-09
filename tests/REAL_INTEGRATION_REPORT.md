@@ -2,9 +2,9 @@
 
 > Test runs performed on **2026-07-31** against:
 > - **Local LLM**: Ornith-1.0-9b-Q4_K_M via llama.cpp server at `http://127.0.0.1:8080` (9B parameter model, running locally)
-> - **Nexa backend**: `server.py` (FastAPI) at `http://127.0.0.1:8000`
+> - **Forge backend**: `server.py` (FastAPI) at `http://127.0.0.1:8000`
 > - **Web UI**: Next.js dev server at `http://127.0.0.1:3000`
-> - **Workspace**: `C:\Users\Dearly Febriano\nexa-agent\forge-workspace`
+> - **Workspace**: `C:\Users\Dearly Febriano\openforge\forge-workspace`
 
 ---
 
@@ -24,13 +24,13 @@
 |---|---|---|
 | SSE token streaming | **PASS** | `curl …/api/chat/stream` emitted `data: {"type":"token","text":"N"}`, `…"EX"`, `…"A"`, then `done`. |
 | SSE keepalive pings | **PASS** | Observed `: ping` comments every ~15 s of inactivity, preventing browser disconnect during llama.cpp prompt processing. |
-| Tools payload on a non-tool model | **FIXED** | When the provider answers 4xx "tools not supported", Nexa retries the same completion **without** the tools array. The observed `srv stop: cancel task` errors on llama-server stop. |
+| Tools payload on a non-tool model | **FIXED** | When the provider answers 4xx "tools not supported", Forge retries the same completion **without** the tools array. The observed `srv stop: cancel task` errors on llama-server stop. |
 
 ---
 
 ## 3. Tool orchestration — real (not mock)
 
-End-to-end run of the user story: *"Create hello_e2e.py that prints `Nexa E2E Hello` and run it."*
+End-to-end run of the user story: *"Create hello_e2e.py that prints `Forge E2E Hello` and run it."*
 
 Observed via `scripts/e2e_hello_world.py` against the live agent:
 
@@ -41,14 +41,14 @@ Observed via `scripts/e2e_hello_world.py` against the live agent:
 [TOOL:run_terminal_command] ok=True
     exit code: 0
     stdout:
-    Nexa E2E Hello
+    Forge E2E Hello
 ```
 
 | Assertion | Result |
 |---|---|
 | File written to workspace | **PASS** |
-| File content contains marker | **PASS** (`print('Nexa E2E Hello')`) |
-| Terminal actually executed it | **PASS** (exit 0, stdout `Nexa E2E Hello`) |
+| File content contains marker | **PASS** (`print('Forge E2E Hello')`) |
+| Terminal actually executed it | **PASS** (exit 0, stdout `Forge E2E Hello`) |
 | Assistant mentions marker in final answer | **PASS** |
 
 **Tools actually invoked by the LLM:** `write_file`, `run_terminal_command`.
@@ -85,21 +85,21 @@ fixed).*
 ## 6. Reproduce locally
 
 ```powershell
-cd C:\Users\Dearly Febriano\nexa-agent
+cd C:\Users\Dearly Febriano\openforge
 
 # 1. Start llama.cpp with any small GGUF (e.g. 3B).
 .\llama-server.exe -m .\tiny.gguf --port 8080
 
-# 2. Configure Nexa.
-$env:NEXA_PROVIDER      = "llamacpp"
-$env:NEXA_BASE_URL      = "http://127.0.0.1:8080/v1"
-$env:NEXA_API_KEY       = "dummy"
-$env:NEXA_MODEL         = "tiny.gguf"
-$env:NEXA_LLM_SUPPORTS_TOOLS = "1"   # or 0 if your llama-server build lacks --jinja
+# 2. Configure Forge.
+$env:FORGE_PROVIDER      = "llamacpp"
+$env:FORGE_BASE_URL      = "http://127.0.0.1:8080/v1"
+$env:FORGE_API_KEY       = "dummy"
+$env:FORGE_MODEL         = "tiny.gguf"
+$env:FORGE_LLM_SUPPORTS_TOOLS = "1"   # or 0 if your llama-server build lacks --jinja
 
 # 3. Start fastapi backend + next dev.
 .\.venv\Scripts\python.exe server.py         # port 8000
-cd nexa_web; npm run dev                     # port 3000
+cd forge_web; npm run dev                     # port 3000
 
 # 4. Drive the agent end-to-end.
 .\.venv\Scripts\python.exe scripts\e2e_hello_world.py

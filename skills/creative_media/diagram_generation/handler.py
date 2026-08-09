@@ -41,7 +41,7 @@ _DIAGRAM_TYPES = ("flowchart", "sequence", "erd", "architecture", "class")
 _FORMATS = ("mermaid", "plantuml", "svg")
 
 SYSTEM = (
-    "You are Nexa's diagram-generation engine. You are given a REAL "
+    "You are Forge's diagram-generation engine. You are given a REAL "
     "natural-language description of a system or process, a diagram type "
     "(flowchart | sequence | erd | architecture | class), and an output "
     "format (mermaid | plantuml | svg). Emit ONLY valid diagram source code "

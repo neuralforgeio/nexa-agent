@@ -26,7 +26,7 @@ from openforge.state import ConversationDB  # noqa: E402
 @pytest.fixture()
 def fresh_db(tmp_path, monkeypatch):
     """Point the app's database at a temp directory and reinitialise it."""
-    forge_home = tmp_path / ".nexa"
+    forge_home = tmp_path / ".openforge"
     forge_home.mkdir(parents=True, exist_ok=True)
     import openforge.config as cfg
 

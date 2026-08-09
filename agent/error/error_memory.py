@@ -84,7 +84,7 @@ class ErrorMemory:
             path: Path to the JSON file (default ``~/.openforge/memory/errors.json``).
         """
         self.path: Path = path or (
-            Path(os.environ.get("FORGE_HOME", Path.home() / ".nexa"))
+            Path(os.environ.get("FORGE_HOME", Path.home() / ".openforge"))
             / "memory"
             / "errors.json"
         )

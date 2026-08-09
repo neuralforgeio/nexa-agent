@@ -2,7 +2,7 @@
 OpenForge — TUI Application (v4.5.0)
 ======================================
 
-Interactive multi-pane Terminal UI for Nexa Agent, built with ``rich.live`` +
+Interactive multi-pane Terminal UI for OpenForge, built with ``rich.live`` +
 ``rich.layout.Layout`` + ``prompt_toolkit``.
 
 Architecture (all modules are import-separated so tests can exercise them
@@ -17,7 +17,7 @@ individually):
   - ``ui_tui/skills_panel.py``   — skills browser overlay
   - ``ui_tui/commands.py``       — full slash-command dispatcher (17 commands)
 
-Entry point: ``nexa-tui`` (defined in pyproject.toml) or
+Entry point: ``forge-tui`` (defined in pyproject.toml) or
 ``python -m ui_tui.app``.
 
 Copyright (c) 2026 Dearly Febriano Irwansyah
@@ -36,8 +36,8 @@ from rich.live import Live
 from rich.text import Text
 
 from openforge.constants import (
-    NEXA_NAME,
-    NEXA_VERSION
+    FORGE_NAME,
+    FORGE_VERSION
 )
 
 from ui_tui.input.keys import bind_state, kb
@@ -191,7 +191,7 @@ async def run_tui(agent, conv_id: str, history: Optional[List[Dict[str, Any]]] =
     try:
         import os
         from ui_tui.server_health import ServerHealthPoller
-        backend = os.environ.get("NEXA_BACKEND", "http://localhost:8000")
+        backend = os.environ.get("FORGE_BACKEND", "http://localhost:8000")
         poller = ServerHealthPoller(state, backend_url=backend)
         poller.start()
     except Exception:
@@ -286,7 +286,7 @@ async def run_tui(agent, conv_id: str, history: Optional[List[Dict[str, Any]]] =
 # ─────────────────────────────────────────────────────────────────────────────
 
 def main() -> int:
-    """TUI entry point (``nexa-tui`` or ``python -m ui_tui.app``)."""
+    """TUI entry point (``forge-tui`` or ``python -m ui_tui.app``)."""
     from src.run_agent import OpenForgeAgent, set_active_agent
 
     agent = OpenForgeAgent()

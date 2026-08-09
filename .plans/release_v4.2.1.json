@@ -1,7 +1,7 @@
 {
   "tag_name": "v4.2.1",
-  "name": "Nexa Agent v4.2.1 — NUL-byte Path Traversal Fix",
-  "body": "## What's fixed\n\n- **Security (P0)**: `tools/_paths.py::resolve_in_workspace` now rejects NUL bytes, control characters (<U+0020), DEL (U+007F), and empty/whitespace-only paths. Before this fix, an attacker could smuggle `safe.txt\\x00.evil.ps1` past the workspace-path verifier — on Windows, `CreateFileW` treats NUL as a terminator, so a tool could have written to a different file than the one it believed in.\n- Two new unit tests in `tests/test_file_tools_hardened.py::TestPathHygiene` lock the behavior in.\n- QA session report added at `.plans/qa/QA-RESULTS-v4.2.0-session-drop.md`.\n- Test count went 633 → 636 (+2 path hygiene tests).\n\n**Full Changelog**: https://github.com/neuralforgeio/nexa-agent/compare/v4.2.0...v4.2.1",
+  "name": "OpenForge v4.2.1 — NUL-byte Path Traversal Fix",
+  "body": "## What's fixed\n\n- **Security (P0)**: `tools/_paths.py::resolve_in_workspace` now rejects NUL bytes, control characters (<U+0020), DEL (U+007F), and empty/whitespace-only paths. Before this fix, an attacker could smuggle `safe.txt\\x00.evil.ps1` past the workspace-path verifier — on Windows, `CreateFileW` treats NUL as a terminator, so a tool could have written to a different file than the one it believed in.\n- Two new unit tests in `tests/test_file_tools_hardened.py::TestPathHygiene` lock the behavior in.\n- QA session report added at `.plans/qa/QA-RESULTS-v4.2.0-session-drop.md`.\n- Test count went 633 → 636 (+2 path hygiene tests).\n\n**Full Changelog**: https://github.com/neuralforgeio/openforge/compare/v4.2.0...v4.2.1",
   "draft": false,
   "prerelease": false
 }

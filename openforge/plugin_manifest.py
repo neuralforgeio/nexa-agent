@@ -18,7 +18,7 @@ class PluginManifest:
 
 
 def parse_manifest(path: str) -> PluginManifest:
-    """Load a ``nexa-plugin.toml`` and validate its required fields."""
+    """Load a ``forge-plugin.toml`` and validate its required fields."""
     with open(path, "rb") as f:
         data = tomllib.load(f)
     m = data.get("plugin")

@@ -349,7 +349,7 @@ async def cmd_export(state: TUIState, agent, parts: List[str]) -> str:
     sid = parts[1]
     try:
         msgs = await agent.db.get_messages(sid)
-        md = "# Nexa Session Export\n\n"
+        md = "# Forge Session Export\n\n"
         for m in msgs:
             ts = time.strftime("%H:%M:%S", time.localtime(m.get("created_at", time.time())))
             md += f"**{m['role'].upper()} [{ts}]**\n{m['content']}\n\n"

@@ -77,9 +77,9 @@ body:
       required: true
 
   - type: input
-    id: nexa_version
+    id: forge_version
     attributes:
-      label: Nexa Agent version
+      label: OpenForge version
     validations:
       required: true
 

@@ -3,7 +3,7 @@ version: 0.1.0
 description: Monitor a set of URLs on a fixed interval for content, price, or status changes. Returns whether monitoring
   was armed and any changes detected so far, each with its diff.
 category: web_research
-author: nexa-agent
+author: openforge
 permissions:
 - network:*
 - memory:write

@@ -191,8 +191,8 @@ export function MessageBubble({ message, index = -1, actions }: MessageBubblePro
         }}
       >
         <img
-          src="/nexa-agent.png"
-          alt="Nexa"
+          src="/openforge.png"
+          alt="Forge"
           style={{ width: "100%", height: "100%", objectFit: "cover" }}
         />
       </div>
@@ -210,7 +210,7 @@ export function MessageBubble({ message, index = -1, actions }: MessageBubblePro
             opacity: 0.9,
           }}
         >
-          Nexa
+          Forge
         </div>
 
         <div style={{ fontSize: 15, lineHeight: 1.7, color: "#ECECEC" }}>
@@ -223,7 +223,7 @@ export function MessageBubble({ message, index = -1, actions }: MessageBubblePro
                 height: 16,
                 marginLeft: 2,
                 background: "#4A9EFF",
-                animation: "nexa-blink 1s steps(2) infinite",
+                animation: "forge-blink 1s steps(2) infinite",
                 verticalAlign: "text-bottom",
               }}
             />

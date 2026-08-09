@@ -3,7 +3,7 @@ version: 0.1.0
 description: 'Turn a meeting recording into structured notes: a transcript, action items with assignees and due
   dates, key decisions, and an executive summary.'
 category: communication
-author: nexa-agent
+author: openforge
 permissions:
 - filesystem:workspace
 - memory:write

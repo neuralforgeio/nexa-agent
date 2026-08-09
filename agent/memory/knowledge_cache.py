@@ -99,7 +99,7 @@ class KnowledgeCache:
             max_entries: Soft cap on entries (LRU eviction).
         """
         self.cache_dir: Path = cache_dir or (
-            Path(os.environ.get("FORGE_HOME", Path.home() / ".nexa")) / "knowledge"
+            Path(os.environ.get("FORGE_HOME", Path.home() / ".openforge")) / "knowledge"
         )
         self.ttl_seconds: int = ttl_seconds
         self.max_entries: int = max_entries

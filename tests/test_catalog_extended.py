@@ -6,7 +6,7 @@ Verifies:
     - databricks is in PROVIDER_CATALOG with correct default_model.
     - resolve_provider("tokenrouter") reads TOKENROUTER_API_KEY.
     - resolve_provider("databricks") reads DATABRICKS_TOKEN.
-    - resolve_provider("databricks") honors NEXA_BASE_URL override.
+    - resolve_provider("databricks") honors FORGE_BASE_URL override.
     - All 8 providers are listable via list_providers().
 
 Copyright (c) 2026 Dearly Febriano Irwansyah
@@ -83,21 +83,21 @@ class TestResolveProviderTokenRouter:
         """resolve_provider('tokenrouter') reads TOKENROUTER_API_KEY."""
         monkeypatch.setenv("TOKENROUTER_API_KEY", "tr_test_key_12345")
         monkeypatch.delenv("OPENAI_API_KEY", raising=False)
-        monkeypatch.delenv("NEXA_API_KEY", raising=False)
+        monkeypatch.delenv("FORGE_API_KEY", raising=False)
         # Clear any system llama.cpp/Ornith config so the catalog default wins.
-        monkeypatch.delenv("NEXA_MODEL", raising=False)
-        monkeypatch.delenv("NEXA_BASE_URL", raising=False)
+        monkeypatch.delenv("FORGE_MODEL", raising=False)
+        monkeypatch.delenv("FORGE_BASE_URL", raising=False)
         base_url, model, api_key = resolve_provider("tokenrouter")
         assert base_url == "https://api.tokenrouter.io/v1"
         assert model == "auto:balance"
         assert api_key == "tr_test_key_12345"
 
     def test_honors_nexa_model_override(self, monkeypatch) -> None:
-        """NEXA_MODEL overrides the default model."""
+        """FORGE_MODEL overrides the default model."""
         monkeypatch.setenv("TOKENROUTER_API_KEY", "tr_test")
-        monkeypatch.setenv("NEXA_MODEL", "gpt-4o")
+        monkeypatch.setenv("FORGE_MODEL", "gpt-4o")
         monkeypatch.delenv("OPENAI_API_KEY", raising=False)
-        monkeypatch.delenv("NEXA_API_KEY", raising=False)
+        monkeypatch.delenv("FORGE_API_KEY", raising=False)
         _, model, _ = resolve_provider("tokenrouter")
         assert model == "gpt-4o"
 
@@ -108,25 +108,25 @@ class TestResolveProviderDatabricks:
     def test_reads_databricks_token(self, monkeypatch) -> None:
         """resolve_provider('databricks') reads DATABRICKS_TOKEN."""
         monkeypatch.setenv("DATABRICKS_TOKEN", "dapi_test_token_123")
-        monkeypatch.setenv("NEXA_BASE_URL", "https://my-workspace.cloud.databricks.com/serving-endpoints")
+        monkeypatch.setenv("FORGE_BASE_URL", "https://my-workspace.cloud.databricks.com/serving-endpoints")
         monkeypatch.delenv("OPENAI_API_KEY", raising=False)
-        monkeypatch.delenv("NEXA_API_KEY", raising=False)
+        monkeypatch.delenv("FORGE_API_KEY", raising=False)
         monkeypatch.delenv("DATABRICKS_API_KEY", raising=False)
-        # Clear the system NEXA_MODEL so the catalog default wins
-        # (NEXA_BASE_URL is intentionally kept set above).
-        monkeypatch.delenv("NEXA_MODEL", raising=False)
+        # Clear the system FORGE_MODEL so the catalog default wins
+        # (FORGE_BASE_URL is intentionally kept set above).
+        monkeypatch.delenv("FORGE_MODEL", raising=False)
         base_url, model, api_key = resolve_provider("databricks")
         assert base_url == "https://my-workspace.cloud.databricks.com/serving-endpoints"
         assert model == "databricks-claude-sonnet-4-6"
         assert api_key == "dapi_test_token_123"
 
     def test_databricks_base_url_required_from_env(self, monkeypatch) -> None:
-        """databricks has no default base_url — must come from NEXA_BASE_URL."""
+        """databricks has no default base_url — must come from FORGE_BASE_URL."""
         monkeypatch.setenv("DATABRICKS_TOKEN", "dapi_test")
-        monkeypatch.delenv("NEXA_BASE_URL", raising=False)
+        monkeypatch.delenv("FORGE_BASE_URL", raising=False)
         monkeypatch.delenv("OPENAI_API_KEY", raising=False)
-        monkeypatch.delenv("NEXA_API_KEY", raising=False)
+        monkeypatch.delenv("FORGE_API_KEY", raising=False)
         monkeypatch.delenv("DATABRICKS_API_KEY", raising=False)
         base_url, _, _ = resolve_provider("databricks")
-        # Catalog has empty base_url; without NEXA_BASE_URL override, it's empty.
+        # Catalog has empty base_url; without FORGE_BASE_URL override, it's empty.
         assert base_url == ""

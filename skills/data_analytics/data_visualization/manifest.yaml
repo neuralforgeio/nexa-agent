@@ -3,7 +3,7 @@ version: 0.1.0
 description: Build a dashboard, chart, or report visualization from a dataset with an optional layout. Returns the
   output path, the components included, and a human-readable description.
 category: data_analytics
-author: nexa-agent
+author: openforge
 permissions:
 - filesystem:workspace:write
 - terminal:execute

@@ -70,7 +70,7 @@ _DOC_INSTRUCTIONS = {
 }
 
 SYSTEM = (
-    "You are Nexa's documentation engine. You are given the REAL contents of "
+    "You are Forge's documentation engine. You are given the REAL contents of "
     "a single source file plus a documentation type (docstring | readme | "
     "api_reference | all). Write documentation that describes ONLY what is "
     "actually in the shown code — real module/function/class names, real "

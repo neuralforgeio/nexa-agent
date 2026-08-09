@@ -1,7 +1,7 @@
 """Watch the workspace, chunk changed files (500 tokens / 50 overlap), embed and store.
 
-Drives RAG in Nexa: any change under the workspace is re-chunked and embedded
-into :class:`nexa.vector_db.VectorStore` so ``semantic_search`` can find it.
+Drives RAG in Forge: any change under the workspace is re-chunked and embedded
+into :class:`forge.vector_db.VectorStore` so ``semantic_search`` can find it.
 """
 from __future__ import annotations
 

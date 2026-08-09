@@ -5,7 +5,7 @@ OpenForge — LLM helper for skills (v4.4.0)
 A tiny, provider-agnostic adapter so skill handlers can ask the model for a
 plain completion without caring which provider object they were handed:
 anything exposing ``chat_stream(messages, ...) -> AsyncGenerator[(event,
-payload), None]`` works — the real :class:`nexa.provider.LLMProvider` against
+payload), None]`` works — the real :class:`forge.provider.LLMProvider` against
 llama.cpp in production, or a scripted fake in unit tests.
 
 Keeping this in one place means the streaming/drain logic is written and
@@ -60,7 +60,7 @@ async def chat(
     if stream_factory is None or not callable(stream_factory):
         raise RuntimeError(
             f"provider {type(provider).__name__} does not expose chat_stream; "
-            "skills need a provider compatible with nexa.provider.LLMProvider"
+            "skills need a provider compatible with forge.provider.LLMProvider"
         )
 
     transcript = messages if messages is not None else _messages(system, prompt)

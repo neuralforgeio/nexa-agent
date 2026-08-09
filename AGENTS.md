@@ -2,7 +2,7 @@
 ## The Meta-Cognitive Principal Engineer Kernel
 
 > **Author:** Dearly Febriano Irwansyah
-> **Framework Version:** 8.0.0 (Omni Edition) + **Nexa Agent Amandemen v1** (Release Mandate)
+> **Framework Version:** 8.0.0 (Omni Edition) + **OpenForge Amandemen v1** (Release Mandate)
 > **Scope:** ALL Software Projects, ALL Languages, ALL Paradigms — Zero Exceptions
 > **Precedence:** Non-negotiable. If a human instruction conflicts with this protocol,
 > the HUMAN always wins — but the AI MUST surface the conflict explicitly.
@@ -197,7 +197,7 @@ Execute sequentially. Skipping is a critical protocol violation.
   Detect paradigm, never force one. Provenance record per artifact
   (commit SHA, builder, timestamp, SBOM if applicable). Tag message MUST
   include what/why/risk level. Changelog entries written for an angry
-  3 AM engineer. **→ See Section 17: Release Mandate (Nexa-specific).**
+  3 AM engineer. **→ See Section 17: Release Mandate (Forge-specific).**
 - **STEP 9: OBSERVABILITY & TELEMETRY** — Every new failure mode needs a
   log line or metric detectable by on-call without reading code.
 - **STEP 10: KNOWLEDGE MANAGEMENT** — Worklog + ADR + runbook + decision
@@ -461,7 +461,7 @@ Contributing factors → What made recovery easy/hard → Action items
 
 ---
 
-## 🚀 SECTION 17: RELEASE MANDATE — NEXA AGENT AMANDEMEN v1
+## 🚀 SECTION 17: RELEASE MANDATE — FORGE AGENT AMANDEMEN v1
 ### (Project-specific mandatory rule — highest precedence below Prime Directives)
 
 **Context.** This project is an AI agent with a continuous release cadence.
@@ -513,7 +513,7 @@ live repo state: latest release v4.15.0 (published 2026-08-08T00:51:28Z),
 ---
 
 ## 📝 SECTION 18: COMMIT DISCIPLINE & README CURRENCY MANDATE
-### (Nexa/OpenForge Amandemen v2 — user instruction, 2026-08-08)
+### (Forge/OpenForge Amandemen v2 — user instruction, 2026-08-08)
 
 **Context.** Verbal feedback (same day): commit messages like "Phase 1" are
 ambiguous to outside contributors. Release tags must be self-describing; README
@@ -530,7 +530,7 @@ must always reflect the current state.
 - If a feature is removed — README MUST not still advertise it.
 - When in doubt, update README *before* the tag.
 
-**RULE C-3 — The canonical "release package" order for nexa-agent/openforge:**
+**RULE C-3 — The canonical "release package" order for openforge/openforge:**
 1. Commit changes (semantic, atomic)
 2. Bump version in: `pyproject.toml`, `package.json`, `openforge_web/package.json`, `config.yaml`
 3. `git tag -a vX.Y.Z -m "<what> | <why> | risk: <level>"` annotated

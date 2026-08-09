@@ -37,7 +37,7 @@ from skills._common import ask_llm_json, coerce_number, coerce_str, require
 __all__ = ["handle", "SYSTEM"]
 
 SYSTEM = (
-    "You are a professional translator embedded in the Nexa Agent skills "
+    "You are a professional translator embedded in the OpenForge skills "
     "system. Translate the user's text exactly and fluently, preserving tone, "
     "register, formatting, and any domain terminology implied by the optional "
     "context hint. Respond with a single JSON object and nothing else — no "

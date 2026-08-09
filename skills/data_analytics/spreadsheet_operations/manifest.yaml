@@ -3,7 +3,7 @@ version: 0.1.0
 description: Create, edit, or analyse a spreadsheet, applying data and optional formulas. Returns the spreadsheet
   file path, a summary of the operation, and paths of any charts produced.
 category: data_analytics
-author: nexa-agent
+author: openforge
 permissions:
 - filesystem:workspace:write
 input_schema:

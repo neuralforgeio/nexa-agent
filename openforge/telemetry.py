@@ -14,7 +14,7 @@ except Exception:  # pragma: no cover
     _OTEL = False
 
 
-def init_tracer(service: str = "nexa-agent"):
+def init_tracer(service: str = "openforge"):
     if not _OTEL:
         return None
     provider = TracerProvider(resource=Resource.create({"service.name": service}))
@@ -30,7 +30,7 @@ def span(name: str, **attrs: Any):
             def __enter__(self): return self
             def __exit__(self, *a): return False
         return _Null()
-    tracer = trace.get_tracer("nexa-agent")
+    tracer = trace.get_tracer("openforge")
     return tracer.start_as_current_span(name, attributes=attrs)
 
 

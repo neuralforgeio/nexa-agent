@@ -8,7 +8,7 @@ intentionally skipped when no server is reachable so that the
 
 Run explicitly:
     # PowerShell
-    $env:NEXA_E2E_LLAMACPP="1"
+    $env:FORGE_E2E_LLAMACPP="1"
     .venv\\Scripts\\python.exe -m pytest tests/test_llamacpp_real.py -v
 
 Outputs land in (per run):
@@ -39,7 +39,7 @@ import pytest
 # ---------------------------------------------------------------------------
 RESULTS_ROOT = Path(
     os.environ.get(
-        "NEXA_TEST_RESULTS_DIR",
+        "FORGE_TEST_RESULTS_DIR",
         r"C:\Users\Dearly Febriano\Documents\testing-result",
     )
 )
@@ -84,8 +84,8 @@ def _write_run_summary(summary: Dict[str, Any]) -> None:
 # ---------------------------------------------------------------------------
 pytestmark = [
     pytest.mark.skipif(
-        os.environ.get("NEXA_E2E_LLAMACPP", "0") not in ("1", "true", "yes"),
-        reason="set NEXA_E2E_LLAMACPP=1 to run the live llama.cpp tests",
+        os.environ.get("FORGE_E2E_LLAMACPP", "0") not in ("1", "true", "yes"),
+        reason="set FORGE_E2E_LLAMACPP=1 to run the live llama.cpp tests",
     ),
     pytest.mark.timeout(900),  # allow 15 min per individual test for slow CPUs
 ]
@@ -107,9 +107,9 @@ def _build_agent():
 
     return OpenForgeAgent(
         provider_name="llamacpp",
-        model=os.environ.get("NEXA_MODEL", "Ornith-1.0-9b-Q4_K_M.gguf"),
+        model=os.environ.get("FORGE_MODEL", "Ornith-1.0-9b-Q4_K_M.gguf"),
         api_key="dummy",
-        base_url=os.environ.get("NEXA_LLAMACPP_URL", "http://127.0.0.1:8080/v1"),
+        base_url=os.environ.get("FORGE_LLAMACPP_URL", "http://127.0.0.1:8080/v1"),
     )
 
 
@@ -153,7 +153,7 @@ class TestMockedProviderLoop:
 
 
 # ---------------------------------------------------------------------------
-# Real llama.cpp tests — only run when NEXA_E2E_LLAMACPP=1 + server reachable
+# Real llama.cpp tests — only run when FORGE_E2E_LLAMACPP=1 + server reachable
 # ---------------------------------------------------------------------------
 class TestRealLlamaCppServer:
     """Live "call the actual local model" tests. Each uses a 600 s budget."""
@@ -196,7 +196,7 @@ class TestRealLlamaCppServer:
         # non-empty reasoning field.
         payload = json.dumps(
             {
-                "model": os.environ.get("NEXA_MODEL", "Ornith-1.0-9b-Q4_K_M.gguf"),
+                "model": os.environ.get("FORGE_MODEL", "Ornith-1.0-9b-Q4_K_M.gguf"),
                 "messages": [{"role": "user", "content": "Say ok."}],
                 "stream": False,
                 "max_tokens": 64,
@@ -248,7 +248,7 @@ class TestRealLlamaCppServer:
 
         payload = json.dumps(
             {
-                "model": os.environ.get("NEXA_MODEL", "Ornith-1.0-9b-Q4_K_M.gguf"),
+                "model": os.environ.get("FORGE_MODEL", "Ornith-1.0-9b-Q4_K_M.gguf"),
                 "messages": [{"role": "user", "content": "Hi"}],
                 "stream": True,
                 "max_tokens": 32,
@@ -319,19 +319,19 @@ class TestRealLlamaCppServer:
 
         # Mimic what the model + provider would do via write_file:
         from tools.file_tools import write_file
-        result = asyncio.run(write_file(path="agent_out/hello_from_nexa.txt", content="hello from openforge\n"))
+        result = asyncio.run(write_file(path="agent_out/hello_from_openforge.txt", content="hello from openforge\n"))
 
         # write_file resolves the CWD/FORGE_WORKSPACE at call time; the file
         # may land under the test's tmp_path or in the production workspace.
         # Walk both possibilities.
         candidates = [
-            tmp_path / "agent_out" / "hello_from_nexa.txt",
+            tmp_path / "agent_out" / "hello_from_openforge.txt",
         ]
         # And also check the production FORGE_WORKSPACE in case we got
         # routed there.
         try:
             from openforge.config import FORGE_WORKSPACE
-            candidates.append(Path(FORGE_WORKSPACE) / "agent_out" / "hello_from_nexa.txt")
+            candidates.append(Path(FORGE_WORKSPACE) / "agent_out" / "hello_from_openforge.txt")
         except Exception:
             pass
 
@@ -358,7 +358,7 @@ def _run_summary_fixture():
         {
             "stamp": RUN_STAMP,
             "agent_version": "4.1.6+next",
-            "llamacpp_base_url": os.environ.get("NEXA_LLAMACPP_URL", "http://127.0.0.1:8080/v1"),
+            "llamacpp_base_url": os.environ.get("FORGE_LLAMACPP_URL", "http://127.0.0.1:8080/v1"),
             "os": sys.platform,
             "python": sys.version.split()[0],
             "cwd": os.getcwd(),

@@ -30,7 +30,7 @@ async def search_sessions(db: ConversationDB, query: str, limit: int = 10) -> Li
         - total match count per conversation
 
     Args:
-        db:    The :class:`~nexa.state.ConversationDB` instance.
+        db:    The :class:`~forge.state.ConversationDB` instance.
         query: The search query (FTS5 syntax, e.g. ``"python tool"``).
         limit: Maximum number of conversations to return.
 

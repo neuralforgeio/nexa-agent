@@ -40,7 +40,7 @@ _ANALYSIS_TYPES = ("anomaly", "pattern", "error", "security")
 _MAX_LOG_CHARS = 32_000  # keep prompts bounded on huge files
 
 SYSTEM = (
-    "You are Nexa's log-analysis engine. You are given the REAL contents of "
+    "You are Forge's log-analysis engine. You are given the REAL contents of "
     "a log file together with its declared format and a requested analysis "
     "type (anomaly | pattern | error | security). Analyse ONLY the log lines "
     "actually shown — never invent log entries, timestamps, error codes, or "

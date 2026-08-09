@@ -1,4 +1,4 @@
-# Nexa Agent — TODO Master (v4.0.0 + Web UI Redesign)
+# OpenForge — TODO Master (v4.0.0 + Web UI Redesign)
 
 > **Current version**: v4.0.0 (Enterprise Workspace overhaul)
 > **Status**: v4.0.0 in progress. v3.0.0 released.
@@ -6,14 +6,14 @@
 ## 🚀 v4.0.0 — Enterprise Workspace (In Progress)
 
 ### Fixed in v4.0.0
-- [x] **C1.1** LLM timeout → 600s default via `NEXA_LLM_TIMEOUT` env (`nexa/provider.py`)
+- [x] **C1.1** LLM timeout → 600s default via `FORGE_LLM_TIMEOUT` env (`forge/provider.py`)
   - Root cause: llamacpp canceled task id after 22s — client was using default OpenAI SDK timeout
-  - Fix: `AsyncOpenAI(timeout=float(os.environ.get("NEXA_LLM_TIMEOUT", "600")))`
-- [x] **C1.2** Duplicate-request guard: `inFlightRef` in `nexa_web/app/page.tsx`
+  - Fix: `AsyncOpenAI(timeout=float(os.environ.get("FORGE_LLM_TIMEOUT", "600")))`
+- [x] **C1.2** Duplicate-request guard: `inFlightRef` in `forge_web/app/page.tsx`
   - Previously possible to trigger 2 parallel processing loops; now blocked
 - [x] **C2.1** Sandbox right panel (50/50 Preview+Terminal) — `components/SandboxPanel.tsx`
   - Auto-detects `localhost:3000/5173/4321/4200/8080` dev servers → iframe preview
-  - Draggable divider; split position persisted to `localStorage` (`nexa-sandbox-split`)
+  - Draggable divider; split position persisted to `localStorage` (`forge-sandbox-split`)
   - Modes: split / preview-only / terminal-only
 - [x] **C2.2** Collapsible sidebar via `Ctrl+B`, sandbox via `Ctrl+J`
   - State persisted across restarts; mobile-friendly drawer removed in favor of toggles
@@ -25,7 +25,7 @@
 - [ ] **C2.6** Session management — delete confirmation + rename (sidebar currently deletes immediately)
 
 ### In Progress
-- [ ] **C3** Local `.nexa` install script (read-only builtins + writable `~/.nexa/tools/custom/`)
+- [ ] **C3** Local `.openforge` install script (read-only builtins + writable `~/.openforge/tools/custom/`)
 - [ ] **C4** E-commerce demo build monitored in sandbox
 - [ ] **C5** MIT headers propagated to all source files
 
@@ -37,13 +37,13 @@
 - [x] P0.1 Memory wiring (`build_system_prompt` with `memory_digest` + `user_profile`)
 - [x] P0.2 `ErrorMemory.save()` in conversation_loop
 - [x] P0.3 Failover chain wiring + real provider swap on `advance()`
-- [x] P0.4 Terminal security: block `~/.nexa/` access (`is_protected_path_reference`)
-- [x] P0.5 NEXA_SECRETS_DIR + ProviderRegistry
+- [x] P0.4 Terminal security: block `~/.openforge/` access (`is_protected_path_reference`)
+- [x] P0.5 FORGE_SECRETS_DIR + ProviderRegistry
 
 ### P1 — Provider Expansion
 - [x] P1.1 tokenrouter + databricks in catalog (8 providers total)
-- [x] P1.2 ProviderRegistry module (load `~/.nexa/secrets/providers.json`)
-- [x] P1.3 `nexa provider add/use/list/remove/test` interactive CLI
+- [x] P1.2 ProviderRegistry module (load `~/.openforge/secrets/providers.json`)
+- [x] P1.3 `forge provider add/use/list/remove/test` interactive CLI
 - [x] P1.4 `/provider` slash command extended (CLI + TUI dispatcher)
 - [x] P1.5 HTTP `/api/provider` endpoints + SettingsPanel.tsx frontend
 
@@ -60,7 +60,7 @@
 - [x] server.py running (port 8000), 30 routes, health 200
 - [x] Frontend dev server running (port 3000), HTTP 200
 - [x] Provider API tested (add tokenrouter mock → masked key, switched active)
-- [x] Terminal security tested (`cat ~/.nexa/.env` → blocked)
+- [x] Terminal security tested (`cat ~/.openforge/.env` → blocked)
 - [x] SSE stream tested (session → thinking → error → end)
 
 ### P5 — Roadmap
@@ -68,7 +68,7 @@
 
 ### P6 — Release
 - [x] pyproject.toml 2.1.0 → 3.0.0
-- [x] nexa_web/package.json 2.1.0 → 3.0.0
+- [x] forge_web/package.json 2.1.0 → 3.0.0
 - [x] worklog.md Task 22
 - [x] .plans/STATE.json update
 - [x] CONTINUATION_PROMPT.md update

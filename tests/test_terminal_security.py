@@ -6,7 +6,7 @@ Verifies:
     - `cat ~/.openforge/memory/MEMORY.md` is blocked.
     - `cat ~/.openforge/openforge.db` is blocked.
     - `echo "x" > ~/.openforge/.env` (write) is blocked.
-    - `$HOME/.nexa` and `$FORGE_HOME` references are blocked.
+    - `$HOME/.openforge` and `$FORGE_HOME` references are blocked.
     - Absolute paths that resolve to FORGE_HOME are blocked.
     - Legitimate commands inside FORGE_WORKSPACE are NOT blocked (no false positives).
     - `cat forge-workspace/file.txt` is allowed.
@@ -30,19 +30,19 @@ from openforge.config import FORGE_HOME, FORGE_WORKSPACE
 class TestIsProtectedPathReference:
     """Unit tests for the protected-path reference detector."""
 
-    def test_detects_tilde_nexa(self) -> None:
+    def test_detects_tilde_openforge(self) -> None:
         """`~/.openforge/.env` is detected as protected."""
         assert is_protected_path_reference("cat ~/.openforge/.env") is True
 
     def test_detects_dot_nexa_relative(self) -> None:
-        """`cat .nexa/.env` (relative to home) is detected as protected."""
-        # This is tricky — `.nexa` only resolves to ~/.openforge if cwd is home.
-        # We err on the side of caution and block any reference to `.nexa/.env`.
-        assert is_protected_path_reference("cat .nexa/.env") is True
+        """`cat .openforge/.env` (relative to home) is detected as protected."""
+        # This is tricky — `.openforge` only resolves to ~/.openforge if cwd is home.
+        # We err on the side of caution and block any reference to `.openforge/.env`.
+        assert is_protected_path_reference("cat .openforge/.env") is True
 
-    def test_detects_dollar_home_nexa(self) -> None:
-        """`$HOME/.nexa` is detected as protected."""
-        assert is_protected_path_reference("cat $HOME/.nexa/.env") is True
+    def test_detects_dollar_home_openforge(self) -> None:
+        """`$HOME/.openforge` is detected as protected."""
+        assert is_protected_path_reference("cat $HOME/.openforge/.env") is True
 
     def test_detects_dollar_nexa_home_env(self) -> None:
         """`$FORGE_HOME` is detected as protected."""
@@ -54,7 +54,7 @@ class TestIsProtectedPathReference:
         fake_home = tmp_path.resolve() / "fakehome"
         fake_home.mkdir()
         (fake_home / ".env").write_text("test")
-        # Patch nexa.config.FORGE_HOME to the resolved fake_home.
+        # Patch forge.config.FORGE_HOME to the resolved fake_home.
         monkeypatch.setattr("openforge.config.FORGE_HOME", fake_home)
         abs_path = str(fake_home / ".env")
         assert is_protected_path_reference(f"cat {abs_path}") is True
@@ -120,9 +120,9 @@ class TestRunTerminalCommandBlocksProtectedPaths:
 
     @pytest.mark.asyncio
     async def test_blocks_dollar_home_reference(self) -> None:
-        """`$HOME/.nexa` references must be rejected."""
+        """`$HOME/.openforge` references must be rejected."""
         with pytest.raises(ValueError, match="protected|FORGE_HOME|blocked"):
-            await run_terminal_command("cat $HOME/.nexa/.env")
+            await run_terminal_command("cat $HOME/.openforge/.env")
 
     @pytest.mark.asyncio
     async def test_blocks_dollar_nexa_home(self) -> None:

@@ -3,9 +3,9 @@
   "version": "5.0.2",
   "private": true,
   "scripts": {
-    "dev": "cd nexa_web && npx next dev -p 3000",
-    "build": "cd nexa_web && npx next build",
-    "lint": "cd nexa_web && npx eslint ."
+    "dev": "cd forge_web && npx next dev -p 3000",
+    "build": "cd forge_web && npx next build",
+    "lint": "cd forge_web && npx eslint ."
   },
   "dependencies": {
     "next": "^16.1.1",

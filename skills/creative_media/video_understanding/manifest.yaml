@@ -3,7 +3,7 @@ version: 0.1.0
 description: 'Understand a video from a workspace path or URL: answer questions about it, produce a scene-by-scene
   breakdown, and return a spoken-word transcript.'
 category: creative_media
-author: nexa-agent
+author: openforge
 permissions:
 - filesystem:workspace
 - network:*

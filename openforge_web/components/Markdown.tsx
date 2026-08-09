@@ -35,7 +35,7 @@ interface MarkdownProps {
 
 export function Markdown({ children, codeMaxHeight = 320 }: MarkdownProps) {
   return (
-    <div className="nexa-markdown" style={{ fontSize: 15, lineHeight: 1.7, color: "#ECECEC" }}>
+    <div className="forge-markdown" style={{ fontSize: 15, lineHeight: 1.7, color: "#ECECEC" }}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeHighlight]}

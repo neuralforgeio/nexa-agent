@@ -44,7 +44,7 @@ __all__ = ["handle", "SYSTEM"]
 _FETCH_TIMEOUT = 5.0  # short, best-effort; hermetic tests fail fast
 
 SYSTEM = (
-    "You are the deep_research skill inside the Nexa Agent skills system. "
+    "You are the deep_research skill inside the OpenForge skills system. "
     "You are given a research topic, a depth (quick | standard | deep), and "
     "either real fetched page excerpts or (when no search backend / network "
     "is available) a note that you must rely on your internal knowledge only. "

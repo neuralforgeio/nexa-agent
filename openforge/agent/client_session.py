@@ -1,5 +1,5 @@
 # OpenForge — Client Tooling
-# Writes draft messages to/from the Nexa backend via LLM streaming.
+# Writes draft messages to/from the Forge backend via LLM streaming.
 # This module wraps the conversation loop (user input, agent reasoning loop)
 # so you can call session/tools from your own code without remembering
 # all the low-level plumbing.
@@ -19,7 +19,7 @@ class SessionConfig:
     enable_tool_loops: int = 8
     stop_on_first_newline: bool = False
     prefix_prompt_suffix: str = """
-You are Nexa Agent, an advanced local AI assistant. You must maintain
+You are OpenForge, an advanced local AI assistant. You must maintain
 accuracy, memory of prior context, and user trust. Handle questions
 by grounding every answer in memory or tools — never fabricate or
 skip steps that require tools. Be concise but complete.

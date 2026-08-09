@@ -1,4 +1,4 @@
-# Nexa Agent — QA Log
+# OpenForge — QA Log
 
 > Automated QA cycle results, tracked by Cron 2 (every 10 minutes).
 

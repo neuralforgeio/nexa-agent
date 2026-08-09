@@ -116,8 +116,11 @@ def main(argv: Optional[List[str]] = None) -> int:
         help="Default model ID for 'add' (skip interactive prompt).",
     )
 
+    # migrate (v5.1.0): move legacy ~/.openforge data into the unified ~/.openforge home.
+    subparsers.add_parser("migrate", help="Migrate legacy ~/.openforge data into ~/.openforge (dry-run/report)")
+
     # doctor
-    subparsers.add_parser("doctor", help="Run self-health diagnostics")
+    subparsers.add_parser("doctor", help="Run self-health diagnostics (includes LOCK integrity check)")
 
     # plugin (S-09): install a plugin from a git URL
     plugin_parser = subparsers.add_parser("plugin", help="Install a community plugin")
@@ -146,8 +149,8 @@ def main(argv: Optional[List[str]] = None) -> int:
             api_key=args.api_key,
             model=args.model,
         )
-    elif args.command == "doctor":
-        return _cmd_doctor()
+    elif args.command == "migrate":
+        return _cmd_migrate()
     elif args.command == "plugin":
         if getattr(args, "plugin_command", None) == "install":
             return _cmd_plugin_install(args.url)
@@ -238,23 +241,23 @@ def _cmd_model(name: Optional[str]) -> int:
     Returns:
         0 on success.
     """
-    from openforge.config import NEXA_MODEL
+    from openforge.config import FORGE_MODEL
 
     if name:
         env_path = FORGE_HOME / ".env"
         if env_path.exists():
             content = env_path.read_text()
-            if "NEXA_MODEL=" in content:
+            if "FORGE_MODEL=" in content:
                 import re
-                content = re.sub(r"NEXA_MODEL=.*", f"NEXA_MODEL={name}", content)
+                content = re.sub(r"FORGE_MODEL=.*", f"FORGE_MODEL={name}", content)
             else:
-                content += f"\nNEXA_MODEL={name}\n"
+                content += f"\nFORGE_MODEL={name}\n"
             env_path.write_text(content)
         else:
-            env_path.write_text(f"NEXA_MODEL={name}\n")
+            env_path.write_text(f"FORGE_MODEL={name}\n")
         console.print(f"[green]Model set to:[/green] {name}")
     else:
-        console.print(f"[cyan]Current model:[/cyan] {NEXA_MODEL}")
+        console.print(f"[cyan]Current model:[/cyan] {FORGE_MODEL}")
     return 0
 
 
@@ -383,7 +386,7 @@ def _cmd_provider(
             key_display = p.api_key or "(env)"
             table.add_row(
                 f"{marker} {p.name}",
-                p.base_url or "(set NEXA_BASE_URL)",
+                p.base_url or "(set FORGE_BASE_URL)",
                 p.model or "(default)",
                 key_display,
             )
@@ -494,6 +497,73 @@ def _cmd_doctor() -> int:
     Returns:
         0 if healthy, 1 if issues found.
     """
+    import asyncio
+    from openforge.state import ConversationDB
+    from agent.core.self_health import SelfHealth
+
+    async def run():
+        db = ConversationDB()
+        await db.init()
+        health = SelfHealth(db)
+        report = await health.run_full_check()
+        console.print(Panel(report.summary(), border_style="yellow", title="[yellow]OpenForge Health Report[/yellow]"))
+        return 0 if report.all_healthy else 1
+
+    return asyncio.run(run())
+
+
+# --- v5.1.0: migrate command (legacy ~/.openforge → ~/.openforge) ------------------
+def _cmd_migrate() -> int:
+    """Copy legacy ~/.openforge data into ~/.openforge with a timestamped backup.
+
+    Conservative by design: it copies (never deletes) and reminds the user to
+    remove ~/.openforge manually after verification.
+    """
+    import shutil
+    import sqlite3
+    import time
+    from pathlib import Path
+
+    from openforge.config import FORGE_HOME
+    from openforge.integrity import write_lock
+
+    legacy_home = Path.home() / ".openforge"
+    if not legacy_home.exists():
+        console.print(f"[yellow]No legacy data at {legacy_home} — nothing to do.[/yellow]")
+        return 0
+
+    backup_dir = FORGE_HOME / ".backups" / f"pre-migration-{int(time.time())}"
+    backup_dir.mkdir(parents=True, exist_ok=True)
+    console.print(f"[cyan]Backing up legacy data to {backup_dir}[/cyan]")
+    try:
+        shutil.copytree(legacy_home, backup_dir, dirs_exist_ok=True)
+    except Exception as exc:
+        console.print(f"[red]Backup failed: {exc}[/red]")
+        return 1
+
+    # Copy contents (overlay) into FORGE_HOME. Leave the source untouched.
+    dirs_to_copy = ["memory", "sessions", "logs", "tools", "extensions", "cache"]
+    for d in dirs_to_copy:
+        src, dst = legacy_home / d, FORGE_HOME / d
+        if src.exists():
+            shutil.copytree(src, dst, dirs_exist_ok=True)
+
+    src_db = legacy_home / "forge.db"
+    if src_db.exists():
+        shutil.copy2(src_db, FORGE_HOME / "openforge.db")
+
+    # Ensure integrity lock reflects the new FORGE_LIB content.
+    try:
+        write_lock(FORGE_HOME / "lib")
+    except Exception as exc:
+        console.print(f"[yellow]LOCK update skipped: {exc}[/yellow]")
+
+    console.print("[green]Migration complete. Verify, then delete ~/.openforge (manual).[/green]")
+    return 0
+
+
+def _cmd_doctor() -> int:
+    """Run self-health diagnostics (includes LOCK integrity)."""
     import asyncio
     from openforge.state import ConversationDB
     from agent.core.self_health import SelfHealth

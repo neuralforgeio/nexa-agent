@@ -2,7 +2,7 @@
 
 Strategy: SKIP files that document historical releases (CHANGELOG, worklog,
 release notes, .plans/old-launch docs) so past releases stay accurate.
-For everything in the actual source tree (py/./tools/.../nexa_web/), replace
+For everything in the actual source tree (py/./tools/.../forge_web/), replace
 vMAJOR.MINOR.PATCH markers with v4.1.0 and bare "version = '4.X.Y'" with 4.1.0.
 """
 

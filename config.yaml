@@ -23,8 +23,8 @@ version:
   semver_scheme: "MAJOR.MINOR.PATCH"
   notes: |
     Semantic Versioning 2.0.0 (semver.org).
-    v5.0.0 = BREAKING: package paths renamed nexa→openforge, CLI renamed,
-    NEXA_*→FORGE_* env renamed. Migration layer provided in Phase 3.
+    v5.0.0 = BREAKING: package paths renamed forge→openforge, CLI renamed,
+    FORGE_*→FORGE_* env renamed. Migration layer provided in Phase 3.
 
 features:
   providers: 25

@@ -3,7 +3,7 @@ version: 0.1.0
 description: Clone a voice from a sample audio file and synthesize new text in that voice. Returns the workspace
   path of the synthesized audio plus a voice similarity score.
 category: creative_media
-author: nexa-agent
+author: openforge
 permissions:
 - filesystem:workspace
 - network:*

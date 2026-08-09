@@ -1,4 +1,4 @@
-# Nexa Agent — FINAL Checkpoint (v4.15.0 — 85 tools, all categories complete)
+# OpenForge — FINAL Checkpoint (v4.15.0 — 85 tools, all categories complete)
 # Executable by a FRESH agent with zero prior context. (Protocol §11)
 # Generated: 2026-08-07
 
@@ -7,15 +7,15 @@
 2. Verify ground truth:
      git log --oneline -3 ; git status --short
      .venv/Scripts/python.exe -m pytest tests/ -q --ignore=tests/integration   # ≈1091 passed / 0 fail
-     cd nexa_web && npx vitest run                                             # ≈80 passed
+     cd forge_web && npx vitest run                                             # ≈80 passed
 3. Read `.plans/current_task.md` if present.
 4. Only then code; keep one tool per commit.
 
 ## Environment (Windows / pwsh)
-- Repo: C:\Users\Dearly Febriano\nexa-agent
+- Repo: C:\Users\Dearly Febriano\openforge
 - Python: always `.venv/Scripts/python.exe` (do NOT use bare `python`/`uv`).
-- Frontend: `cd nexa_web && npx vitest run`; build: `npm run build`.
-- Git: `origin` → https://github.com/neuralforgeio/nexa-agent (credentials already on machine; push/main).
+- Frontend: `cd forge_web && npx vitest run`; build: `npm run build`.
+- Git: `origin` → https://github.com/neuralforgeio/openforge (credentials already on machine; push/main).
 - GitHub CLI: `C:\Program Files\GitHub CLI\gh.exe` — authenticated as `neuralforgeio` (scope: repo).
 
 ## State after Category 9 (verified)

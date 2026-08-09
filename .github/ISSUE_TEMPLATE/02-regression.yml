@@ -64,7 +64,7 @@ body:
     attributes:
       label: Steps to reproduce
       value: |
-        1. Install nexa-agent <last_working_version>
+        1. Install openforge <last_working_version>
         2. Confirm feature works
         3. Upgrade to <first_broken_version>
         4. Re-run the same flow

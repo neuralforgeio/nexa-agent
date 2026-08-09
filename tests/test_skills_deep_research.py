@@ -7,7 +7,7 @@ validation, and the registry's executor all run for real. These tests are
 OFFLINE: any URL handed to the handler is unroutable/unreachable (loopback
 port 9), so the handler's honest "no search backend / fetch failed" path is
 what actually executes. Live llama.cpp coverage lives behind the
-``NEXA_E2E_LLAMACPP=1`` gate.
+``FORGE_E2E_LLAMACPP=1`` gate.
 
 Note: pytest-asyncio is installed but ``asyncio_mode = "auto"`` is NOT set in
 pyproject.toml, so every coroutine test is explicitly decorated with

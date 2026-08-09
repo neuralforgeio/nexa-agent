@@ -26,7 +26,7 @@ from typing import Any, Dict, List, Optional
 # Regex for capitalized entities (proper nouns / product names).
 _ENTITY_RE = re.compile(r"\b(?:[A-Z][a-zA-Z0-9]+(?:\s+[A-Z][a-zA-Z0-9]+){0,2})\b")
 _STOPWORDS = {"The", "A", "An", "I", "You", "We", "They", "He", "She", "It",
-              "This", "That", "Nexa", "Hello", "Hi", "Hey"}
+              "This", "That", "Forge", "Hello", "Hi", "Hey"}
 
 
 @dataclass

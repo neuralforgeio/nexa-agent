@@ -8,7 +8,7 @@ Three tools:
 - :func:`todo_write` — create/update a TODO list in the workspace.
 - :func:`todo_read`  — read a TODO list (or list them all).
 
-TODO lists live in ``<workspace>/.nexa/todos/<name>.md`` using the GitHub
+TODO lists live in ``<workspace>/.openforge/todos/<name>.md`` using the GitHub
 task-list syntax::
 
     - [ ] pending item
@@ -178,7 +178,7 @@ TASK_PLAN_SCHEMA: Dict[str, Any] = {
 # ---------------------------------------------------------------------------
 # TODO storage helpers
 # ---------------------------------------------------------------------------
-_TODO_DIR_REL = ".nexa/todos"
+_TODO_DIR_REL = ".openforge/todos"
 
 
 def _todo_dir():
@@ -217,7 +217,7 @@ async def todo_write(
     ``mode="append"`` adds the items to the end.
     ``checked`` lists item texts to mark as done (``[x]``).
 
-    The file lives at ``.nexa/todos/<name>.md`` so users can inspect/edit
+    The file lives at ``.openforge/todos/<name>.md`` so users can inspect/edit
     it directly in their editor.
 
     Args:
@@ -249,7 +249,7 @@ async def todo_write(
     path.write_text(body, encoding="utf-8")
     return (
         f"Todo list `{name}` saved — {len(normalized)} item(s), "
-        f"{len(checked_set)} marked done. Path: `.nexa/todos/{_sanitize_name(name)}.md`"
+        f"{len(checked_set)} marked done. Path: `.openforge/todos/{_sanitize_name(name)}.md`"
     )
 
 
