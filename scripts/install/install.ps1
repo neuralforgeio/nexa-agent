@@ -1,295 +1,116 @@
-#
-# Nexa Agent — Ultra-Cool Installer for Windows (PowerShell)
-# ===========================================================
+# OpenForge — Unified installer for Windows (PowerShell)
+# ======================================================
 #
 # One-line install (run in PowerShell — NOT Command Prompt):
-#   irm https://raw.githubusercontent.com/neuralforgeio/nexa-agent/main/scripts/install/install.ps1 | iex
+#   irm https://raw.githubusercontent.com/neuralforgeio/openforge/main/scripts/install/install.ps1 | iex
 #
-# Or save and run:
-#   iwr https://raw.githubusercontent.com/neuralforgeio/nexa-agent/main/scripts/install/install.ps1 -OutFile install.ps1
-#   .\install.ps1
-#
-# Features:
-#   - Cool ASCII logo + animations
-#   - Progress bars with percentage
-#   - Unicode sparkle effects (✨ ✅ ⚙️ 🚀)
-#   - Color output via ANSI escape codes (PowerShell 7 recommended)
-#   - Non-blocking animations (won't slow down install)
+# Target layout:
+#   ~/.openforge/
+#   ├── lib/          (code — read-only where possible)
+#   ├── .venv/        (virtualenv)
+#   ├── workspace/    (your files)
+#   ├── memory/  secrets/  sessions/  logs/  tools/  extensions/
+#   └── openforge.db
 #
 # Copyright (c) 2026 Dearly Febriano Irwansyah
 # SPDX-License-Identifier: MIT
 #
 
-# Force TLS 1.2 for older Windows versions.
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+param(
+  [string]$Branch = "main",
+  [string]$ForgeHome = $(if ($env:FORGE_HOME) { $env:FORGE_HOME } else { Join-Path $HOME ".openforge" }),
+  [string]$RepoUrl = "https://github.com/neuralforgeio/openforge.git"
+)
 
 $ErrorActionPreference = "Stop"
+$ForgeLib = Join-Path $ForgeHome "lib"
+$VenvDir  = Join-Path $ForgeHome ".venv"
+$VenvPy   = Join-Path $VenvDir  "Scripts\python.exe"
 
-# --- Config ---
-$RepoUrl = "https://github.com/neuralforgeio/nexa-agent.git"
-$InstallDir = if ($env:NEXA_INSTALL_DIR) { $env:NEXA_INSTALL_DIR } else { Join-Path $HOME "nexa-agent" }
-$Branch = "main"
+function Write-Step([string]$msg) { Write-Host "`n[STEP] $msg" -ForegroundColor Cyan }
+function Write-Ok([string]$msg)   { Write-Host "  ✓ $msg" -ForegroundColor Green }
+function Write-Warn([string]$msg) { Write-Host "  ⚠ $msg" -ForegroundColor Yellow }
+function Write-Fail([string]$msg) { Write-Host "  ✗ $msg" -ForegroundColor Red; exit 1 }
 
-# --- Helper functions ---
-function Write-Info($msg)  { Write-Host "[*] $msg" -ForegroundColor Cyan }
-function Write-Ok($msg)    { Write-Host "[✔] $msg" -ForegroundColor Green }
-function Write-Warn($msg)  { Write-Host "[⚠] $msg" -ForegroundColor Yellow }
-function Write-Fail($msg)  { Write-Host "[✗] $msg" -ForegroundColor Red; exit 1 }
-function Write-Step($msg)  { Write-Host "`n  → $msg" -ForegroundColor Blue }
-function Write-Success($msg) { Write-Host "  ✓ $msg" -ForegroundColor Green }
-
-$global:PartialFlagPath = Join-Path $HOME ".nexa\\.partial_install"
-
-# v4.3.0: traps for SIGINT (Ctrl+C) — PowerShell catches them as pipeline
-# terminates, so we hook the underlying Console.CancelKeyPress event.
-$null = Register-EngineEvent -SourceIdentifier PowerShell.Exiting -Action {
-  if (Test-Path $global:PartialFlagPath) { return }
-  New-Item -ItemType File -Force -Path $global:PartialFlagPath | Out-Null
-  Write-Host "`n[!] Install interrupted. Run again to resume." -ForegroundColor Yellow
-}
-# If we bail via an unhandled error the same flag gets written.
-trap {
-  if (Test-Path $global:PartialFlagPath) { return }
-  New-Item -ItemType File -Force -Path $global:PartialFlagPath | Out-Null
-  Write-Host "`n[!] Install error. Run again to resume." -ForegroundColor Yellow
-  exit 1
+Write-Host ("`n=== OpenForge installer === " + (Get-Date)) -ForegroundColor White
+Write-Step "Sanity checks"
+foreach ($cmd in @("git", "python", "uv", "npm")) {
+  if (Get-Command $cmd -ErrorAction SilentlyContinue) { Write-Ok "$cmd present" } else { Write-Warn "$cmd not found — continuing (install if missing)" }
 }
 
-# Offer to resume if a partial install already exists
-if (Test-Path $global:PartialFlagPath) {
-  Write-Warn "Previous installation was interrupted."
-  $resume = Read-Host "Resume from where it left off? [y/N]"
-  if ($resume -match '^[Yy]') {
-    Write-Info "Resuming from partial state..."
+Write-Step "Create unified layout ($ForgeHome)"
+$dirs = @("memory","secrets","sessions","logs","tools","extensions","workspace",".permissions",".versions",".backups","lib")
+foreach ($d in $dirs) { New-Item -ItemType Directory -Force (Join-Path $ForgeHome $d) | Out-Null }
+# tighten secrets dir ACL (best-effort)
+try { (Get-Item (Join-Path $ForgeHome "secrets")).Attributes = "Hidden" } catch {}
+Write-Ok "folders ready"
+
+Write-Step "Clone OpenForge → $ForgeLib"
+if (Test-Path (Join-Path $ForgeLib ".git")) {
+  Write-Host "  lib/ exists — pulling latest..." -ForegroundColor DarkGray
+  Push-Location $ForgeLib; git pull --ff-only origin $Branch 2>$null; Pop-Location
+} else {
+  git clone --depth 1 -b $Branch $RepoUrl $ForgeLib
+}
+Write-Ok "code ready in $ForgeLib"
+
+Write-Step "Create virtualenv"
+if (-not (Test-Path $VenvPy)) { uv venv --python (Get-Command python).Source $VenvDir | Out-Null }
+Write-Ok "venv at $VenvDir"
+
+Write-Step "Install OpenForge package"
+Push-Location $ForgeLib
+$env:VIRTUAL_ENV = $VenvDir
+$env:PATH = "$VenvDir\Scripts;$env:PATH"
+try { uv pip install --python $VenvPy -e "." | Out-Null } catch { & $VenvPy -m pip install -e "." | Out-Null }
+Pop-Location
+Write-Ok "dependencies installed"
+
+Write-Step "Frontend dependencies (openforge_web)"
+$webDir = Join-Path $ForgeLib "openforge_web"
+if (Test-Path $webDir) {
+  if (Get-Command npm -ErrorAction SilentlyContinue) {
+    Push-Location $webDir
+    npm install --no-audit --no-fund 2>&1 | Out-Null
+    Pop-Location
+    Write-Ok "openforge_web deps installed"
   } else {
-    Write-Info "Restarting from scratch."
-    Remove-Item -Force -ErrorAction SilentlyContinue $global:PartialFlagPath
+    Write-Warn "npm not found — skipping frontend deps. Later: cd $webDir && npm install"
   }
 }
 
-# Spinner animation (runs in background).
-$global:SpinnerRunning = $false
-function Start-Spinner {
-    if ($global:SpinnerRunning) { return }
-    $global:SpinnerRunning = $true
-    $global:SpinnerJob = Start-Job -ScriptBlock {
-        $frames = @('⠋','⠙','⠹','⠸','⠼','⠴','⠦','⠧','⠇','⠏')
-        $i = 0
-        while ($true) {
-            $f = $frames[$i % $frames.Length]
-            [System.Console]::Write("`r $f ")
-            Start-Sleep -Milliseconds 80
-            $i++
-        }
-    }
-}
-function Stop-Spinner {
-    $global:SpinnerRunning = $false
-    if ($global:SpinnerJob) {
-        Stop-Job $global:SpinnerJob -ErrorAction SilentlyContinue | Out-Null
-        Remove-Job $global:SpinnerJob -ErrorAction SilentlyContinue | Out-Null
-    }
-    [System.Console]::Write("`r     `r")
-}
-
-function Write-ProgressBar {
-    param([int]$current, [int]$total, [string]$label)
-    $width = 40
-    $pct = [int]($current * 100 / $total)
-    $filled = [int]($current * $width / $total)
-    $empty = $width - $filled
-    $bar = "=" * $filled + " " * $empty
-    Write-Host "`r ${label}: [$bar] ${pct}%" -NoNewline -ForegroundColor White
-}
-
-# --- ASCII logo ---
-Write-Host ""
-Write-Host "     ███╗   ██╗███████╗██╗  ██╗ █████╗" -ForegroundColor Cyan
-Write-Host "     ████╗  ██║██╔════╝╚██╗██╔╝██╔══██╗" -ForegroundColor Cyan
-Write-Host "     ██╔██╗██╔╝█████╗   ╚███╔╝ ███████║" -ForegroundColor Cyan
-Write-Host "     ██║╚████══█ ██╔══╝   ██╔██╗ ██╔══██║" -ForegroundColor Cyan
-Write-Host "     ██║ ╚███║  ███████╗██╔╝ ██╗██║  ██║" -ForegroundColor Cyan
-Write-Host "     ╚═╝  ╚══╝  ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝" -ForegroundColor Cyan
-Write-Host ""
-# v4.2.3: read version from pyproject.toml (single source of truth) — so the
-# banner ALWAYS matches the package version, no more drift.
-$bannerVersion = "4.2.3"
+Write-Step "Finalize: permissions, LOCK, PATH shim"
+# Mark lib read-only (best-effort on Windows)
+try { (Get-ChildItem $ForgeLib -Recurse -File | ForEach-Object { $_.IsReadOnly = $true }) } catch {}
+# Generate LOCK via the installed package
 try {
-  $py = Join-Path $PSScriptRoot "..\..\pyproject.toml"
-  if (Test-Path $py) {
-    $line = Get-Content $py | Where-Object { $_ -match '^\s*version\s*=' } | Select-Object -First 1
-    if ($line -match '"([^"]+)"') { $bannerVersion = $Matches[1] }
+  $env:FORGE_LIB = $ForgeLib
+  & $VenvPy -c "from openforge.integrity import write_lock; import pathlib,os; write_lock(pathlib.Path(os.environ['FORGE_LIB']))" | Out-Null
+  Write-Ok "LOCK written: $ForgeLib\LOCK"
+} catch { Write-Warn "LOCK generate skipped: $_" }
+
+# Add lib .venv Scripts to user PATH so openforge / openforge-chat work in any new shell.
+$userPath = [Environment]::GetEnvironmentVariable("Path","User")
+$bindir = Join-Path $VenvDir "Scripts"
+if ($userPath -notlike "*$bindir*") {
+  [Environment]::SetEnvironmentVariable("Path", "$userPath;$bindir","User")
+  Write-Ok "PATH += $bindir (open a new shell to pick it up)"
+} else {
+  Write-Ok "PATH already contains $bindir"
+}
+
+# Initialize the FORGE_HOME structure.
+write-Step "Initialize $ForgeHome"
+try {
+  & "$VenvDir\Scripts\openforge.exe" setup 2>&1 | Out-Null
+  Write-Ok "OpenForge initialized (via openforge.exe)"
+} catch {
+  try { & $VenvPy -m openforge_cli setup 2>&1 | Out-Null; Write-Ok "OpenForge initialized (via python -m openforge_cli)" } catch {
+    Write-Warn "openforge setup not available yet — run it manually later: openforge setup"
   }
-} catch {}
-
-Write-Host ("  Nexa Agent v{0}  ·  Local AI Agent" -f $bannerVersion) -ForegroundColor White
-Write-Host "  by Dearly Febriano Irwansyah · Indonesia" -ForegroundColor DarkGray
-Write-Host ""
-
-# --- Step 0: Git check ---
-Write-Step "Checking git..."
-$gitOK = $false
-try { git --version | Out-Null; $gitOK = $true; Write-Ok "git found" } catch {}
-if (-not $gitOK) {
-    Write-Warn "git not found. Installing via winget..."
-    try { winget install --id Git.Git -e --accept-source-agreements --accept-package-agreements } catch {
-        Write-Fail "Could not install git. Install from https://git-scm.com and re-run."
-    }
-    $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
-    git --version | Out-Null
-    Write-Ok "git installed"
-}
-Write-ProgressBar 1 7 "Git check"
-
-# --- Step 1: Python check / install ---
-Write-Step "Checking Python 3.11+..."
-$pythonBin = $null
-foreach ($candidate in @("python", "python3", "py")) {
-    try {
-        $ver = & $candidate -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')" 2>&1
-        if ($ver -match '^\d+\.\d+$') {
-            $parts = $ver.Split('.')
-            $major = [int]$parts[0]
-            $minor = [int]$parts[1]
-            if ($major -gt 3 -or ($major -eq 3 -and $minor -ge 11)) {
-                $pythonBin = $candidate
-                Write-Ok "Found $candidate v$ver ✓"
-                break
-            }
-        }
-    } catch {}
-}
-if (-not $pythonBin) {
-    Write-Warn "Python 3.11+ not found. Installing via winget..."
-    try {
-        winget install --id Python.Python.3.12 -e --accept-source-agreements --accept-package-agreements
-        $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
-        $pythonBin = "python"
-        Write-Ok "Python installed ✓"
-    } catch {
-        Write-Fail "Could not install Python. Download from https://python.org and re-run."
-    }
-}
-Write-ProgressBar 2 7 "Python check"
-
-# --- Step 2: Install uv ---
-Write-Step "Installing uv (Astral's fast Python package manager)..."
-$uvOK = $false
-try { uv --version | Out-Null; $uvOK = $true; Write-Ok "uv already installed ✓" } catch {}
-if (-not $uvOK) {
-    Write-Info "Downloading uv installer..."
-    try {
-        irm https://astral.sh/uv/install.ps1 | iex
-        $env:Path = "$HOME\.local\bin;$env:Path"
-        uv --version | Out-Null
-        Write-Ok "uv installed ✓"
-    } catch {
-        Write-Warn "uv install failed. Trying pip..."
-        & $pythonBin -m pip install uv 2>&1 | Out-Null
-        if ($LASTEXITCODE -ne 0) { Write-Fail "Could not install uv." }
-        Write-Ok "uv installed via pip ✓"
-    }
-}
-Write-ProgressBar 3 7 "uv install"
-
-# --- Step 3: Clone / update repo ---
-Write-Step "Cloning nexa-agent to $InstallDir..."
-if (Test-Path (Join-Path $InstallDir ".git")) {
-    Write-Info "Directory exists — pulling latest..."
-    try { (Set-Location $InstallDir) && (git pull --ff-only origin $Branch) 2>&1 | Out-Null; Write-Ok "Repository updated ✓" } catch {
-        Write-Warn "git pull failed (continuing with existing code)"
-    }
-} else {
-    git clone --depth 1 -b $Branch $RepoUrl $InstallDir 2>&1 | Out-Null
-    Set-Location $InstallDir
-    Write-Ok "Cloned to $InstallDir ✓"
-}
-Write-ProgressBar 4 7 "Repository clone"
-
-# --- Step 4: Virtual environment ---
-Write-Step "Creating virtual environment..."
-$venvPath = Join-Path $InstallDir ".venv"
-if (-not (Test-Path $venvPath)) {
-    uv venv --python $pythonBin 2>&1 | Out-Null
-    Write-Ok "Virtual environment created (.venv) ✓"
-} else {
-    Write-Ok "Virtual environment exists (.venv) ✓"
-}
-Write-ProgressBar 5 7 "Virtual env"
-
-# --- Step 5: Install dependencies ---
-Write-Step "Installing dependencies..."
-Set-Location $InstallDir
-$venvPython = Join-Path $venvPath "Scripts\python.exe"
-try {
-    uv pip install -e ".[dev]" 2>&1 | Out-Null
-    Write-Ok "Dependencies installed ✓"
-} catch {
-    & $venvPython -m pip install -e ".[dev]" 2>&1 | Out-Null
-    Write-Ok "Dependencies installed ✓"
-}
-Write-ProgressBar 6 7 "Dependencies"
-
-# --- Step 6b: Frontend dependencies (v4.6.1) ---
-# GLM QA v4.6.0 BUG-03: fresh clones failed npm run build with six
-# "Module not found" errors because npm install was never run. Auto-run when
-# npm is available; skip gracefully otherwise.
-if (Test-Path (Join-Path $InstallDir "nexa_web")) {
-    $npmOk = $false
-    try { npm --version | Out-Null; $npmOk = $true } catch {}
-    if ($npmOk) {
-        Write-Step "Installing frontend dependencies (nexa_web)..."
-        try {
-            Push-Location (Join-Path $InstallDir "nexa_web")
-            npm install --no-audit --no-fund 2>&1 | Out-Null
-            Pop-Location
-            Write-Ok "Frontend dependencies installed ✓"
-        } catch {
-            Write-Warn "npm install failed — run manually: cd nexa_web && npm install"
-        }
-    } else {
-        Write-Info "npm not found — frontend deps skipped. Later: cd nexa_web && npm install"
-    }
 }
 
-# --- Step 6: Initialize ---
-Write-Step "Initializing ~/.openforge/ home directory..."
-try {
-    & "$venvPath\Scripts\nexa.exe" setup 2>&1 | Out-Null
-    Write-Ok "Nexa Agent initialized ✓"
-} catch {
-    try {
-        & $venvPython -m nexa_cli setup 2>&1 | Out-Null
-        Write-Ok "Nexa Agent initialized ✓"
-    } catch {
-        Write-Warn "nexa setup not available yet (run it manually: nexa setup)"
-    }
-}
-Write-ProgressBar 7 7 "Initialization"
-
-# --- Final success ---
-Write-Host ""
-Write-Host "  ✨ ╔══════════════════════════════════════════════════╗ ✨" -ForegroundColor Green
-Write-Host "     ║        ✅ Nexa Agent installed successfully!           ║" -ForegroundColor Green
-Write-Host "     ╚══════════════════════════════════════════════════╝" -ForegroundColor Green
-Write-Host ""
-Write-Host "  Next steps:" -ForegroundColor White
-Write-Host ""
-Write-Host "    1. Open a NEW PowerShell window (to refresh PATH):" -ForegroundColor Cyan
-Write-Host ""
-Write-Host "    2. Configure a provider:" -ForegroundColor Cyan
-Write-Host "       $ nexa provider add tokenrouter" -ForegroundColor Green
-Write-Host ""
-Write-Host "    3. Start chatting:" -ForegroundColor Cyan
-Write-Host "       $ nexa-chat" -ForegroundColor Green
-Write-Host ""
-Write-Host "    4. Or launch the Web UI:" -ForegroundColor Cyan
-Write-Host "       $ nexa gateway start" -ForegroundColor Green
-Write-Host "       $ cd $InstallDir\nexa_web && npm install && npm run dev" -ForegroundColor Green
-Write-Host ""
-Write-Host "  Installed at: $InstallDir" -ForegroundColor DarkGray
-Write-Host "  Docs: https://github.com/neuralforgeio/nexa-agent" -ForegroundColor DarkGray
-Write-Host ""
-Write-Host "  💡 Tip: Add nexa to your PATH:" -ForegroundColor Yellow
-Write-Host "     `$env:Path += `";$InstallDir\.venv\Scripts`"" -ForegroundColor DarkGray
-Write-Host ""
+Write-Host "`n=== DONE ===" -ForegroundColor Green
+Write-Host "OpenForge is installed under: $ForgeLib" -ForegroundColor Green
+Write-Host "Next: open a new PowerShell window, then run:" -ForegroundColor Cyan
+Write-Host "  openforge --version`n  openforge setup`n  openforge doctor`n  openforge-chat" -ForegroundColor Yellow

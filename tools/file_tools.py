@@ -23,6 +23,7 @@ from typing import Any
 
 from openforge.config import FORGE_WORKSPACE
 from tools._paths import MAX_FILE_SIZE, resolve_in_workspace
+from openforge.path_protection import ReadOnlyViolation, ensure_safe_write
 
 # Re-export for backward compatibility (file_tools._resolve_in_workspace).
 _resolve_in_workspace = resolve_in_workspace
@@ -53,7 +54,7 @@ async def read_file(path: str, **_: Any) -> str:
     """
     try:
         full = resolve_in_workspace(path)
-    except ValueError:
+    except Exception:
         raise
 
     # Extension-based multimodal dispatch (M-10).
@@ -109,7 +110,7 @@ async def write_file(path: str, content: str, **_: Any) -> str:
     """
     Write text content to a file in the workspace.
 
-    Creates parent directories if they don't exist. Overwrites the file
+    Creates parent directories if they do not exist. Overwrites the file
     if it already exists.
 
     Args:
@@ -131,20 +132,16 @@ async def write_file(path: str, content: str, **_: Any) -> str:
     # Size cap.
     encoded = content.encode("utf-8")
     if len(encoded) > MAX_FILE_SIZE:
-        raise ValueError(
-            f"content too large ({len(encoded)} bytes, max {MAX_FILE_SIZE} bytes = 1MB)"
-        )
+        raise ValueError(f"content too large ({len(encoded)} bytes, max {MAX_FILE_SIZE} = 1MB)")
 
     full = resolve_in_workspace(path)
+    # v5.0.2: block any write that targets the protected core.
+    ensure_safe_write(full, "write")
 
-    # Guard against writing to an existing directory.
     if full.exists() and full.is_dir():
         raise ValueError(f"cannot write file: '{path}' is an existing directory")
 
-    # v4.1.0: atomic write — stage to a temp file, then os.replace() over
-    # the destination. Prevents a torn file if the process is interrupted
-    # mid-write (Ctrl+C, kill, power loss).
-    tmp = full.with_name(full.name + ".nexa.tmp")
+    tmp = full.with_name(full.name + ".tmp")
     try:
         full.parent.mkdir(parents=True, exist_ok=True)
         tmp.write_text(content, "utf-8")
@@ -156,8 +153,6 @@ async def write_file(path: str, content: str, **_: Any) -> str:
     except OSError as exc:
         raise ValueError(f"could not write '{path}': {exc}") from exc
     finally:
-        # Best-effort cleanup if the replace never ran (e.g. permission
-        # error raised while staging the temp file).
         try:
             tmp.unlink(missing_ok=True)
         except Exception:
