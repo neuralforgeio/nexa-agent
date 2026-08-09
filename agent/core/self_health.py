@@ -97,7 +97,45 @@ class SelfHealth:
         report.checks.append(self.check_disk_space())
         report.checks.append(await self.check_memories())
         report.checks.append(await self.check_learning_graph())
+        report.checks.append(self.check_integrity_lock())
         return report
+
+    def check_integrity_lock(self) -> HealthCheck:
+        """LOCK integrity: verify SHA256 manifest of the read-only core.
+
+        Skips with a healthy "not installed" result on dev checkouts (a repo
+        worktree won't have a generated LOCK until install time).
+        """
+        try:
+            from openforge import integrity
+            from openforge.path_resolver import get_forge_lib
+            lib = get_forge_lib()
+            lock = lib / "LOCK"
+            if not lock.exists():
+                return HealthCheck(
+                    name="integrity_lock",
+                    healthy=True,
+                    detail=f"OK — no LOCK yet (dev checkout at {lib})",
+                )
+            ok, mismatched, missing, extra = integrity.verify(lib)
+            if ok:
+                return HealthCheck(
+                    name="integrity_lock",
+                    healthy=True,
+                    detail="OK — lib/ matches LOCK (no tamper detected)",
+                )
+            return HealthCheck(
+                name="integrity_lock",
+                healthy=False,
+                detail=(
+                    f"MISMATCH — {len(mismatched)} changed, "
+                    f"{len(missing)} missing, {len(extra)} extra under {lib}"
+                ),
+            )
+        except Exception as e:
+            return HealthCheck(
+                name="integrity_lock", healthy=False, detail=f"FAIL — {e}"
+            )
 
     async def check_database(self) -> HealthCheck:
         """
