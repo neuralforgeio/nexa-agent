@@ -1,5 +1,5 @@
 """
-Nexa Agent — Pydantic Schemas for Tools
+OpenForge — Pydantic Schemas for Tools
 =======================================
 
 Defines a :class:`pydantic.BaseModel` for every tool's arguments. The

@@ -1,5 +1,5 @@
 """
-Nexa Agent — Iteration Budget
+OpenForge — Iteration Budget
 =============================
 
 Tracks and enforces tool-call iteration limits per conversation turn.

@@ -1,5 +1,5 @@
 """
-Nexa Agent — meeting_notes skill (communication)
+OpenForge — meeting_notes skill (communication)
 ================================================
 
 Purpose

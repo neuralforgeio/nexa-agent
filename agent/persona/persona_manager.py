@@ -1,5 +1,5 @@
 """
-Nexa Agent — Persona Manager (v4.1.0)
+OpenForge — Persona Manager (v4.1.0)
 ======================================
 
 Swaps the active persona (Planner / Explorer / Coder / Reviewer / Final

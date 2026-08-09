@@ -1,5 +1,5 @@
 """
-Nexa Agent — Message Sanitizer
+OpenForge — Message Sanitizer
 =============================
 
 Cleans and repairs message transcripts before sending them to the LLM.

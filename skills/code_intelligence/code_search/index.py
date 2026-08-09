@@ -1,5 +1,5 @@
 """
-Nexa Agent — workspace code index for the ``code_search`` skill (v4.4.0)
+OpenForge — workspace code index for the ``code_search`` skill (v4.4.0)
 =========================================================================
 
 A small, honest, on-disk index under ``$FORGE_WORKSPACE/.nexa/index/code_fts.db``

@@ -1,5 +1,5 @@
 """
-Nexa Agent — summarization skill (web_research)
+OpenForge — summarization skill (web_research)
 ===============================================
 
 Purpose

@@ -1,5 +1,5 @@
 """
-Nexa Agent — shared building blocks for LLM-driven skills (v4.4.0)
+OpenForge — shared building blocks for LLM-driven skills (v4.4.0)
 ==================================================================
 
 Most Batch-8 skills follow the same shape: read some real input, build a

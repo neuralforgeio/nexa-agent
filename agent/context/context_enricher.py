@@ -1,5 +1,5 @@
 """
-Nexa Agent — Context Enricher
+OpenForge — Context Enricher
 =============================
 
 Enriches the LLM's context window with relevant prior information

@@ -1,5 +1,5 @@
 """
-Nexa Agent — Session Search
+OpenForge — Session Search
 ===========================
 
 Full-text search across conversation history using SQLite FTS5.

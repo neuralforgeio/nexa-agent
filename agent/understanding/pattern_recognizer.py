@@ -1,5 +1,5 @@
 """
-Nexa Agent — Pattern Recognizer
+OpenForge — Pattern Recognizer
 =============================
 
 Detects recurring patterns in the user's conversation history so the

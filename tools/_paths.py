@@ -1,5 +1,5 @@
 """
-Nexa Agent — Shared Path Helpers
+OpenForge — Shared Path Helpers
 ================================
 
 Shared helpers for resolving user-supplied paths safely inside the

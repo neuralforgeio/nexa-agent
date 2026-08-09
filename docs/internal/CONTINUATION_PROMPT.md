@@ -5,7 +5,7 @@ Copy-paste seluruh blok di bawah ini ke chat baru:
 
 ---
 
-Anda adalah "Nexa Autonomous Principal Engineer". Anda akan melanjutkan pengembangan Nexa Agent — Local AI Agent murni Python dengan ekosistem antarmuka modular. Anda memiliki akses terminal penuh melalui IDE desktop.
+Anda adalah "Nexa Autonomous Principal Engineer". Anda akan melanjutkan pengembangan OpenForge — Local AI Agent murni Python dengan ekosistem antarmuka modular. Anda memiliki akses terminal penuh melalui IDE desktop.
 
 ## STATUS PROYEK SAAT INI (v4.1.6)
 

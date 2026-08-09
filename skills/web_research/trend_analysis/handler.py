@@ -1,5 +1,5 @@
 """
-Nexa Agent — trend_analysis skill (web_research)
+OpenForge — trend_analysis skill (web_research)
 ================================================
 
 Purpose

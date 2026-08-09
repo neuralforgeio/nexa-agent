@@ -1,5 +1,5 @@
 """
-Nexa Agent — TUI Input (v4.5.0)
+OpenForge — TUI Input (v4.5.0)
 ==================================
 
 Encapsulates the ``prompt_toolkit.PromptSession`` wired for the TUI:

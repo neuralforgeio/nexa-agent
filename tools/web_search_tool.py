@@ -1,5 +1,5 @@
 """
-Nexa Agent — Web Search Tool
+OpenForge — Web Search Tool
 =============================
 
 Provides the ``web_search`` tool for performing HTTP-based web searches.

@@ -1,5 +1,5 @@
 """
-Nexa Agent — email_drafting skill (communication)
+OpenForge — email_drafting skill (communication)
 =================================================
 
 Purpose

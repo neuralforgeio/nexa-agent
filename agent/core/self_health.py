@@ -1,5 +1,5 @@
 """
-Nexa Agent — Self-Health Diagnostics
+OpenForge — Self-Health Diagnostics
 ====================================
 
 Provides health-check diagnostics for the agent's subsystems. Inspired by

@@ -1,5 +1,5 @@
 """
-Nexa Agent — Query Reformulator
+OpenForge — Query Reformulator
 ================================
 
 Reformulates a user's vague or ambiguous question into one or more

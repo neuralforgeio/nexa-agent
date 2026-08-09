@@ -1,5 +1,5 @@
 """
-Nexa Agent — sentiment_analysis skill (web_research)
+OpenForge — sentiment_analysis skill (web_research)
 ====================================================
 
 Purpose

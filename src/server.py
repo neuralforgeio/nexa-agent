@@ -1,5 +1,5 @@
 """
-Nexa Agent — WebSocket/SSE Server for Web UI Integration
+OpenForge — WebSocket/SSE Server for Web UI Integration
 ========================================================
 
 This module provides a FastAPI server that exposes the Nexa Agent to the

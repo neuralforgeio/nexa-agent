@@ -1,5 +1,5 @@
 """
-Nexa Agent — Process Manager (Cross-Platform Process-Safe Singletons)
+OpenForge — Process Manager (Cross-Platform Process-Safe Singletons)
 ======================================================================
 
 Guarantees that long-lived Nexa subsystems (the FastAPI web server, the

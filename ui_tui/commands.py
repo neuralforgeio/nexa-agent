@@ -1,5 +1,5 @@
 """
-Nexa Agent — TUI Commands (v4.5.0)
+OpenForge — TUI Commands (v4.5.0)
 =====================================
 
 Standalone slash-command dispatcher for the TUI.

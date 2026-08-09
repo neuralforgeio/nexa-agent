@@ -1,5 +1,5 @@
 """
-Nexa Agent — Terminal Exec Tool (v3.2.0)
+OpenForge — Terminal Exec Tool (v3.2.0)
 =========================================
 
 Lets the AI run terminal commands programmatically, with the output

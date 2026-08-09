@@ -1,5 +1,5 @@
 /**
- * Nexa Agent — Markdown Renderer (v4.1.0)
+ * OpenForge — Markdown Renderer (v4.1.0)
  * ========================================
  *
  * Real Markdown rendering for assistant messages. Supports:

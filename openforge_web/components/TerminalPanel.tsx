@@ -1,5 +1,5 @@
 /**
- * Nexa Agent — Terminal Panel (v3.2.0 — xterm.js real PTY)
+ * OpenForge — Terminal Panel (v3.2.0 — xterm.js real PTY)
  * ==========================================================
  *
  * A real terminal in the browser, powered by xterm.js and a WebSocket

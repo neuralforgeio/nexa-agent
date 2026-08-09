@@ -1,5 +1,5 @@
 """
-Nexa Agent — Skills Registry (v4.4.0)
+OpenForge — Skills Registry (v4.4.0)
 =====================================
 
 Batch 8 foundation: a filesystem-backed registry for *skills*.

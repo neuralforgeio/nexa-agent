@@ -1,4 +1,4 @@
-# Nexa Agent — Provider Setup Guide (v4.2.0)
+# OpenForge — Provider Setup Guide (v4.2.0)
 
 Nexa Agent supports any OpenAI-compatible LLM provider. Configure via
 interactive CLI, env vars, or the Web UI Settings panel.

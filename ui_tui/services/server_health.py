@@ -1,5 +1,5 @@
 """
-Nexa Agent — TUI Server-Health Poller (v4.5.0)
+OpenForge — TUI Server-Health Poller (v4.5.0)
 ================================================
 
 Background thread that polls ``/api/health`` so the status bar always knows

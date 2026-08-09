@@ -1,5 +1,5 @@
 /**
- * Nexa Agent — Composer Component
+ * OpenForge — Composer Component
  *
  * Pill-shaped input with auto-grow textarea, send/stop button,
  * suggestion chips for the empty state, and file attachments.

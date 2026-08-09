@@ -1,5 +1,5 @@
 /**
- * Nexa Agent — Message Bubble Component (v4.1.0 — Z.ai layout)
+ * OpenForge — Message Bubble Component (v4.1.0 — Z.ai layout)
  * =================================================================
  *
  * Renders user and assistant messages in the z.ai/OpenClaw hybrid style:

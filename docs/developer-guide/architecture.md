@@ -1,4 +1,4 @@
-# Nexa Agent — Architecture
+# OpenForge — Architecture
 
 ## Overview
 

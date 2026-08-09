@@ -1,5 +1,5 @@
 /**
- * Nexa Agent — /new Landing Route (v4.1.0)
+ * OpenForge — /new Landing Route (v4.1.0)
  * ========================================
  *
  * Visually identical to the root ``/`` route's empty state ("What can I

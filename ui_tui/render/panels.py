@@ -1,5 +1,5 @@
 """
-Nexa Agent — TUI Renderers (v4.5.0)
+OpenForge — TUI Renderers (v4.5.0)
 ====================================
 
 Every ``_render_*`` function takes a :class:`TUIState` and returns a

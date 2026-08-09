@@ -1,4 +1,4 @@
-# Nexa Agent — Tools Reference
+# OpenForge — Tools Reference
 
 This document describes all available tools in Nexa Agent.
 

@@ -1,5 +1,5 @@
 """
-Nexa Agent — Agent Engine Package (v4.3.0)
+OpenForge — Agent Engine Package (v4.3.0)
 ==========================================
 
 Sub-organized into 10 category subfolders. Every public name is re-exported

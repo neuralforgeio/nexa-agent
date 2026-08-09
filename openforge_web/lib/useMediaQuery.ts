@@ -1,5 +1,5 @@
 /**
- * Nexa Agent — responsive media-query hook (F-10).
+ * OpenForge — responsive media-query hook (F-10).
  *
  * SSR-safe: the initial value is `false` on the server and is resolved on
  * the client inside a `useEffect`. Subscribes to changes so the layout

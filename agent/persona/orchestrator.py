@@ -1,5 +1,5 @@
 """
-Nexa Agent — Virtual Multi-Agent Orchestrator (v4.1.0)
+OpenForge — Virtual Multi-Agent Orchestrator (v4.1.0)
 =======================================================
 
 Because local LLMs like llama.cpp can only run one inference slot at a

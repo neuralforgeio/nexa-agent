@@ -1,5 +1,5 @@
 """
-Nexa Agent — Provider Failover Engine
+OpenForge — Provider Failover Engine
 =====================================
 
 This module implements automatic failover across multiple LLM providers.

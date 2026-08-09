@@ -1,5 +1,5 @@
 """
-Nexa Agent — Storage Layer (SQLite + FTS5)
+OpenForge — Storage Layer (SQLite + FTS5)
 ==========================================
 
 This module provides :class:`ConversationDB`, an async SQLite persistence

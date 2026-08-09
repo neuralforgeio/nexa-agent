@@ -37,5 +37,5 @@ def test_pwa_manifest_and_sw():
     import json
     from pathlib import Path
     m = json.loads(Path("openforge_web/public/manifest.json").read_text(encoding="utf-8"))
-    assert m["name"] == "Nexa Agent"
+    assert m["name"] == "OpenForge"
     assert Path("openforge_web/public/sw.js").exists()

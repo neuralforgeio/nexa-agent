@@ -1,5 +1,5 @@
 /**
- * Nexa Agent — Theme Configuration & Design Tokens
+ * OpenForge — Theme Configuration & Design Tokens
  *
  * Centralized color palette, typography, design tokens, and shared types.
  * Dark mode #141618 (Z.ai-style), accent #4A9EFF.

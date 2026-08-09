@@ -1,5 +1,5 @@
 """
-Nexa Agent — TUI Application (v4.5.0)
+OpenForge — TUI Application (v4.5.0)
 ======================================
 
 Interactive multi-pane Terminal UI for Nexa Agent, built with ``rich.live`` +

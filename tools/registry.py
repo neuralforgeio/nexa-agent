@@ -1,5 +1,5 @@
 """
-Nexa Agent — Tool Registry & Dispatcher
+OpenForge — Tool Registry & Dispatcher
 =======================================
 
 This module defines :class:`ToolRegistry`, the central registry that owns

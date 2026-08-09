@@ -1,5 +1,5 @@
 """
-Nexa Agent — Self-Improvement Reflection Loop
+OpenForge — Self-Improvement Reflection Loop
 =============================================
 
 This module lets Nexa *reflect* on its own past turns and extract

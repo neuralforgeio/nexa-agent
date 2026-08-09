@@ -1,5 +1,5 @@
 """
-Nexa Agent — Gateway base class (v4.3.0)
+OpenForge — Gateway base class (v4.3.0)
 =========================================
 
 Shared lifecycle for chat-platform gateways (Telegram, Discord, Slack,

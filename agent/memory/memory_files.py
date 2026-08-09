@@ -1,5 +1,5 @@
 """
-Nexa Agent — Memory File Manager
+OpenForge — Memory File Manager
 ================================
 
 Manages persistent memory files at ``~/.openforge/memory/``:

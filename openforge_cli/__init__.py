@@ -1,5 +1,5 @@
 """
-Nexa Agent — CLI Subcommands Package
+OpenForge — CLI Subcommands Package
 ====================================
 
 Non-interactive CLI for configuration and gateway management.

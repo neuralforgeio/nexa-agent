@@ -1,5 +1,5 @@
 """
-Nexa Agent — Memory Curator (The "Getting Smarter" Loop)
+OpenForge — Memory Curator (The "Getting Smarter" Loop)
 ========================================================
 
 This module implements Nexa Agent's self-improvement system. After each

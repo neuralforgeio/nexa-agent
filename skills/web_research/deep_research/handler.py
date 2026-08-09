@@ -1,5 +1,5 @@
 """
-Nexa Agent — deep_research skill (web_research)
+OpenForge — deep_research skill (web_research)
 ================================================
 
 Purpose

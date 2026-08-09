@@ -1,5 +1,5 @@
 """
-Nexa Agent — File Patch Tool (Hardened v2.1.0)
+OpenForge — File Patch Tool (Hardened v2.1.0)
 ==============================================
 
 Provides the ``file_patch`` tool for applying unified diff patches to

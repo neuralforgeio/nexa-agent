@@ -1,5 +1,5 @@
 """
-Nexa Agent — Prompt Expander
+OpenForge — Prompt Expander
 ============================
 
 Short, vague user messages are hard for an LLM to answer well. This module

@@ -1,5 +1,5 @@
 /**
- * Nexa Agent — streaming helpers for the Web UI.
+ * OpenForge — streaming helpers for the Web UI.
  *
  * Wraps fetch+SSE parsing, exposes chat + persistence calls used by page.tsx.
  *

@@ -1,5 +1,5 @@
 """
-Nexa Agent — Autonomous Web Learner
+OpenForge — Autonomous Web Learner
 ==================================
 
 This module lets Nexa learn facts *on its own* — without being explicitly

@@ -1,5 +1,5 @@
 /**
- * Nexa Agent — Sidebar (Z.ai minimal + full CRUD + pin/archive + search)
+ * OpenForge — Sidebar (Z.ai minimal + full CRUD + pin/archive + search)
  * ==================================================
  *
  * - Logo header + New Chat pill

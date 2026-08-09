@@ -1,5 +1,5 @@
 """
-Nexa Agent — Planning Tools: Git-Native Reasoning (v4.1.0)
+OpenForge — Planning Tools: Git-Native Reasoning (v4.1.0)
 ==========================================================
 
 Wraps ``git`` inside the workspace so the agent can inspect diffs, track

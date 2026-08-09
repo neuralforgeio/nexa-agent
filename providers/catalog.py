@@ -1,5 +1,5 @@
 """
-Nexa Agent — Provider Catalog & Resolution
+OpenForge — Provider Catalog & Resolution
 ==========================================
 
 This module defines a catalog of known LLM providers and a resolver that
@@ -15,7 +15,7 @@ Supported providers:
     - custom      (user-supplied NEXA_BASE_URL)
 
 Any OpenAI-compatible endpoint works — set ``NEXA_BASE_URL`` and
-``NEXA_MODEL`` environment variables.
+``FORGE_MODEL`` environment variables.
 
 Copyright (c) 2026 Dearly Febriano Irwansyah
 SPDX-License-Identifier: MIT

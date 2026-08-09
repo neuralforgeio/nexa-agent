@@ -1,5 +1,5 @@
 """
-Nexa Agent — Skills package (v4.4.0)
+OpenForge — Skills package (v4.4.0)
 ====================================
 
 Public surface of the Batch 8 skills system. Importing this package discovers

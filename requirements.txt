@@ -1,4 +1,4 @@
-# Nexa Agent — Python Dependencies
+# OpenForge — Python Dependencies
 # ================================
 #
 # Requirements file for the Nexa Agent Python backend.

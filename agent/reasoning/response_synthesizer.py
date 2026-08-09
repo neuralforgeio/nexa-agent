@@ -1,5 +1,5 @@
 """
-Nexa Agent — Response Synthesizer
+OpenForge — Response Synthesizer
 ================================
 
 When the agent gathers information from multiple sources (multiple tool

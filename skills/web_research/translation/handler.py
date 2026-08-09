@@ -1,5 +1,5 @@
 """
-Nexa Agent — translation skill (web_research)
+OpenForge — translation skill (web_research)
 =============================================
 
 Purpose

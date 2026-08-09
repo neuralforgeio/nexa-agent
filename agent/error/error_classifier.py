@@ -1,5 +1,5 @@
 """
-Nexa Agent — Error Classifier
+OpenForge — Error Classifier
 =============================
 
 Classifies LLM API errors into categories so the agent can apply the

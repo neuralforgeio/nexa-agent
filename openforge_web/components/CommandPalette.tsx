@@ -1,5 +1,5 @@
 /**
- * Nexa Agent — F-13 Command Palette (Ctrl+K)
+ * OpenForge — F-13 Command Palette (Ctrl+K)
  *
  * Overlay dialog with a search input on top and a filterable list of
  * commands below. Each row shows a description on the left, the command

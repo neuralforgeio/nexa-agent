@@ -1,5 +1,5 @@
 /**
- * Nexa Agent — F-14 Onboarding Wizard (first-run)
+ * OpenForge — F-14 Onboarding Wizard (first-run)
  *
  * Multi-step modal shown the first time a user opens the app:
  *   1. Welcome — brand + what Nexa is.

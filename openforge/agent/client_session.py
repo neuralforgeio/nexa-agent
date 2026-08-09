@@ -1,4 +1,4 @@
-# Nexa Agent — Client Tooling
+# OpenForge — Client Tooling
 # Writes draft messages to/from the Nexa backend via LLM streaming.
 # This module wraps the conversation loop (user input, agent reasoning loop)
 # so you can call session/tools from your own code without remembering

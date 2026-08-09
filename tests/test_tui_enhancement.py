@@ -101,7 +101,7 @@ class TestExportCommand:
         msgs = await db_with_sessions.get_messages(target_id)
 
         # Simulate export logic.
-        lines = [f"# Nexa Agent — Session Export", f"Session: {target_id}", ""]
+        lines = [f"# OpenForge — Session Export", f"Session: {target_id}", ""]
         for m in msgs:
             if m["role"] == "user":
                 lines.append(f"## User\n\n{m['content']}\n")

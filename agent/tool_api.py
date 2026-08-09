@@ -1,5 +1,5 @@
 """
-Nexa Agent — Tool API (v4.3.0)
+OpenForge — Tool API (v4.3.0)
 ==============================
 
 Public extension point for user-built tools. Stability contract: this module's

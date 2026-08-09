@@ -1,4 +1,4 @@
-# Nexa Agent — Project Worklog
+# OpenForge — Project Worklog
 
 > Source of truth for project state across development phases.
 > Owned by: Nexa Architect flow. Last updated: 2026-08-08.
@@ -816,7 +816,7 @@ Work Log:
   4. `tailwind.config.ts` — content globs + custom dark palette (`bg-primary:#0F0F0F`, `bg-secondary:#181818`, `bg-tertiary:#212121`, `accent:#4A9EFF`, `fg:#ECECEC`, `fg-muted:#9A9A9A`) + Inter / JetBrains Mono font variables.
   5. `src/lib/utils.ts` — `cn()` (clsx + tailwind-merge), `formatTime()`, `formatDate()` helpers.
   6. `src/app/globals.css` — `@import "tailwindcss"`, CSS variables for the dark theme, custom scrollbar, blinking `nexa-caret` animation for streaming tokens, `fadeIn` animation, `thinking-dot` pulse animation, `.prose-chat` markdown styles (code blocks, headings, lists, blockquotes, links).
-  7. `src/app/layout.tsx` — Root layout with `Inter` + `JetBrains_Mono` via `next/font/google`, `<html class="dark">`, metadata title "Nexa Agent", viewport themeColor `#0F0F0F`, body bg `#0F0F0F` / fg `#ECECEC`.
+  7. `src/app/layout.tsx` — Root layout with `Inter` + `JetBrains_Mono` via `next/font/google`, `<html class="dark">`, metadata title "OpenForge", viewport themeColor `#0F0F0F`, body bg `#0F0F0F` / fg `#ECECEC`.
   8. `src/app/page.tsx` — Single-file functional chat UI (`"use client"`):
      - **Message list**: user messages as right-aligned rounded bubbles; assistant messages full-width with a spark-logo avatar, name, timestamp, and markdown-rendered content (`renderMarkdown()` handles code blocks, inline code, bold, headings, line breaks).
      - **Streaming tokens**: `handleSSE()` reads the response body via `ReadableStreamDefaultReader`, buffers `\n\n`-delimited SSE events, parses `data:` JSON lines, and dispatches on `type`: `session` (sets activeId), `thinking` (shows pulsing dots), `token` (appends text + shows blinking caret), `tool_result` (adds collapsible card), `done` (finalizes answer), `error` (shows error), `end` (clears streaming flag).
@@ -834,8 +834,8 @@ Work Log:
 Stage Summary:
 - **Status: FRONTEND RESTORED & VERIFIED.** All 8 requested files created; the Next.js 16 app renders on `http://localhost:3000` with a dark-themed, responsive, streaming chat UI that proxies all `/api/*` calls to the Python FastAPI backend on port 8000.
 - **Verification (curl):**
-  - `GET /` → 200, returns `<!DOCTYPE html><html lang="en" class="dark">…` containing "Nexa Agent", "Hello, I", "Message Nexa…", and "New chat". ✅
-  - `GET /api/health` (proxied) → 200, returns `{"status":"ok","name":"Nexa Agent","version":"1.0.0","tools":["read_file","write_file",...],"model":"gpt-4o",...}`. ✅
+  - `GET /` → 200, returns `<!DOCTYPE html><html lang="en" class="dark">…` containing "OpenForge", "Hello, I", "Message Nexa…", and "New chat". ✅
+  - `GET /api/health` (proxied) → 200, returns `{"status":"ok","name":"OpenForge","version":"1.0.0","tools":["read_file","write_file",...],"model":"gpt-4o",...}`. ✅
   - `GET /api/sessions` (proxied) → 200, returns `{"sessions":[{"id":"conv-…","title":"new session","createdAt":…,"updatedAt":…,"messageCount":0},…]}`. ✅
 - **Lint:** `bun run lint` → 0 errors, 0 warnings. ✅
 - **SSE parser:** implements all 7 event types (`session`, `thinking`, `token`, `tool_result`, `done`, `error`, `end`) with real-time token streaming + blinking caret + collapsible tool-result cards.

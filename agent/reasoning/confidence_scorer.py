@@ -1,5 +1,5 @@
 """
-Nexa Agent — Confidence Scorer
+OpenForge — Confidence Scorer
 ============================
 
 Estimates how confident the agent should be in its own answer, based on

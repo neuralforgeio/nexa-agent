@@ -1,5 +1,5 @@
 /**
- * Nexa Agent — Session list helpers (F-03 search + F-04 pin/archive/grouping)
+ * OpenForge — Session list helpers (F-03 search + F-04 pin/archive/grouping)
  *
  * Pure functions, easy to unit-test in isolation. The UI components
  * (Sidebar.tsx) call into these to keep render logic thin.

@@ -1,5 +1,5 @@
 """
-Nexa Agent — fact_checking skill (web_research)
+OpenForge — fact_checking skill (web_research)
 ===============================================
 
 Purpose

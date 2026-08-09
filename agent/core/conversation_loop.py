@@ -1,5 +1,5 @@
 """
-Nexa Agent — Conversation Loop (v2.0 Enhanced)
+OpenForge — Conversation Loop (v2.0 Enhanced)
 ================================================
 
 This module contains the core conversation loop for :class:`OpenForgeAgent`,

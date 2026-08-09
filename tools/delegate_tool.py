@@ -1,5 +1,5 @@
 """
-Nexa Agent — Subagent Delegation Tool
+OpenForge — Subagent Delegation Tool
 =====================================
 
 This module implements the ``delegate`` tool, which allows the main agent

@@ -1,5 +1,5 @@
 """
-Nexa Agent — Code Execution Tool (Project-Scoped Boundary + HITL)
+OpenForge — Code Execution Tool (Project-Scoped Boundary + HITL)
 ==================================================================
 
 Provides the ``code_execution`` tool for running Python code snippets

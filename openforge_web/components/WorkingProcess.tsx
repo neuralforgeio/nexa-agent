@@ -1,5 +1,5 @@
 /**
- * Nexa Agent — Working Process Dropdown (v4.1.0 — nested Thought Process)
+ * OpenForge — Working Process Dropdown (v4.1.0 — nested Thought Process)
  * =========================================================================
  *
  * Two-level collapsible panel, inspired by Claude/ChatGPT reasoning UI:

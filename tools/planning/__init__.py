@@ -1,5 +1,5 @@
 """
-Nexa Agent — Planning Toolkit (v4.1.0)
+OpenForge — Planning Toolkit (v4.1.0)
 ======================================
 
 This package contains twenty production-grade planning, filesystem, git,

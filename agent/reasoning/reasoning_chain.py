@@ -1,5 +1,5 @@
 """
-Nexa Agent — Reasoning Chain
+OpenForge — Reasoning Chain
 ============================
 
 Produces a structured step-by-step reasoning trace the agent can emit

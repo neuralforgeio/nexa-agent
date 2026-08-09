@@ -1,5 +1,5 @@
 """
-Nexa Agent — Real E2E test script for Ornith (llama.cpp).
+OpenForge — Real E2E test script for Ornith (llama.cpp).
 
 Run:
     .venv/Scripts/python.exe scripts/e2e_hello_world.py

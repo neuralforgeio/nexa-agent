@@ -1,5 +1,5 @@
 """
-Nexa Agent — Deep Research Agent (v3.2.0)
+OpenForge — Deep Research Agent (v3.2.0)
 ==========================================
 
 An advanced research agent that goes BEYOND simple web search:

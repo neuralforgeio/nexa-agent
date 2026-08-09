@@ -1,4 +1,4 @@
-# Nexa Agent — Hygiene Procedures (MAESTRO)
+# OpenForge — Hygiene Procedures (MAESTRO)
 
 A mandatory checklist to run **after any version bump, feature merge, or bug-fix batch**,
 before pushing to `main`.

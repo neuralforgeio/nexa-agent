@@ -1,5 +1,5 @@
 ;; D-05: Inno Setup script (STUB) for a Windows .exe installer.
-#define AppName "Nexa Agent"
+#define AppName "OpenForge"
 #define AppVersion "4.12.0"
 [Setup]
 AppName={#AppName}

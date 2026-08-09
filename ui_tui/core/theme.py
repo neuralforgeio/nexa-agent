@@ -1,5 +1,5 @@
 """
-Nexa Agent — TUI Theme (v4.5.0)
+OpenForge — TUI Theme (v4.5.0)
 ================================
 
 Central colour + style tokens for the terminal UI.  All palette values are

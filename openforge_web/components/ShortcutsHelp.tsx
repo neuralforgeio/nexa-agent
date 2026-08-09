@@ -1,5 +1,5 @@
 /**
- * Nexa Agent — Keyboard Shortcuts Overlay (F-07)
+ * OpenForge — Keyboard Shortcuts Overlay (F-07)
  *
  * Rendered by the parent when help is open. ``useShortcutsHelp()`` returns
  * ``{open, setOpen}`` and installs a global ``?`` (Shift+/) keydown listener

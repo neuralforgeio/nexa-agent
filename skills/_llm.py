@@ -1,5 +1,5 @@
 """
-Nexa Agent — LLM helper for skills (v4.4.0)
+OpenForge — LLM helper for skills (v4.4.0)
 ===========================================
 
 A tiny, provider-agnostic adapter so skill handlers can ask the model for a

@@ -1,5 +1,5 @@
 """
-Nexa Agent — Providers Package
+OpenForge — Providers Package
 ==============================
 
 This package contains provider adapters for various LLM backends:

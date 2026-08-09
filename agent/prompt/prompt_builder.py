@@ -1,5 +1,5 @@
 """
-Nexa Agent — Prompt Builder
+OpenForge — Prompt Builder
 ===========================
 
 Assembles the system prompt dynamically from multiple context sources:

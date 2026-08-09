@@ -1,5 +1,5 @@
 /**
- * Nexa Agent — Theme Toggle Button (F-06)
+ * OpenForge — Theme Toggle Button (F-06)
  *
  * Header icon button that cycles light → dark → system. Shows Sun/Moon/
  * Monitor icon from lucide-react. Uses the shared header-button styling so

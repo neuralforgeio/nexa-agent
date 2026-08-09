@@ -1,5 +1,5 @@
 """
-Nexa Agent — Command Palette (v4.6.0)
+OpenForge — Command Palette (v4.6.0)
 ======================================
 
 OpenCode-style command palette shown when the user types ``/``.

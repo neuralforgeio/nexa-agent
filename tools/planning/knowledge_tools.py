@@ -1,5 +1,5 @@
 """
-Nexa Agent — Planning Tools: Knowledge & State (v4.1.0)
+OpenForge — Planning Tools: Knowledge & State (v4.1.0)
 ========================================================
 
 Three read-only tools that let the agent consult its own persistent

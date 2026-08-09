@@ -1,5 +1,5 @@
 /**
- * Nexa Agent — Settings Panel (v4.1.0)
+ * OpenForge — Settings Panel (v4.1.0)
  *
  * Modal dialog for managing LLM providers:
  *   - List all providers (catalog + custom).

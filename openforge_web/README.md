@@ -1,4 +1,4 @@
-# Nexa Agent — Web UI (Frontend)
+# OpenForge — Web UI (Frontend)
 
 Next.js 16 + React 19 + Tailwind v4 frontend for Nexa Agent. Dark mode
 `#141618` (Z.ai-style), pill-shaped composer, sidebar with session

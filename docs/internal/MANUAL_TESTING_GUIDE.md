@@ -1,4 +1,4 @@
-# Nexa Agent — Manual Testing Guide
+# OpenForge — Manual Testing Guide
 
 > **Version**: v4.2.1+ | **Creator**: Dearly Febriano Irwansyah | **License**: MIT
 

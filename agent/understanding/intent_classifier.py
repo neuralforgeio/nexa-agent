@@ -1,5 +1,5 @@
 """
-Nexa Agent — Intent Classifier
+OpenForge — Intent Classifier
 ==============================
 
 A richer intent classifier than the one in :mod:`agent.prompt_expander`.

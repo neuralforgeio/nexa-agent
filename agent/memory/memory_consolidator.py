@@ -1,5 +1,5 @@
 """
-Nexa Agent — Memory Consolidator
+OpenForge — Memory Consolidator
 ================================
 
 Periodically consolidates the raw memory store into a compact, deduplicated

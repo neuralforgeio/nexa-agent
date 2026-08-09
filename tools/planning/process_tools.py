@@ -1,5 +1,5 @@
 """
-Nexa Agent — Planning Tools: Process & Port Intelligence (v4.1.0)
+OpenForge — Planning Tools: Process & Port Intelligence (v4.1.0)
 ==================================================================
 
 Two tools that let the agent inspect the host *without* any writes:

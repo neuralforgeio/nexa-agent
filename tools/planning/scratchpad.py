@@ -1,5 +1,5 @@
 """
-Nexa Agent — Planning Tools: Scratchpad + Think (v4.1.0)
+OpenForge — Planning Tools: Scratchpad + Think (v4.1.0)
 =========================================================
 
 Two tools:

@@ -1,5 +1,5 @@
 """
-Nexa Agent — Bootstrap Module
+OpenForge — Bootstrap Module
 =============================
 
 This module is imported **first** by every entry point. It ensures UTF-8

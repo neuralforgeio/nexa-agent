@@ -1,5 +1,5 @@
 """
-Nexa Agent — Fact Validator
+OpenForge — Fact Validator
 ============================
 
 Validates factual claims in the agent's answer against web search

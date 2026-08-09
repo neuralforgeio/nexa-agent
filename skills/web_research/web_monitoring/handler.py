@@ -1,5 +1,5 @@
 """
-Nexa Agent — web_monitoring skill (web_research)
+OpenForge — web_monitoring skill (web_research)
 =================================================
 
 Purpose

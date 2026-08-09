@@ -70,7 +70,7 @@ def _write_run_summary(summary: Dict[str, Any]) -> None:
     try:
         RUN_DIR.mkdir(parents=True, exist_ok=True)
         (RUN_DIR / "README.md").write_text(
-            f"# Nexa Agent — llama.cpp E2E test run {RUN_STAMP}\n\n"
+            f"# OpenForge — llama.cpp E2E test run {RUN_STAMP}\n\n"
             + json.dumps(summary, indent=2, default=str)
             + "\n",
             encoding="utf-8",

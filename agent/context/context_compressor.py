@@ -1,5 +1,5 @@
 """
-Nexa Agent — Context Compressor
+OpenForge — Context Compressor
 ==============================
 
 Manages the conversation context window to prevent token-overflow errors.

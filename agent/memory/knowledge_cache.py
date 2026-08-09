@@ -1,5 +1,5 @@
 """
-Nexa Agent — Knowledge Cache
+OpenForge — Knowledge Cache
 ===========================
 
 A lightweight on-disk cache for facts the agent learns from the web.

@@ -1,5 +1,5 @@
 """
-Nexa Agent — Learning Graph
+OpenForge — Learning Graph
 ===========================
 
 Tracks patterns of successful and unsuccessful outcomes, enabling the

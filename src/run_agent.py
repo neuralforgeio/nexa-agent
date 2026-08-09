@@ -1,5 +1,5 @@
 """
-Nexa Agent — Agent Runner
+OpenForge — Agent Runner
 =========================
 
 This module defines :class:`OpenForgeAgent`, the main agent class that ties
@@ -75,7 +75,7 @@ def get_active_agent() -> Optional["OpenForgeAgent"]:
 
 class OpenForgeAgent:
     """
-    The core Nexa Agent — orchestrates LLM calls, tool execution, and storage.
+    The core OpenForge — orchestrates LLM calls, tool execution, and storage.
 
     Attributes:
         provider: The :class:`~provider.LLMProvider` instance.

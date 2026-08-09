@@ -1,5 +1,5 @@
 """
-Nexa Agent — Terminal & Utility Tools
+OpenForge — Terminal & Utility Tools
 =====================================
 
 This module provides:

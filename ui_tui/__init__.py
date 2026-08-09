@@ -1,5 +1,5 @@
 """
-Nexa Agent — TUI Package (v4.6.0)
+OpenForge — TUI Package (v4.6.0)
 ===================================
 
 Backward-compat shim: keeps ``from ui_tui import X`` working while the real

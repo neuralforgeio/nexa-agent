@@ -1,5 +1,5 @@
 """
-Nexa Agent — LLM Provider
+OpenForge — LLM Provider
 =========================
 
 This module wraps :class:`openai.AsyncOpenAI` with:
@@ -139,7 +139,7 @@ class LLMProvider:
         Args:
             api_key:  Override for ``OPENAI_API_KEY``. Defaults to config.
             base_url: Override for ``OPENAI_BASE_URL``. Defaults to config.
-            model:    Override for ``NEXA_MODEL``. Defaults to config.
+            model:    Override for ``FORGE_MODEL``. Defaults to config.
         """
         self.api_key = api_key or OPENAI_API_KEY
         self.base_url = base_url or (OPENAI_BASE_URL or None)

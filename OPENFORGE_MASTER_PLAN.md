@@ -1,5 +1,5 @@
 # NEXA MASTER PLAN
-**Nexa Agent — Terminal-First Local AI Agent**
+**OpenForge — Terminal-First Local AI Agent**
 Version 1.7.0 · Author: Dearly Febriano Irwansyah · MIT License
 
 > This document is the source of truth for Nexa Agent's architecture,

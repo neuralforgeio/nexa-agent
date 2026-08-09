@@ -1,5 +1,5 @@
 """
-Nexa Agent — Adaptive Persona
+OpenForge — Adaptive Persona
 ============================
 
 Adjusts the agent's tone, verbosity, and formality to match the user's

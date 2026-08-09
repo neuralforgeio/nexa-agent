@@ -1,5 +1,5 @@
 """
-Nexa Agent — speech_to_text_asr skill (communication)
+OpenForge — speech_to_text_asr skill (communication)
 =====================================================
 
 Purpose

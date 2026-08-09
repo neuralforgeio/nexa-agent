@@ -1,5 +1,5 @@
 """
-Nexa Agent — Trajectory Export (v4.1.0)
+OpenForge — Trajectory Export (v4.1.0)
 ========================================
 
 Records the full prompt → tool → response trajectory of every conversation

@@ -1,5 +1,5 @@
 """
-Nexa Agent — realtime_translation skill (communication)
+OpenForge — realtime_translation skill (communication)
 =======================================================
 
 Purpose

@@ -1,5 +1,5 @@
 """
-Nexa Agent — Error Memory
+OpenForge — Error Memory
 =========================
 
 A persistent log of errors the agent has encountered, indexed by their

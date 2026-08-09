@@ -1,5 +1,5 @@
 """
-Nexa Agent — Ask Question Mode (v4.1.0)
+OpenForge — Ask Question Mode (v4.1.0)
 ========================================
 
 A "quick Q&A" mode that bypasses tool-calling for instant responses. Useful

@@ -1,5 +1,5 @@
 """
-Nexa Agent — text_to_speech_tts skill (communication)
+OpenForge — text_to_speech_tts skill (communication)
 =====================================================
 
 Purpose

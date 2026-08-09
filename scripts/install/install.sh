@@ -144,7 +144,7 @@ lock = write_lock(__import__("pathlib").Path(os.environ["FORGE_LIB"]))
 print("LOCK written:", lock)
 PY2
 
-# Symlink CLI into ~/.local/bin (no sudo required).
+# Symlink CLI into ~/.local/bin (user-level install, no root needed).
 mkdir -p "$HOME/.local/bin"
 for b in openforge openforge-chat openforge-agent openforge-gateway; do
   if [ -x "$FORGE_LIB/.venv/bin/$b" ]; then

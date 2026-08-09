@@ -1,5 +1,5 @@
 """
-Nexa Agent — TUI State + Event Reducer (v4.5.0)
+OpenForge — TUI State + Event Reducer (v4.5.0)
 =================================================
 
 The single source of truth for the TUI's mutable state, plus

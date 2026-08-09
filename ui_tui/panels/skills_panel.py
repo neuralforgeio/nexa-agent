@@ -1,5 +1,5 @@
 """
-Nexa Agent — TUI Skills Overlay (v4.5.0)
+OpenForge — TUI Skills Overlay (v4.5.0)
 ==========================================
 
 Renders an interactive skills panel (category chips + search + run + result)

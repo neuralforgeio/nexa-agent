@@ -1,5 +1,5 @@
 """
-Nexa Agent — Interactive TUI (prompt_toolkit + rich)
+OpenForge — Interactive TUI (prompt_toolkit + rich)
 ====================================================
 
 This module implements the interactive terminal UI for Nexa Agent, inspired
@@ -350,7 +350,7 @@ async def handle_slash_command(cmd: str, agent: OpenForgeAgent, db: Conversation
             if not msgs:
                 console.print(f"[red]No session found with ID:[/red] {target}\n")
             else:
-                lines = [f"# Nexa Agent — Session Export", f"Session: {target}", ""]
+                lines = [f"# OpenForge — Session Export", f"Session: {target}", ""]
                 for m in msgs:
                     role = m["role"]
                     content = m["content"]

@@ -1,5 +1,5 @@
 """
-Nexa Agent — Proactive Suggester
+OpenForge — Proactive Suggester
 ================================
 
 Suggests the next action the user might want, based on the conversation

@@ -1,17 +1,17 @@
-"""Static structural tests for the installer scripts.
+"""Static structural tests for the OpenForge installer scripts.
 
 These do NOT run the installer (which would touch ~/.openforge/ and the host
-system). They verify the on-disk specification that the installer's helper
-functions, signal traps, and partial-resume machinery are all present and
-wired correctly.
+system). They verify the on-disk specification that the unified installers
+target the correct layout and gate the critical behaviors users rely on.
+
+Rewritten for the v5 unified installer (OpenForge): the old spinner/partial-flag
+machinery was intentionally simplified into a smaller, auditable script.
 """
 
 from __future__ import annotations
 
 import re
 from pathlib import Path
-
-import pytest
 
 INSTALL_SH = Path(__file__).resolve().parent.parent / "scripts" / "install" / "install.sh"
 INSTALL_PS1 = Path(__file__).resolve().parent.parent / "scripts" / "install" / "install.ps1"
@@ -22,88 +22,90 @@ def _read(p: Path) -> str:
 
 
 class TestInstallShStructure:
-    """Verify the POSIX installer's shape."""
+    """Verify the POSIX installer's required OpenForge contract."""
 
     def test_install_sh_is_shell(self):
         src = _read(INSTALL_SH)
-        assert src.startswith("#!") or "Nexa Agent" in src[:500]
+        assert src.startswith("#!")
 
-    def test_install_sh_braille_spinner(self):
+    def test_install_sh_targets_unified_home(self):
         src = _read(INSTALL_SH)
-        # The installer must animate via the braille charset.
-        assert any(ch in src for ch in ("⠋", "⠙", "⠹", "⠸", "⠼", "⠴"))
+        assert 'FORGE_HOME' in src
+        assert ".openforge" in src
+        assert 'FORGE_LIB' in src
 
-    def test_install_sh_traps_signals(self):
+    def test_install_sh_lock_integrity(self):
         src = _read(INSTALL_SH)
-        assert "trap" in src
-        assert "_cleanup_and_exit" in src
-        assert "PARTIAL_FLAG" in src
-        assert "INT" in src and "TERM" in src  # POSIX signal list
+        assert "openforge.integrity" in src and "write_lock" in src
 
-    def test_install_sh_partial_resume(self):
+    def test_install_sh_readonly_core(self):
         src = _read(INSTALL_SH)
-        assert "Previous installation was interrupted" in src
-        assert re.search(r"resume|Resume", src)
+        assert "chmod" in src and "a-w" in src
 
-    def test_install_sh_version_banner_present(self):
-        """The installer must print the brand + version banner."""
+    def test_install_sh_clones_repo_url(self):
         src = _read(INSTALL_SH)
-        # The banner shows the CURRENT version (pulled automatically from
-        # pyproject.toml downstream). We only assert that `Nexa Agent` and
-        # some version-looking prefix are printed — not the exact literal.
-        assert "Nexa Agent" in src
-        assert re.search(r"v\d+\.\d+\.\d+", src) is not None
+        assert "neuralforgeio/openforge" in src
 
-    def test_install_sh_warns_on_partial_flag(self):
+    def test_install_sh_frontend_deps(self):
         src = _read(INSTALL_SH)
-        assert "partial_install" in src or ".partial" in src.lower()
+        assert "openforge_web" in src and "npm install" in src
+        assert "command -v npm" in src or "command -v node" in src
+
+    def test_install_sh_user_level(self):
+        src = _read(INSTALL_SH)
+        assert ".local/bin" in src
+        assert "sudo" not in src.lower()
+
+    def test_install_sh_mentions_binary(self):
+        src = _read(INSTALL_SH)
+        assert "openforge" in src
 
 
 class TestInstallPs1Structure:
-    """Verify the Windows installer's shape."""
+    """Verify the Windows installer's required OpenForge contract."""
 
     def test_install_ps1_banner(self):
         src = _read(INSTALL_PS1)
-        assert "Nexa Agent" in src
+        assert "OpenForge" in src
 
-    def test_install_ps1_traps_cancel(self):
+    def test_install_ps1_targets_unified_home(self):
         src = _read(INSTALL_PS1)
-        # Register-EngineEvent or trap { } must be present.
-        assert "Register-EngineEvent" in src or "trap" in src
+        assert ".openforge" in src and "ForgeLib" in src
 
-    def test_install_ps1_partial_flag(self):
+    def test_install_ps1_readonly_flag(self):
         src = _read(INSTALL_PS1)
-        assert ".partial_install" in src
-        assert "Previous installation was interrupted" in src
+        assert "IsReadOnly" in src or "chmod" in src
 
-    def test_install_ps1_version_display(self):
+    def test_install_ps1_lock_integrity(self):
         src = _read(INSTALL_PS1)
-        # After the v4.2.1 polish pass, version should reflect the current
-        # codename — but don't hard-assert it, just require the line exists.
-        assert "Nexa Agent v" in src
+        assert "openforge.integrity" in src and "write_lock" in src
 
-    def test_next_steps_listed(self):
+    def test_install_ps1_clones_repo_url(self):
         src = _read(INSTALL_PS1)
-        assert "nexa provider add" in src
-        assert "nexa-chat" in src
-        assert "nexa gateway start" in src
+        assert "neuralforgeio/openforge" in src
 
-
-class TestBashInstallPs1Integrity:
-    """Shared parity between sh and ps1."""
-
-    def test_install_ps1_no_plusplus(self):
-        """Basic sanity: no PowerShell-only syntax leaks into the .ps1."""
+    def test_install_ps1_frontend_deps(self):
         src = _read(INSTALL_PS1)
-        # Should not have a stray "::set-variable" or bat-style remnant.
-        assert ":::" not in src
-        # No PS-v2-only syntax (we're targeting PS 7.x).
-        assert "#requires -Version 3" not in src
+        assert "openforge_web" in src and "npm install" in src
 
-    def test_install_sh_partial_flag_consistent(self):
-        """Both installers must agree on the partial-resume mechanism."""
-        sh_src = _read(INSTALL_SH)
-        ps_src = _read(INSTALL_PS1)
-        # Both must create SOME partial-failure marker.
-        assert (".partial_install" in sh_src) or ("PARTIAL_FLAG" in sh_src)
-        assert (".partial_install" in ps_src) or ("PARTIAL_FLAG" in ps_src)
+    def test_install_ps1_registers_path(self):
+        src = _read(INSTALL_PS1)
+        assert "Environment]::SetEnvironmentVariable" in src
+
+    def test_install_ps1_next_steps(self):
+        src = _read(INSTALL_PS1)
+        assert "openforge --version" in src
+        assert "openforge setup" in src
+        assert "openforge-chat" in src
+
+
+class TestInstallParity:
+    """Shared invariants between sh and ps1 (same logical steps)."""
+
+    def test_both_reference_openforge(self):
+        assert "OpenForge" in _read(INSTALL_SH)
+        assert "OpenForge" in _read(INSTALL_PS1)
+
+    def test_both_have_lock_step(self):
+        assert "write_lock" in _read(INSTALL_SH)
+        assert "write_lock" in _read(INSTALL_PS1)

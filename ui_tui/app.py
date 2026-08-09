@@ -1,5 +1,5 @@
 """
-Nexa Agent — TUI Application (v4.6.0)
+OpenForge — TUI Application (v4.6.0)
 
 Main entry point.  Most of the logic lives in the sub-packages:
 

@@ -1,5 +1,5 @@
 """
-Nexa Agent — Tools Package
+OpenForge — Tools Package
 ==========================
 
 This package contains all tool implementations and the central

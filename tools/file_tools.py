@@ -1,5 +1,5 @@
 """
-Nexa Agent — File Tools (Hardened v2.1.0)
+OpenForge — File Tools (Hardened v2.1.0)
 =========================================
 
 Filesystem tools (``read_file``, ``write_file``) sandboxed to the

@@ -1,5 +1,5 @@
 """
-Nexa Agent — TUI Keyboard Bindings (v4.5.0)
+OpenForge — TUI Keyboard Bindings (v4.5.0)
 =============================================
 
 Keyboard shortcuts for the TUI, built on ``prompt_toolkit.key_binding.KeyBindings``.

@@ -1,5 +1,5 @@
 /**
- * Nexa Agent — Connection Status Banner (F-08)
+ * OpenForge — Connection Status Banner (F-08)
  *
  * Polls GET /api/health every ``pollMs`` (default 5000). States:
  *   - loading    → nothing (initial probe hasn't resolved)

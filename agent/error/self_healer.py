@@ -1,5 +1,5 @@
 """
-Nexa Agent — Self-Healer (Improvement v2)
+OpenForge — Self-Healer (Improvement v2)
 ========================================
 
 The Self-Healer takes a runtime error (traceback, exception, or failed

@@ -1,5 +1,5 @@
 /**
- * Nexa Agent — ThemeProvider (F-06)
+ * OpenForge — ThemeProvider (F-06)
  *
  * React context exposing ``{theme, setTheme, resolvedTheme}`` where theme is
  * "light" | "dark" | "system". Persists to localStorage key ``nexa-theme``.

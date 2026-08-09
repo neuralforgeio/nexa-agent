@@ -1,4 +1,4 @@
-"""Nexa Agent — Gateways package (v4.3.0+)."""
+"""OpenForge — Gateways package (v4.3.0+)."""
 
 from .base import (
     GatewayBase,

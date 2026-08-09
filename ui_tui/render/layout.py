@@ -1,5 +1,5 @@
 """
-Nexa Agent — TUI Layout (v4.6.0)
+OpenForge — TUI Layout (v4.6.0)
 =================================
 
 Builds the complete ``rich.layout.Layout`` from a :class:`TUIState`.

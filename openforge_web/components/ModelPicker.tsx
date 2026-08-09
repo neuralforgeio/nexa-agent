@@ -1,5 +1,5 @@
 /**
- * Nexa Agent — Model Picker (F-05)
+ * OpenForge — Model Picker (F-05)
  *
  * Compact dropdown pinned to the right of the header. Shows the active
  * provider name + model, and lists every provider from GET /api/provider.

@@ -1,5 +1,5 @@
 """
-Nexa Agent — content_extraction skill (web_research)
+OpenForge — content_extraction skill (web_research)
 =====================================================
 
 Purpose

@@ -1,5 +1,5 @@
 """
-Nexa Agent — Provider Registry (v4.1.0)
+OpenForge — Provider Registry (v4.1.0)
 ========================================
 
 Runtime provider management with secrets stored in
