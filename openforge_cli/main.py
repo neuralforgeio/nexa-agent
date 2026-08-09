@@ -116,6 +116,14 @@ def main(argv: Optional[List[str]] = None) -> int:
         help="Default model ID for 'add' (skip interactive prompt).",
     )
 
+    # update (v5.1.0): check & self-update from GitHub Releases.
+    subparsers.add_parser("update", help="Check GitHub for a newer OpenForge release and (optionally) install it")
+
+    # rollback (v5.1.0): list previous versions and roll back to one.
+    rollback_parser = subparsers.add_parser("rollback", help="Roll back to a previously installed OpenForge version")
+    rollback_parser.add_argument("--to", default=None, help="Target version to roll back to (defaults to previous)")
+    rollback_parser.add_argument("--list", action="store_true", help="List available releases without rolling back")
+
     # migrate (v5.1.0): move legacy ~/.openforge data into the unified ~/.openforge home.
     subparsers.add_parser("migrate", help="Migrate legacy ~/.openforge data into ~/.openforge (dry-run/report)")
 
@@ -151,6 +159,10 @@ def main(argv: Optional[List[str]] = None) -> int:
         )
     elif args.command == "migrate":
         return _cmd_migrate()
+    elif args.command == "update":
+        return _cmd_update()
+    elif args.command == "rollback":
+        return _cmd_rollback(to_version=args.to, list_only=args.list)
     elif args.command == "plugin":
         if getattr(args, "plugin_command", None) == "install":
             return _cmd_plugin_install(args.url)
@@ -512,22 +524,21 @@ def _cmd_doctor() -> int:
     return asyncio.run(run())
 
 
-# --- v5.1.0: migrate command (legacy ~/.openforge → ~/.openforge) ------------------
+# --- v5.1.0: migrate command (legacy ~/.nexa → ~/.openforge) ------------------
 def _cmd_migrate() -> int:
-    """Copy legacy ~/.openforge data into ~/.openforge with a timestamped backup.
+    """Copy legacy ~/.nexa data into ~/.openforge with a timestamped backup.
 
-    Conservative by design: it copies (never deletes) and reminds the user to
-    remove ~/.openforge manually after verification.
+    Conservative by design: it copies (never deletes) and asks the user to
+    review before manually deleting the legacy directory.
     """
     import shutil
-    import sqlite3
     import time
     from pathlib import Path
 
     from openforge.config import FORGE_HOME
     from openforge.integrity import write_lock
 
-    legacy_home = Path.home() / ".openforge"
+    legacy_home = Path.home() / ".nexa"
     if not legacy_home.exists():
         console.print(f"[yellow]No legacy data at {legacy_home} — nothing to do.[/yellow]")
         return 0
@@ -541,24 +552,25 @@ def _cmd_migrate() -> int:
         console.print(f"[red]Backup failed: {exc}[/red]")
         return 1
 
-    # Copy contents (overlay) into FORGE_HOME. Leave the source untouched.
+    # Copy contents (overlay) into FORGE_HOME. Leave the legacy source untouched.
     dirs_to_copy = ["memory", "sessions", "logs", "tools", "extensions", "cache"]
     for d in dirs_to_copy:
         src, dst = legacy_home / d, FORGE_HOME / d
         if src.exists():
             shutil.copytree(src, dst, dirs_exist_ok=True)
 
-    src_db = legacy_home / "forge.db"
+    # Copy legacy DB if present. Map old -> new file names.
+    src_db = legacy_home / "nexa.db"
     if src_db.exists():
         shutil.copy2(src_db, FORGE_HOME / "openforge.db")
 
-    # Ensure integrity lock reflects the new FORGE_LIB content.
+    # Refresh the integrity LOCK so the new layout is verifiable.
     try:
         write_lock(FORGE_HOME / "lib")
     except Exception as exc:
         console.print(f"[yellow]LOCK update skipped: {exc}[/yellow]")
 
-    console.print("[green]Migration complete. Verify, then delete ~/.openforge (manual).[/green]")
+    console.print("[green]Migration complete. Review ~/.openforge/, then delete ~/.nexa/ manually.[/green]")
     return 0
 
 
