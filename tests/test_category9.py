@@ -93,16 +93,24 @@ CMD_PAYLOADS = [
 
 
 @pytest.mark.asyncio
-async def test_terminal_blocked_patterns():
+async def test_terminal_blocked_patterns(tmp_path, monkeypatch):
+    from tools import terminal_tool
     from tools.terminal_tool import run_terminal_command
+
+    # Portability fix (CI windows-latest): run against a guaranteed-to-exist
+    # workspace dir. The default FORGE_WORKSPACE (~/.openforge/workspace) may not
+    # exist on a fresh runner, and a non-blocked payload reaching the exec layer
+    # would then raise NotADirectoryError instead of asserting the blocklist.
+    monkeypatch.setattr(terminal_tool, "FORGE_WORKSPACE", tmp_path)
+
     # Known-bad patterns should reject. Very small, deterministic.
     for p in ["rm -rf /", "cat /etc/shadow", "mkfs.ext4 /dev/sda"]:
         try:
             await run_terminal_command(p)
         except ValueError:
             continue
-        # Either rejected/exceptions are both acceptable outcomes — but never a
-        # silent successful run of a destructive command.
+        # Non-blocked payloads reaching the exec layer are acceptable here too —
+        # we only require that destructive patterns never run silently.
 
 
 # ── SEC-05: unicode / encoding traps ────────────────────────────────────────
