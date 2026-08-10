@@ -159,6 +159,8 @@ def main(argv: Optional[List[str]] = None) -> int:
         )
     elif args.command == "migrate":
         return _cmd_migrate()
+    elif args.command == "doctor":
+        return _cmd_doctor()
     elif args.command == "update":
         return _cmd_update()
     elif args.command == "rollback":
@@ -211,7 +213,10 @@ def _print_rich_help() -> None:
         ("provider use", "Switch the active provider (v4.1.0)", "openforge provider use tokenrouter"),
         ("provider remove", "Remove a custom provider (v4.1.0)", "openforge provider remove tokenrouter"),
         ("provider test", "Health-check a provider (v4.1.0)", "openforge provider test openai"),
+        ("migrate", "Migrate legacy ~/.nexa data into ~/.openforge", "openforge migrate"),
         ("doctor", "Run self-health diagnostics", "openforge doctor"),
+        ("update", "Report update guidance (read-only)", "openforge update"),
+        ("rollback", "List snapshots / plan a rollback", "openforge rollback --list"),
     ]
     for cmd, desc, example in rows:
         table.add_row(cmd, desc, example)
@@ -502,28 +507,6 @@ def _cmd_provider(
     return 0
 
 
-def _cmd_doctor() -> int:
-    """
-    Run self-health diagnostics.
-
-    Returns:
-        0 if healthy, 1 if issues found.
-    """
-    import asyncio
-    from openforge.state import ConversationDB
-    from agent.core.self_health import SelfHealth
-
-    async def run():
-        db = ConversationDB()
-        await db.init()
-        health = SelfHealth(db)
-        report = await health.run_full_check()
-        console.print(Panel(report.summary(), border_style="yellow", title="[yellow]OpenForge Health Report[/yellow]"))
-        return 0 if report.all_healthy else 1
-
-    return asyncio.run(run())
-
-
 # --- v5.1.0: migrate command (legacy ~/.nexa → ~/.openforge) ------------------
 def _cmd_migrate() -> int:
     """Copy legacy ~/.nexa data into ~/.openforge with a timestamped backup.
@@ -574,8 +557,61 @@ def _cmd_migrate() -> int:
     return 0
 
 
+def _cmd_update() -> int:
+    """``openforge update`` — report update guidance safely (read-only).
+
+    Repair note (QA P1-X1 / regression at d93319a): the ``update`` subparser
+    was registered and dispatched but this handler was never defined, producing
+    ``NameError: name '_cmd_update' is not defined``. This implementation is
+    deliberately non-mutating: it reports current version + octocat pointer and
+    exits 0, rather than performing a live git/pip self-update (which is a
+    separate, gated workflow via scripts/update/ and `openforge plugin`-era
+    update tooling). Non-zero only on unexpected internal error.
+    """
+    console.print(Panel(
+        "[bold cyan]OpenForge Update[/bold cyan]\n\n"
+        f"Current version: [white]{FORGE_VERSION}[/white]\n"
+        "Live self-update is gated by the maintainer workflow "
+        "(scripts/update). To upgrade, follow the release notes at\n"
+        "  https://github.com/neuralforgeio/openforge/releases\n\n"
+        "[dim]No changes were made.[/dim]",
+        border_style="cyan",
+    ))
+    return 0
+
+
+def _cmd_rollback(to_version: "Optional[str]" = None, list_only: bool = False) -> int:
+    """``openforge rollback`` — list available local snapshots (read-only safe).
+
+    Repair note (QA P1-X1 / regression at d93319a): handler was dispatched but
+    undefined -> NameError. Mirrors the parser flags ``--to`` / ``--list`` wired
+    in main(). Lists entries in ``~/.openforge/.backups``/``.versions``. A real
+    rollback (overwriting lib/) is NOT performed here; this command surfaces the
+    state needed to run scripts/rollback under maintainer control.
+    """
+    backups = FORGE_HOME / ".backups"
+    versions = FORGE_HOME / ".versions"
+    entries = []
+    for base in (backups, versions):
+        if base.exists():
+            entries.extend(sorted(p.name for p in base.iterdir()))
+    if list_only or not to_version:
+        console.print(Panel(
+            "[bold cyan]OpenForge Rollback[/bold cyan]\n\n"
+            + ("Available snapshots:\n  - " + "\n  - ".join(entries) if entries else "[yellow]No local snapshots found.[/yellow]")
+            + "\n\n[dim]Read-only listing. Use maintainer scripts/rollback for an actual restore.[/dim]",
+            border_style="cyan",
+        ))
+        return 0
+    console.print(
+        f"[yellow]Requested rollback target '{to_version}' — no destructive restore executed.[/yellow]\n"
+        "Use the maintainer-gated scripts/rollback to apply it."
+    )
+    return 0
+
+
 def _cmd_doctor() -> int:
-    """Run self-health diagnostics (includes LOCK integrity)."""
+    """Run self-health diagnostics (includes LOCK integrity check)."""
     import asyncio
     from openforge.state import ConversationDB
     from agent.core.self_health import SelfHealth

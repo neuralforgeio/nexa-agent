@@ -148,7 +148,7 @@ chmod -R a-w "$FORGE_LIB" 2>/dev/null || warn "chmod -w on lib/ only partially a
 # QA-G-2 fix: binaries live in the venv that the installer created at
 # $FORGE_HOME/.venv (NOT $FORGE_LIB/.venv). Link from the correct location.
 mkdir -p "$HOME/.local/bin"
-for b in openforge openforge-chat openforge-agent openforge-tui; do
+for b in openforge openforge-chat openforge-agent openforge-gateway openforge-tui; do
   if [ -x "$VENV_DIR/bin/$b" ]; then
     ln -sf "$VENV_DIR/bin/$b" "$HOME/.local/bin/$b"
   fi

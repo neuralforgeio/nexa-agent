@@ -2055,3 +2055,81 @@ Three real bugs from GLM's QA pass on v4.6.0, all in the Batch-8 skills surface:
 
 Stage Summary:
 - v4.6.0 → v4.6.1 (PATCH) — 3 QA bugs fixed, 8 regression guards added.
+
+---
+
+## Task ID: QA-VERIFY-v503 (2026-08-10)
+Agent: OpenCode (kimi-k3) — SOP/Protocol v9 (Apex Edition) compliant
+Task: Independent verification of GLM-5.2 QA bug report (7 P0 + 16 P1 + pytest). READ-ONLY (no source fixes).
+
+### Implementation Summary
+- Scope: verified claims by reading/running against src/server.py, openforge_cli/main.py, ui_tui/*, openforge/*, agent/core/self_health.py, scripts/install/install.sh, tests/.
+- No source edits. Only .plans/* artifacts + this worklog were written.
+- Baseline: HEAD=144989a (v5.1.0); git diff d93319a..HEAD = only 4 manifest version bumps => QA-tested code == verified code.
+
+### Quality Gate Results (verbatim evidence)
+- Build: editable import OK -> `openforge pkg: C:\...\openforge\__init__.py`
+- Tests (full, this env Win/py3.13): `1112 passed, 13 skipped, 0 failed in 158.61s` (pytest, ignore test_llamacpp_real)
+- Targeted QA failing-tests re-run (Win): `38 passed` -> QA's 9 Linux-failures are OS-specific test-side assertions, NOT code bugs.
+- Dispatch audit: `args.command ==` list = setup/model/gateway/provider/migrate/update/rollback/plugin; NO `doctor`.
+- `def _cmd_doctor` => main.py:505 AND :577 (duplicate; 577 shadows 505).
+- No `def _cmd_update` / `def _cmd_rollback` found (NameError on `openforge update|rollback`).
+
+### Verdict tally
+- CONFIRMED STILL-BROKEN code defects: 14 (P0-2 regression, P0-4, P0-5 anno-static, P0-6, P0-7, P1-7, P1-8, P1-9, P1-10, P1-11, P1-12, P1-15, P1-X1, P1-X2)
+- FIXED confirmed: 6 (P0-1, P0-3, P1-2, P1-4, P1-5, P1-6)
+- PARTIAL: 3 (P1-3, P1-13, P1-14)
+- DISPUTED: only pytest failure-count (env), QA's test-side characterization upheld.
+
+### Cognitive Trace
+- Plan revisions: 1
+- Adversarial findings (Step 13): 2 (QA's live-403 unverified statically; pytest collect count differs by env)
+- Triad confidence at completion: 3/3 for all code-claim verdicts; pytest count = env-qualified.
+- Deviations from protocol: none (read-only task, no release).
+
+### Blast Radius Final
+- Direct files changed: NONE (repo source untouched)
+- Behaviorally affected modules: NONE
+- Rollback time: <5m (delete this entry + .plans/qa/QA-VERIFICATION-v503.md)
+
+### Release
+- NONE (verification-only task). Full evidence: .plans/qa/QA-VERIFICATION-v503.md
+
+---
+
+## Task ID: FIX-QA-P0-CLI-GRP1 (2026-08-10)
+Agent: OpenCode (kimi-k3) — SOP/Protocol v9 (Apex Edition)
+Task: Repair tier-1 defects confirmed by QA-VERIFY-v503 (group "no. 1"): restore update/rollback/doctor CLI, de-dupe doctor, restore gateway symlink. NO version bump / NO tag / NO release in this task.
+
+### Implementation Summary
+- openforge_cli/main.py: added `elif args.command == "doctor": return _cmd_doctor()` dispatch (P0-4); removed duplicate `_cmd_doctor` at old :505 keeping one canonical def (P1-15); implemented `_cmd_update` and `_cmd_rollback` as READ-ONLY-safe handlers (P1-X1) matching the existing parser flags (--to/--list); refreshed `_print_rich_help` rows to list migrate/doctor/update/rollback.
+- scripts/install/install.sh: symlink loop now links all 5 binaries incl openforge-gateway (P0-2).
+- tests/test_cli_dispatch_regression.py: NEW — 5 structural/behavioral regression guards for the above.
+- Documentation sync: .plans/qa/QA-VERIFICATION-v503.md statuses updated for the 5 fixed IDs.
+
+### Quality Gate Results (verbatim evidence)
+- Build/compile: `py -m py_compile openforge_cli\main.py` -> rc=0.
+- Targeted regression: `pytest tests/test_cli_dispatch_regression.py -q` -> `5 passed in 0.13s`.
+- Full suite (this env): `pytest tests/ -q --ignore tests/test_llamacpp_real.py` -> `1117 passed, 13 skipped, 0 failed in 121.82s` (baseline 1112 + 5 new = 1117; skip count unchanged => no regressions).
+- Behavior proof: `openforge doctor` -> renders "OpenForge Health Report" (not help banner), exit 0; `openforge update` -> guidance panel, exit 0; `openforge rollback --list` -> snapshot panel, exit 0.
+
+### Risk Assessment Post-Implementation
+- Backward compatibility: maintained (no public API/schema change; restores intended behavior).
+- Data integrity: no impact; update/rollback are deliberately non-mutating.
+- Security surface: unchanged (no new inputs; ws/auth untouched this group).
+
+### Cognitive Trace
+- Plan revisions: 1. Adversarial findings fixed: 2 (dead import removed; misleading v5.1.1-version comments neutralized).
+- Triad confidence: 3/3 (direct exec + structural + negative re-run of suite).
+- Deviations from protocol: none (write authorized by user "no. 1"; no release/tag per Step-9 preview).
+
+### Blast Radius Final
+- Direct files changed: openforge_cli/main.py, scripts/install/install.sh, tests/test_cli_dispatch_regression.py (new), .plans/qa/QA-VERIFICATION-v503.md, worklog.md.
+- Behaviorally affected modules: openforge CLI subcommands update/rollback/doctor/help-text; install.sh symlink set (fresh installs only).
+- Rollback time (verified): <5m via `git checkout -- openforge_cli/main.py scripts/install/install.sh` and delete the new test/doc entries.
+
+### Release
+- NONE per plan. Next authorized step (separate): PATCH v5.1.1 tag+release under Section 17 iron law.
+
+### Remaining open defects (not in this group, awaiting user authorization)
+P0-5, P0-6, P0-7, P1-7, P1-8, P1-9, P1-10, P1-11, P1-12.
