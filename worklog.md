@@ -2214,3 +2214,18 @@ Agent: OpenCode (kimi-k3) — SOP/Protocol v9 (Apex), Section 17 iron law.
 
 ### Next Recommended Action
 - Hand off: monitor for regressions on the WS/TUI fixes on Linux/macOS installs (installer flow); run openforge doctor after upgrade.
+
+---
+
+## Task ID: QA-VERIFY-v511 (2026-08-10)
+Agent: OpenCode (kimi-k3) — SOP v9. READ-ONLY verification of GLM-5.2 v5.1.1 report (25 items).
+Baseline: HEAD=44a927c (v5.1.1, parity-verified).
+
+### Verdicts (verbatim evidence in .plans/qa/QA-VERIFICATION-v511.md)
+- 13 FIXED items: CONFIRMED (incl. live WS CONNECTED for both endpoints).
+- 1 PARTIAL: CONFIRMED — `import nexa` OK; `nexa.config` / `nexa.constants` submodule shims MISSING.
+- 9 test-side failures: CONFIRMED as OS-specific test bugs, NOT production. On this env all 38 targets pass.
+- Baseline: this env collects 1140 / runs 1127 passed+13 skipped+0 failed; QA (Linux) 1147/1120/10. Delta is OS-specific.
+
+### Note
+No source changes. Only .plans artifacts + this worklog entry.
