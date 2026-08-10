@@ -2229,3 +2229,14 @@ Baseline: HEAD=44a927c (v5.1.1, parity-verified).
 
 ### Note
 No source changes. Only .plans artifacts + this worklog entry.
+
+---
+
+## Task ID: CI-FIX-v5.1.3 (2026-08-10)
+Agent: OpenCode (kimi-k3) — SOP v9.
+Issue: GitHub Actions check "CI — Python / test (windows-latest, 3.13)" failed with 1 failure:
+`tests/test_category9.py::test_terminal_blocked_patterns` → `NotADirectoryError: [WinError 267]` in asyncio.create_subprocess_shell.
+Root cause: on a brand-new runner (~/.openforge/workspace missing), a non-blocked payload still reached the exec layer with cwd set to a non-existent directory (C:\Users\runneradmin\.openforge\workspace). Local dev passed because the workspace dir existed.
+Fix: pinned `tools.terminal_tool.FORGE_WORKSPACE` to `tmp_path` via monkeypatch inside the test, so the test is deterministic regardless of runner state (still exercises the blocked-pattern contract). No production changes.
+Verify: full suite in this env 1132 passed/0 failed; the failing test passes standalone; all category9 tests pass even when FORGE_WORKSPACE points to a non-existent path.
+Release: PATCH v5.1.3, tag+release published and parity-verified below.
