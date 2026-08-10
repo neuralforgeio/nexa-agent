@@ -47,3 +47,8 @@ Legend: CONFIRMED(=claim holds) / DISPUTED(=output differs) / PARTIAL / NME(need
 - Pytest DISPUTED only on failure COUNT (env-specific); QA's "test-side, not code" characterization CONFIRMED.
 
 Verifier: evidence quoted verbatim above (Triad Channels A direct + B structural + C negative-search applied).
+
+
+## RELEASED in v5.1.1 (2026-08-10)
+All 14 CONFIRMED defects remediated across grp1 (P1-X1, P0-4, P1-15, P1-X2, P0-2) and grp2 (P0-5, P0-6, P0-7, P1-7..P1-12).; $release: https://github.com/neuralforgeio/openforge/releases/tag/v5.1.1 (parity-verified).
+

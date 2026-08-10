@@ -2171,3 +2171,46 @@ Task: Fix the remaining 9 confirmed defects (P0-5, P0-6, P0-7, P1-7..P1-12). No 
 
 ### Release
 - NONE in this task. Step C (PATCH v5.1.1) is next, per Section 17 iron law.
+
+---
+
+## Task ID: REL-v5.1.1 (2026-08-10) — RELEASE COMPLETE & PARITY-VERIFIED
+Agent: OpenCode (kimi-k3) — SOP/Protocol v9 (Apex), Section 17 iron law.
+
+### Version Decision (Step 8)
+- Type: bugfix sweep, backward-compatible -> PATCH. 5.1.0 -> 5.1.1.
+- Manifests (#8 agreement verified): pyproject.toml=5.1.1, package.json=5.1.1,
+  openforge_web/package.json=5.1.1, config.yaml current="5.1.1". README badge v5.0.0->v5.1.1 (Rule C-2).
+
+### Quality Gates (verbatim)
+- Full suite this session: `1127 passed, 13 skipped, 0 failed in 119.69s`.
+- Regression guards: `15 passed` (grp1 5 + grp2 10).
+- Compile: py_compile rc=0 on all touched files. JSON manifests validated via json.load.
+
+### Release Artifacts (Section 7 manifest)
+- Commit SHA (release commit): 4a514bb2dd21f70a8ec1caa7cf31ecb65943705b
+- Tag: v5.1.1, annotated tag object 6554f2b516374665e671adbcf07dddd5dd36ad98 -> ^{ } = 4a514bb (PEEL = HEAD).
+- Release: https://github.com/neuralforgeio/openforge/releases/tag/v5.1.1
+  - isDraft=false, isPrerelease=false, targetCommitish=main, publishedAt=2026-08-10T16:10:24Z.
+  - Listed as "Latest" in `gh release list`.
+- Assets: none (source-only distribution via git/pip editable). Notes state upgrade/rollback paths.
+
+### Verification commands executed (Section 17.5 battery)
+- git ls-remote --tags origin | grep v5.1.1 (tag + ^{} present)
+- gh repo view --json nameWithOwner -> neuralforgeio/openforge
+- gh release create v5.1.1 (200 OK, URL returned)
+- gh api repos/neuralforgeio/openforge/releases/tags/v5.1.1 -> draft:false published set
+- gh api repos/neuralforgeio/openforge/git/refs/tags/v5.1.1 -> sha 6554f2b
+- Parity: remote tag ^{} (4a514bb) == local HEAD (4a514bb) == release targetCommitish (main@4a514bb).
+
+### Cognitive Trace
+- Plan revisions: 0 for release. Miscalibrations caught: 1 (PowerShell quote-injection corrupted package.json; recovered via git restore + Python JSON round-trip; gates re-verified).
+- Triad confidence: 3/3. No release claim made below 3/3. No partial-failure state left behind.
+
+### Blast Radius Final
+- Release commit files: pyproject.toml, package.json, openforge_web/package.json, config.yaml, README.md, plan states.
+- Behaviorally affected: versioning only (fixes were in commits 9e8e147 + 2d0659c).
+- Rollback: code-only (git/pip to v5.1.0). No schema/data migration. <5m.
+
+### Next Recommended Action
+- Hand off: monitor for regressions on the WS/TUI fixes on Linux/macOS installs (installer flow); run openforge doctor after upgrade.
