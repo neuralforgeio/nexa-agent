@@ -10,7 +10,7 @@ OpenForge adalah **local-first AI agent** yang sangat powerful — terminal, TUI
 
 <br>
 
-[![Version: v5.1.1](https://img.shields.io/badge/version-v5.1.1-4A9EFF?style=for-the-badge&logo=github)](../../releases)
+[![Version: v5.1.2](https://img.shields.io/badge/version-v5.1.2-4A9EFF?style=for-the-badge&logo=github)](../../releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-FF8C42?style=for-the-badge)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-4A9EFF?style=for-the-badge&logo=python)]()
 [![Tools: 43](https://img.shields.io/badge/tools-43-4A9EFF?style=for-the-badge&logo=hammer)](#-tools-43)
@@ -96,7 +96,7 @@ irm https://raw.githubusercontent.com/neuralforgeio/openforge/main/scripts/insta
 Setelah install, buka terminal baru:
 
 ```bash
-openforge --version       # → OpenForge v5.0.0
+openforge --version       # → OpenForge v5.1.2
 openforge provider list   # see all 25 providers
 openforge-chat            # start chatting!
 ```

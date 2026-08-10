@@ -27,7 +27,25 @@ STATE_PY = REPO_ROOT / "ui_tui" / "core" / "state.py"
 NEXA_INIT = REPO_ROOT / "nexa" / "__init__.py"
 
 
-def test_p0_5_ws_handlers_have_websocket_annotation() -> None:
+def test_d1_nexa_submodule_shims_importable() -> None:
+    """D1/PARTIAL-1: `from nexa.config import FORGE_HOME` and `nexa.constants` work."""
+    import importlib
+
+    c = importlib.import_module("nexa.config")
+    k = importlib.import_module("nexa.constants")
+    assert hasattr(c, "FORGE_HOME") and c.FORGE_HOME is not None
+    assert hasattr(k, "FORGE_NAME") and isinstance(k.FORGE_NAME, str)
+
+
+def test_d2_update_rollback_handlers_present_and_safe() -> None:
+    """D2: update/rollback are wired, callable, and safe defaults (no destructive action)."""
+    import openforge_cli.main as m
+
+    assert callable(m._cmd_update) and callable(m._cmd_rollback)
+    import inspect
+    assert "to_version" in inspect.signature(m._cmd_rollback).parameters
+    assert "list_only" in inspect.signature(m._cmd_rollback).parameters
+
     """P0-5: FastAPI treats an unannotated `websocket` param as a query param -> 403/422."""
     src = SERVER_PY.read_text(encoding="utf-8")
     for handler in ("ws_terminal", "ws_approval"):

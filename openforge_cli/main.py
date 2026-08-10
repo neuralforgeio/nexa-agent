@@ -40,6 +40,7 @@ from openforge.constants import (
     ensure_forge_home
 )
 from openforge.config import FORGE_HOME, FORGE_WORKSPACE
+from openforge.path_resolver import get_forge_lib
 
 console = Console()
 
@@ -557,56 +558,139 @@ def _cmd_migrate() -> int:
     return 0
 
 
-def _cmd_update() -> int:
-    """``openforge update`` — report update guidance safely (read-only).
+def _update_git_lib() -> int:
+    """Apply a fast-forward update of the installed ``FORGE_HOME/lib`` checkout.
 
-    Repair note (QA P1-X1 / regression at d93319a): the ``update`` subparser
-    was registered and dispatched but this handler was never defined, producing
-    ``NameError: name '_cmd_update' is not defined``. This implementation is
-    deliberately non-mutating: it reports current version + octocat pointer and
-    exits 0, rather than performing a live git/pip self-update (which is a
-    separate, gated workflow via scripts/update/ and `openforge plugin`-era
-    update tooling). Non-zero only on unexpected internal error.
+    Conservative: requires a clean working tree in ``lib``; performs
+    `git fetch --tags origin main` + `git pull --ff-only`; snapshots the old
+    checkout to ``.versions/<shortsha>`` first; rewrites the integrity LOCK after.
+    Returns process exit code (0 on success / already up to date).
     """
-    console.print(Panel(
-        "[bold cyan]OpenForge Update[/bold cyan]\n\n"
-        f"Current version: [white]{FORGE_VERSION}[/white]\n"
-        "Live self-update is gated by the maintainer workflow "
-        "(scripts/update). To upgrade, follow the release notes at\n"
-        "  https://github.com/neuralforgeio/openforge/releases\n\n"
-        "[dim]No changes were made.[/dim]",
-        border_style="cyan",
-    ))
+    import shutil
+    import subprocess
+    import time
+    from openforge.integrity import write_lock
+
+    FORGE_LIB = get_forge_lib()
+
+    if not (FORGE_LIB / ".git").exists():
+        console.print(
+            "[yellow]%s is not a git checkout — this updater only manages installs "
+            "made by scripts/install/install.sh.[/yellow]" % FORGE_LIB
+        )
+        return 1
+
+    status = subprocess.run(
+        ["git", "-C", str(FORGE_LIB), "status", "--porcelain"],
+        capture_output=True, text=True,
+    )
+    if status.returncode != 0:
+        console.print(f"[red]git status failed: {status.stderr.strip()}[/red]")
+        return 1
+    if status.stdout.strip():
+        console.print(
+            "[yellow]lib/ tree is dirty — refusing to update mid-edit.[/yellow]\n"
+            "Commit/stash your changes or run from a clean install."
+        )
+        return 1
+
+    previews = subprocess.run(
+        ["git", "-C", str(FORGE_LIB), "fetch", "--tags", "origin", "main"],
+        capture_output=True, text=True,
+    )
+    if previews.returncode != 0:
+        console.print(
+            "[yellow]offline or remote unreachable — update skipped, no changes made.[/yellow]"
+        )
+        return 1
+
+    head = subprocess.run(
+        ["git", "-C", str(FORGE_LIB), "rev-parse", "--short", "HEAD"],
+        capture_output=True, text=True,
+    ).stdout.strip()
+    console.print(f"[cyan]Current HEAD: {head}[/cyan]")
+
+    versions_dir = FORGE_HOME / ".versions"
+    versions_dir.mkdir(parents=True, exist_ok=True)
+    snap = versions_dir / f"lib-{head}-{int(time.time())}"
+    try:
+        shutil.copytree(FORGE_LIB, snap, dirs_exist_ok=True)
+        console.print(f"[dim]snapshot: {snap}[/dim]")
+    except Exception as exc:
+        console.print(f"[red]snapshot failed: {exc} — aborting update.[/red]")
+        return 1
+
+    pull = subprocess.run(
+        ["git", "-C", str(FORGE_LIB), "pull", "--ff-only", "origin", "main"],
+        capture_output=True, text=True,
+    )
+    if pull.returncode != 0:
+        console.print(f"[red]pull failed: {pull.stderr.strip()}[/red]")
+        return 1
+
+    try:
+        write_lock(FORGE_LIB)
+    except Exception as exc:
+        console.print(f"[yellow]LOCK refresh skipped: {exc}[/yellow]")
+
+    console.print("[green]✓ update complete[/green]")
     return 0
 
 
-def _cmd_rollback(to_version: "Optional[str]" = None, list_only: bool = False) -> int:
-    """``openforge rollback`` — list available local snapshots (read-only safe).
+def _cmd_update() -> int:
+    """``openforge update`` — apply a safe, fast-forward self-update of lib/. (v5.1.2)"""
+    return _update_git_lib()
 
-    Repair note (QA P1-X1 / regression at d93319a): handler was dispatched but
-    undefined -> NameError. Mirrors the parser flags ``--to`` / ``--list`` wired
-    in main(). Lists entries in ``~/.openforge/.backups``/``.versions``. A real
-    rollback (overwriting lib/) is NOT performed here; this command surfaces the
-    state needed to run scripts/rollback under maintainer control.
+
+def _cmd_rollback(to_version: "Optional[str]" = None, list_only: bool = False) -> int:
+    """``openforge rollback`` — list snapshots, or restore one with an explicit target.
+
+    - No args / ``--list``  : list snapshots under ``~/.openforge/.versions`` (read-only).
+    - ``--to <snapshot>``   : replace ``lib/`` contents with that snapshot, then rewrite LOCK.
+
+    A rollback is destructive to lib/ (it swaps the installed code). It never touches
+    user data (memory/sessions/secrets). Snapshots are created by :func:`_update_git_lib`.
     """
-    backups = FORGE_HOME / ".backups"
+    import shutil
+
+    FORGE_LIB = get_forge_lib()
+
     versions = FORGE_HOME / ".versions"
-    entries = []
-    for base in (backups, versions):
-        if base.exists():
-            entries.extend(sorted(p.name for p in base.iterdir()))
+    entries = sorted(p.name for p in versions.iterdir()) if versions.exists() else []
+
     if list_only or not to_version:
         console.print(Panel(
             "[bold cyan]OpenForge Rollback[/bold cyan]\n\n"
             + ("Available snapshots:\n  - " + "\n  - ".join(entries) if entries else "[yellow]No local snapshots found.[/yellow]")
-            + "\n\n[dim]Read-only listing. Use maintainer scripts/rollback for an actual restore.[/dim]",
+            + "\n\n[dim]Use: openforge rollback --to <snapshot>[/dim]",
             border_style="cyan",
         ))
         return 0
-    console.print(
-        f"[yellow]Requested rollback target '{to_version}' — no destructive restore executed.[/yellow]\n"
-        "Use the maintainer-gated scripts/rollback to apply it."
-    )
+
+    snap = versions / to_version
+    if not snap.exists():
+        console.print(f"[red]snapshot not found: {snap}[/red]")
+        return 1
+
+    try:
+        from openforge.integrity import write_lock
+        for item in FORGE_LIB.iterdir():
+            if item.name == ".git":
+                continue
+            if item.is_dir():
+                shutil.rmtree(item)
+            else:
+                item.unlink()
+        shutil.copytree(snap, FORGE_LIB, dirs_exist_ok=True)
+        try:
+            write_lock(FORGE_LIB)
+        except Exception as exc:
+            console.print(f"[yellow]LOCK refresh skipped: {exc}[/yellow]")
+    except Exception as exc:
+        console.print(f"[red]rollback failed: {exc}[/red]")
+        return 1
+
+    console.print(f"[green]✓ rolled back to {to_version}[/green]")
     return 0
 
 

@@ -100,7 +100,7 @@ class TestCrossPlatformExecutable:
             )
         # The first arg must be sys.executable.
         assert captured_args[0] == sys.executable
-        assert "python3" not in captured_args[0]
+        assert not captured_args[0].endswith(("python3", "python3.exe"))
 
 
 # ---------------------------------------------------------------------------

@@ -1,6 +1,6 @@
 [project]
 name = "openforge"
-version = "5.1.1"
+version = "5.1.2"
 description = "OpenForge — Forge intelligent code, locally."
 authors = [{ name = "Dearly Febriano Irwansyah" }]
 license = "MIT"

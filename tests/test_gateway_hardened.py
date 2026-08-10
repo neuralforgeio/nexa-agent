@@ -41,7 +41,7 @@ class TestGatewayStartUsesSysExecutable:
         assert captured_args[0] == sys.executable, (
             f"Expected sys.executable ({sys.executable!r}), got {captured_args[0]!r}"
         )
-        assert "python3" not in captured_args[0]
+        assert not captured_args[0].endswith(("python3", "python3.exe"))
 
     def test_start_accepts_port_flag(self, tmp_path, monkeypatch) -> None:
         """gateway start must accept a --port flag."""

@@ -173,7 +173,11 @@ class TestEnvironmentAndCwd:
         # Create a test file in tmp_path.
         test_file = tmp_path / "marker.txt"
         test_file.write_text("found_it")
-        result = await run_terminal_command("type marker.txt", cwd=str(tmp_path))
+        if os.name == "nt":
+            cmd = "type marker.txt"
+        else:
+            cmd = "cat marker.txt"
+        result = await run_terminal_command(cmd, cwd=str(tmp_path))
         assert "found_it" in result
 
 

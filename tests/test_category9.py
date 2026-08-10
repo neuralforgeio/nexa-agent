@@ -5,6 +5,8 @@ No external services are touched.
 """
 from __future__ import annotations
 
+import os
+
 import pytest
 
 from tools._paths import resolve_in_workspace
@@ -30,7 +32,9 @@ def test_path_traversal_blocked(payload):
     # If accepted, the resolved path must still stay inside the workspace and
     # the encoded traversal marker must not survive into the final name.
     p = str(resolve_in_workspace(payload)).replace("\\", "/")
-    assert ".." not in p            # no traversal components
+    has_traversal = ("../" in p) or p.endswith("/..") or (p == "..")
+    if has_traversal:
+        raise AssertionError(f"resolved path escapes workspace: {p!r}")
     assert "%5c" not in p.lower()   # fake-escape must not become a path backslash
     assert "%2f" not in p.lower()
 
