@@ -1,6 +1,6 @@
 {
   "name": "openforge",
-  "version": "5.1.0",
+  "version": "5.1.1",
   "private": true,
   "scripts": {
     "dev": "cd forge_web && npx next dev -p 3000",

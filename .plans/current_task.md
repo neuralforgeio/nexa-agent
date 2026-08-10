@@ -1,69 +1,58 @@
-# Task: FIX-QA-P0-CLI-GRP2 — Repair the remaining 9 confirmed defects
+# Task: REL-v5.1.1 — Release ceremony (Section 17 iron law)
 
-Task ID: FIX-QA-P0-CLI-GRP2
+Task ID: REL-v5.1.1
 Agent: OpenCode (kimi-k3) — SOP/Protocol v9 (Apex)
 Timestamp: 2026-08-10
-Mode: S5/S6 WRITE (authorized by user: "gas A, B, C berurutan")
-Baseline: HEAD=9e8e147 (pushed). Full suite green: 1117 passed, 13 skipped, 0 failed.
+Mode: S9 RELEASING (authorized via "gas A, B, C")
+Baseline: HEAD=2d0659c; suite `1127 passed, 13 skipped, 0 failed`; git clean; remote main==2d0659c.
 
 ## 1. Objective
-Fix the remaining 9 CONFIRMED defects from QA-VERIFICATION-v503 (P0-5 partial, P0-6, P0-7,
-P1-7, P1-8, P1-9, P1-10, P1-11, P1-12), each with a regression guard, no regressions.
+Publish PATCH release v5.1.1 for the two QA fix groups (grp1 + grp2): bump 4 manifests to 5.1.1,
+update README if needed, commit, annotated tag, push, gh release create + verify parity.
 
-## 2. Defects + planned fix (minimal, evidence-anchored)
-| ID | Root (file:line) | Minimal fix |
-|----|------------------|-------------|
-| P0-5 | src/server.py:1029 ws_terminal(websocket), :1244 ws_approval(websocket) — missing `: WebSocket` annotation | Add `: WebSocket` annotation to both handlers (FastAPI treats unannotated param as query param -> 422/403). Guards confirmed still pass. |
-| P0-6 | ui_tui/render/layout.py — `render_chat_area` imported but `layout["chat"]` never `.update()`d | Call `layout["chat"].update(render_chat_area(state))` in both sidebar-open and closed branches. |
-| P0-7 | nexa/ shim package missing (mandate) | **USER DECISION PENDING -> see §9.** Default action this task: create minimal `nexa/__init__.py` compatibility shim re-exporting openforge.core symbols with a DeprecationWarning, per mandate. |
-| P1-7 | ui_tui/panels/skills_panel.py — `ERROR` used (46,94) not imported | Add `ERROR` to the `from ui_tui.core.theme import ...` list IF theme defines it; else define local `ERROR = "bold red"` matching palette semantics. Must verify theme.py first. |
-| P1-8 | openforge/provider.py:224 `_get_client()` outside try/except in chat_stream | Wrap client acquisition so missing credentials yield `("error", ...)` tuple instead of raising. Minimal edit: move into the existing try or add a guarded preamble. |
-| P1-9 | ui_tui/render/panels.py:198 `state.persona.detail_open` (attr undefined) | Add `detail_open: bool = False` field to the persona badge/state class (verify its definition in ui_tui/core/state.py) OR guard with getattr(state.persona,"detail_open",False). Choose least-intrusive after reading state.py. |
-| P1-10 | ui_tui/commands.py `_DISPATCH` (393-412) lacks `/exit`,`/quit` (advertised at 72-73) | Add `"/exit": cmd_exit, "/quit": cmd_exit` to _DISPATCH; define cmd_exit to signal quit (verify TUI quit mechanism first). |
-| P1-11 | src/server.py:1616 `timeout=180.0` vs terminal_tool.MAX_TIMEOUT=60.0 | Use `timeout=min(180.0, MAX_TIMEOUT)` -> effectively 60, OR clamp to MAX_TIMEOUT explicitly. Minimal: pass allowed max. Verify sandbox-build intent. |
-| P1-12 | src/server.py:1244 ws_approval lacks verify_token_ws | Add `verify_token_ws(websocket.query_params.get("token"))` at handler start, mirroring ws_terminal:1055. |
+## 2. Impact table (Step 8 of Workflow)
+- Changes: CLI/TUI/WS/provider/sandbox bug fixes + read-only handlers + compat shim.
+- SemVer: PATCH (backward-compatible bug fixes; no breaking API/schema).
 
-## 3. Scope (files to modify)
-src/server.py, ui_tui/render/layout.py, ui_tui/panels/skills_panel.py, ui_tui/core/theme.py (verify ERROR),
-openforge/provider.py, ui_tui/render/panels.py, ui_tui/core/state.py (verify persona field),
-ui_tui/commands.py, nexa/__init__.py (new). Plus one regression test file. No dependency edits.
+## 3. Scope (exact files to modify)
+- pyproject.toml, package.json, openforge_web/package.json, config.yaml  -> version 5.1.0 -> 5.1.1
+- README.md (Rule C-2) -> ONLY if it advertises a stale version/badge or removed feature. Verify first.
+- CHANGELOG/release notes -> gh release notes (angry-3AM tone: what broke, what to do).
+- No source-code changes in this release commit.
 
-## 4. Non-Goals (verified unchanged at end)
-- No version bump / no tag / no release (reserved for step C).
-- No public API break; WS handlers gain annotation (bugfix, restores routing).
-- No unrelated refactors / formatting. Do not alter test semantics of unrelated suites.
+## 4. Non-Goals
+- No new features; no extra fixes; no refactors. Release only.
+- Do not delete tags/releases (no force-push). If parity breaks mid-ceremony -> Section 17.8 recovery + HALT.
 
-## 5. Baseline Snapshot
-- HEAD 9e8e147; suite `1117 passed, 13 skipped, 0 failed`; git clean at start.
+## 5. Baseline & evidence anchors
+- HEAD=2d0659c; remote tags: v5.0.3..v5.1.0 published (verified). Latest gh release: v5.1.0.
+- Suite green: 1127/0-failed. Build: py_compile rc=0 on all touched files. gh.exe at C:\Program Files\GitHub CLI\gh.exe.
 
-## 6. Impact Radius
-- WS routing (P0-5,P1-12), TUI rendering (P0-6,P1-7,P1-9,P1-10), provider error path (P1-8),
-  sandbox-build timeout clamp (P1-11), compat shim (P0-7).
+## 6. Release ceremony (Section 17.4 sequence)
+1. SYNC: git clean; remote in sync (verify).
+2. GATE SWEEP: suites already green this session; re-confirm compile + key tests.
+3. VERSION: pyproject/package/openforge_web/package/config.yaml -> 5.1.1 (all four agree).
+4. CHANGELOG: gh release notes (markdown) — no in-repo CHANGELOG file maintained? verify.
+5. COMMIT: chore(release): v5.1.1 with manifest bumps.
+6. TAG: git tag -a v5.1.1 -m "what|why|risk: LOW (patch, backward-compatible bugfix)".
+7. PUSH: git push origin main && git push origin v5.1.1.
+8. RELEASE: gh release create v5.1.1 --title ... --notes <3AM-friendly notes>.
+9. PUBLISH: not a draft (auto-published).
+10. VERIFY: gh release view v5.1.1; gh api releases/tags/v5.1.1; git ls-remote --tags | grep v5.1.1.
+11. ANNOUNCE: worklog links release URL only after verification.
 
-## 7. Contract Stability
-- All restore intended behavior; no breaking schema/API change. provider chat_stream error path changes
-  from raise->yield('error',...) which matches documented contract (P1-8 is a conformance fix).
+## 7. Parity & artifacts
+- Assets: source-only release (this project distributes via git/pip editable), so no binary checksums needed.
+  Notes will state that. If assets present, checksum them.
 
-## 8. Test Strategy
-- New regression file tests/test_grp2_fixes.py covering: layout chat update path, skills_panel ERROR
-  import resolves, commands _DISPATCH has /exit+/quit, provider error yields tuple (offline), panels persona
-  detail_open guard, server ws handlers annotated, sandbox timeout clamped, nexa shim importable.
-- Re-run full suite; compare to 1117 baseline (+ new tests).
+## 8. Rollback (before publish only)
+- If anything fails pre-publish: local tag delete + reset the release commit (no remote harm). If mid-publish fails: 17.8 recovery (create release for pushed tag, or escalate if tag/release mismatch).
 
-## 9. Decision Escalation (P0-7)
-Mandate question surfaced to user separately. Plan default = build the shim (compat) since the mandate
-exists and QA flagged its removal as a regression. Awaiting confirmation only if user prefers removal.
+## 9. Abortion Criteria
+- gh auth/network failure mid-ceremony -> HALT (S12) and report partial state; do NOT claim release done.
+- Any gate failure -> Step 7 remediation (max 3), else escalate.
 
-## 10. Abortion Criteria
-- Full suite falls below 1117 passed after fixes -> revert that hunk.
-- WS annotation change breaks FastAPI route registration (verify app still imports + routes 404/403 list).
-- TUI fixes require a redesign rather than a 1-2 line update -> escalate, do not over-engineer.
-
-## 11. Rollback Strategy
-- `git checkout -- <files>` + delete new test/shim artifacts. <5 min, no data loss.
-
-## 12. Release Strategy Preview
-- After these fixes + suite green -> step C: PATCH v5.1.1 (Section 17 iron-law ceremony).
-
-## 13. Knowledge Artifacts
-- tests/test_grp2_fixes.py; update .plans/qa/QA-VERIFICATION-v503.md statuses; worklog append.
+## 10. Knowledge Artifacts
+- worklog.md entry with verified release URL + tag SHA + verification commands.
+- .plans/qa/QA-VERIFICATION-v503.md: add a release reference line mapping fixed IDs -> v5.1.1.
+- Clear .plans/active_tasks.md lease.

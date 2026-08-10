@@ -17,7 +17,7 @@ project:
   repository: "neuralforgeio/openforge"
 
 version:
-  current: "5.1.0"
+  current: "5.1.1"
   codename: "OpenForge v5 — MAJOR Consolidation"
   released: "2026-08-08"
   semver_scheme: "MAJOR.MINOR.PATCH"
