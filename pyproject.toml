@@ -63,4 +63,4 @@ build-backend = "setuptools.build_meta"
 py-modules = []
 
 [tool.setuptools.packages.find]
-include = ["openforge*", "agent*", "tools*", "providers*", "openforge_cli*", "ui_tui*", "src*", "skills*"]
+include = ["openforge*", "agent*", "tools*", "providers*", "openforge_cli*", "ui_tui*", "src*", "skills*", "nexa*"]

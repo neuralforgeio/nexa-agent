@@ -19,7 +19,7 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
-from ui_tui.core.theme import ACCENT, BORDER, MUTED, SUCCESS, TEXT, WARNING
+from ui_tui.core.theme import ACCENT, BORDER, ERROR, MUTED, SUCCESS, TEXT, WARNING
 from ui_tui.core.state import TUIState
 
 

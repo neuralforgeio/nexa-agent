@@ -45,6 +45,7 @@ class PersonaBadge:
     icon: str = "🧠"
     color: str = "#9A9A9A"
     goal: str = ""
+    detail_open: bool = False
 
 
 @dataclass
@@ -95,6 +96,9 @@ class TUIState:
     # Sessions panel
     sessions: List[Dict[str, Any]] = field(default_factory=list)
     current_session: str = ""
+
+    # Lifecycle
+    quit_requested: bool = False
 
     # Input
     pending_slash: Optional[str] = None   # last slash command echo

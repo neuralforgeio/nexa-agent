@@ -291,6 +291,15 @@ async def cmd_clear(state: TUIState, agent, parts: List[str]) -> str:
     return ""
 
 
+async def cmd_exit(state: TUIState, agent, parts: List[str]) -> str:
+    """Request TUI termination (``/exit`` or ``/quit``).
+
+    Sets ``state.quit_requested``; the app loop breaks on it after dispatch.
+    """
+    state.quit_requested = True
+    return ""
+
+
 async def cmd_new(state: TUIState, agent, parts: List[str]) -> str:
     """Start a new conversation."""
     conv = await agent.db.create_conversation(title=f"TUI session {time.strftime('%H:%M')}")
@@ -409,6 +418,8 @@ _DISPATCH = {
     "/export": cmd_export,
     "/search": cmd_search,
     "/skills": cmd_skills,
+    "/exit": cmd_exit,
+    "/quit": cmd_exit,
 }
 
 

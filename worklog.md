@@ -2133,3 +2133,41 @@ Task: Repair tier-1 defects confirmed by QA-VERIFY-v503 (group "no. 1"): restore
 
 ### Remaining open defects (not in this group, awaiting user authorization)
 P0-5, P0-6, P0-7, P1-7, P1-8, P1-9, P1-10, P1-11, P1-12.
+
+---
+
+## Task ID: FIX-QA-P0-CLI-GRP2 (2026-08-10)
+Agent: OpenCode (kimi-k3) — SOP/Protocol v9 (Apex Edition)
+Task: Fix the remaining 9 confirmed defects (P0-5, P0-6, P0-7, P1-7..P1-12). No version bump / no tag / no release (reserved for step C).
+
+### Implementation Summary (minimal diffs)
+- src/server.py: ws_terminal + ws_approval now annotate `websocket: WebSocket` (P0-5); ws_approval now enforces verify_token_ws (P1-12) mirroring ws_terminal; sandbox build timeout clamped `min(180.0, MAX_TIMEOUT)` (P1-11).
+- ui_tui/render/layout.py: added `layout["chat"].update(render_chat_area(state))` for both sidebar branches (P0-6).
+- ui_tui/panels/skills_panel.py: added ERROR to the theme import list (P1-7).
+- openforge/provider.py: `_get_client()` wrapped in try/except so missing credentials yield `("error", ...)` instead of raising (P1-8).
+- ui_tui/core/state.py: added `PersonaBadge.detail_open` (P1-9) and `TUIState.quit_requested` (P1-10 infra).
+- ui_tui/commands.py: registered `/exit` + `/quit` and added `cmd_exit` (P1-10); ui_tui/app.py breaks the input loop on `quit_requested`.
+- nexa/__init__.py (new): legacy import shim re-exporting FORGE_HOME/FORGE_VERSION/FORGE_WORKSPACE + DeprecationWarning (P0-7); pyproject packages.find now includes `nexa*`.
+
+### Quality Gate Results (verbatim)
+- Compile: py_compile x8 files -> all rc=0.
+- New regression file tests/test_grp2_fixes.py: `10 passed in 6.10s`.
+- Focused re-run grp1+grp2: `15 passed`.
+- Full suite (this env): `pytest tests/ -q --ignore tests/test_llamacpp_real.py` -> `1127 passed, 13 skipped, 0 failed in 119.69s` (baseline 1117 + 10 new).
+
+### Risk Assessment Post-Implementation
+- Backward compatibility: maintained; restored intended behavior only. WS annotation is a routing bugfix.
+- Security: P1-12 adds the missing auth gate on /ws/approval; no new attack surface.
+- Shim P0-7: import-time-only; emits DeprecationWarning; falls back gracefully on partial installs.
+
+### Cognitive Trace
+- Plan revisions: 1. Adversarial findings fixed: 1 (state.py class-header transient break detected & repaired same-session).
+- Triad confidence: 3/3. Deviations from protocol: none (write authorized; release deferred to step C per plan).
+
+### Blast Radius Final
+- Direct files changed: src/server.py, openforge/provider.py, ui_tui/{app,commands,core/state,render/layout,panels/skills_panel}.py, nexa/__init__.py (new), pyproject.toml (include nexa*), tests/test_grp2_fixes.py (new), .plans/*.
+- Behaviorally affected: WS terminal/approval routing+auth, TUI chat render + /exit /quit, skills disabled-row render, provider offline error path, sandbox build timeout ceiling, legacy `import nexa`.
+- Rollback time (verified): <5m via git checkout of modified files (shim/test are additive-only).
+
+### Release
+- NONE in this task. Step C (PATCH v5.1.1) is next, per Section 17 iron law.

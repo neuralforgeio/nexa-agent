@@ -82,6 +82,8 @@ def build_layout(state: TUIState, current_input: str = "") -> Layout:
     else:
         layout["body"].split_row(Layout(name="chat", ratio=1))
 
+    layout["chat"].update(render_chat_area(state))
+
     # ── Footer (priority: command palette > skills overlay > input)
     typed = (current_input or "").strip()
     if typed.startswith("/"):

@@ -1026,7 +1026,7 @@ async def provider_test(req: Dict[str, Any]) -> Dict[str, Any]:
 import sys as _sys
 
 @app.websocket("/ws/terminal")
-async def ws_terminal(websocket) -> None:
+async def ws_terminal(websocket: WebSocket) -> None:
     """
     WebSocket endpoint for the Web UI terminal panel (xterm.js).
 
@@ -1241,8 +1241,14 @@ async def api_audit_verify() -> Dict[str, Any]:
 # B-08 — orchestrator live SSE stream
 # ---------------------------------------------------------------------------
 @app.websocket("/ws/approval")
-async def ws_approval(websocket):
+async def ws_approval(websocket: WebSocket):
     """HITL approval channel (H-02): one simple exchange, keep-alive safe."""
+    # Enforce the same WS token gate as /ws/terminal when FORGE_REQUIRE_AUTH=1.
+    try:
+        verify_token_ws(websocket.query_params.get("token"))
+    except HTTPException:
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
     await websocket.accept()
     try:
         data = await websocket.receive_json()
@@ -1610,10 +1616,12 @@ async def sandbox_build(req: SandboxBuildRequest) -> Dict[str, Any]:
             cwd_abs = None
 
         try:
+            from tools.terminal_tool import MAX_TIMEOUT
+
             out = await run_terminal_command(
                 req.command,
                 cwd=cwd_abs,
-                timeout=180.0,
+                timeout=min(180.0, MAX_TIMEOUT),
             )
             result["ran"] = {"command": req.command, "output": out}
         except Exception as exc:  # noqa: BLE001

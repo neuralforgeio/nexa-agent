@@ -234,6 +234,8 @@ async def run_tui(agent, conv_id: str, history: Optional[List[Dict[str, Any]]] =
                 result = await _dispatch_cmd(state, agent, raw)
                 if result:
                     state.messages.append(ChatMessage(role="tool", content=result))
+                if getattr(state, "quit_requested", False):
+                    break
                 live.update(build_layout(state))
                 continue
 

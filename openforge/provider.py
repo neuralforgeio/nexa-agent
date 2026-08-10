@@ -221,7 +221,11 @@ class LLMProvider:
         Yields:
             Tuples of ``(event_type, payload)`` as described above.
         """
-        client = await self._get_client()
+        try:
+            client = await self._get_client()
+        except Exception as exc:  # noqa: BLE001 - surface auth/config failures as an error tuple
+            yield ("error", str(exc))
+            return
 
         # v4.0: capability negotiation — drop tools if unsupported.
         send_tools = bool(tools) and registry is not None and _supports_tools(self.base_url)

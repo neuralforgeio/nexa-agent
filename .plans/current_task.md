@@ -1,78 +1,69 @@
-# Task: FIX-QA-P0-CLI-GRP1 — Repair tier-1 defects from QA verification (group no. 1)
+# Task: FIX-QA-P0-CLI-GRP2 — Repair the remaining 9 confirmed defects
 
-Task ID: FIX-QA-P0-CLI-GRP1
+Task ID: FIX-QA-P0-CLI-GRP2
 Agent: OpenCode (kimi-k3) — SOP/Protocol v9 (Apex)
 Timestamp: 2026-08-10
-Maturity: Production | Platform: Windows dev box / cross-platform code
-Mode: S5/S6 WRITE (authorized by user selecting "no. 1")
+Mode: S5/S6 WRITE (authorized by user: "gas A, B, C berurutan")
+Baseline: HEAD=9e8e147 (pushed). Full suite green: 1117 passed, 13 skipped, 0 failed.
 
 ## 1. Objective
-Fix the highest-impact, CLI/TUI-breaking defects confirmed in QA-VERIFY-v503, group "no. 1":
-restore working `update`/`rollback`/`doctor` subcommands, remove duplicate doctor, restore
-gateway symlink, and honor the nexa-shim mandate decision (deferred — see Non-Goals).
+Fix the remaining 9 CONFIRMED defects from QA-VERIFICATION-v503 (P0-5 partial, P0-6, P0-7,
+P1-7, P1-8, P1-9, P1-10, P1-11, P1-12), each with a regression guard, no regressions.
 
-## 2. Exact bug list to fix (from QA-VERIFICATION-v503.md)
-- P1-X1  REGRESSION : `_cmd_update` / `_cmd_rollback` referenced in dispatch but undefined -> NameError.
-- P0-4   STILL-BRK  : `openforge doctor` not in dispatch table -> prints help instead of HealthReport.
-- P1-15  STILL-BRK  : `_cmd_doctor` defined twice (main.py:505 AND :577); second shadows first.
-- P1-X2  REGRESS-adj: doctor LOCK-integrity claim is unrealized (fixed transitively by P0-4 wiring).
-- P0-2   REGRESSION : install.sh symlink loop drops `openforge-gateway` (adds `openforge-tui`).
+## 2. Defects + planned fix (minimal, evidence-anchored)
+| ID | Root (file:line) | Minimal fix |
+|----|------------------|-------------|
+| P0-5 | src/server.py:1029 ws_terminal(websocket), :1244 ws_approval(websocket) — missing `: WebSocket` annotation | Add `: WebSocket` annotation to both handlers (FastAPI treats unannotated param as query param -> 422/403). Guards confirmed still pass. |
+| P0-6 | ui_tui/render/layout.py — `render_chat_area` imported but `layout["chat"]` never `.update()`d | Call `layout["chat"].update(render_chat_area(state))` in both sidebar-open and closed branches. |
+| P0-7 | nexa/ shim package missing (mandate) | **USER DECISION PENDING -> see §9.** Default action this task: create minimal `nexa/__init__.py` compatibility shim re-exporting openforge.core symbols with a DeprecationWarning, per mandate. |
+| P1-7 | ui_tui/panels/skills_panel.py — `ERROR` used (46,94) not imported | Add `ERROR` to the `from ui_tui.core.theme import ...` list IF theme defines it; else define local `ERROR = "bold red"` matching palette semantics. Must verify theme.py first. |
+| P1-8 | openforge/provider.py:224 `_get_client()` outside try/except in chat_stream | Wrap client acquisition so missing credentials yield `("error", ...)` tuple instead of raising. Minimal edit: move into the existing try or add a guarded preamble. |
+| P1-9 | ui_tui/render/panels.py:198 `state.persona.detail_open` (attr undefined) | Add `detail_open: bool = False` field to the persona badge/state class (verify its definition in ui_tui/core/state.py) OR guard with getattr(state.persona,"detail_open",False). Choose least-intrusive after reading state.py. |
+| P1-10 | ui_tui/commands.py `_DISPATCH` (393-412) lacks `/exit`,`/quit` (advertised at 72-73) | Add `"/exit": cmd_exit, "/quit": cmd_exit` to _DISPATCH; define cmd_exit to signal quit (verify TUI quit mechanism first). |
+| P1-11 | src/server.py:1616 `timeout=180.0` vs terminal_tool.MAX_TIMEOUT=60.0 | Use `timeout=min(180.0, MAX_TIMEOUT)` -> effectively 60, OR clamp to MAX_TIMEOUT explicitly. Minimal: pass allowed max. Verify sandbox-build intent. |
+| P1-12 | src/server.py:1244 ws_approval lacks verify_token_ws | Add `verify_token_ws(websocket.query_params.get("token"))` at handler start, mirroring ws_terminal:1055. |
 
-## 3. Scope (exact files to modify)
-- openforge_cli/main.py      -> merge/keep ONE _cmd_doctor; add "doctor" dispatch branch; define _cmd_update + _cmd_rollback.
-- scripts/install/install.sh  -> re-add `openforge-gateway` to symlink loop (keep openforge-tui).
-NO other source files. No dependency edits.
+## 3. Scope (files to modify)
+src/server.py, ui_tui/render/layout.py, ui_tui/panels/skills_panel.py, ui_tui/core/theme.py (verify ERROR),
+openforge/provider.py, ui_tui/render/panels.py, ui_tui/core/state.py (verify persona field),
+ui_tui/commands.py, nexa/__init__.py (new). Plus one regression test file. No dependency edits.
 
 ## 4. Non-Goals (verified unchanged at end)
-- Do NOT fix the remaining confirmed defects (P0-5 WS annotation, P0-6 TUI chat, P0-7 nexa shim,
-  P1-7..P1-12). Those belong to later authorized groups.
-- Do NOT bump version, tag, or release (fix-only; release is a separate authorized step).
-- Do NOT touch tests semantics; add only a focused regression test for P1-X1 (dispatch functions exist).
-- Do NOT modify public API beyond restoring intended behavior of existing commands.
+- No version bump / no tag / no release (reserved for step C).
+- No public API break; WS handlers gain annotation (bugfix, restores routing).
+- No unrelated refactors / formatting. Do not alter test semantics of unrelated suites.
 
-## 5. Baseline Snapshot (captured this session)
-- HEAD: 144989a (v5.0.3 code surface; local tag v5.1.0 manifests-only diff).
-- pytest baseline this env: 1112 passed, 13 skipped, 0 failed (158.61s).
-- `git status`: clean at start. Reference: QA-VERIFICATION file .plans/qa/QA-VERIFICATION-v503.md.
+## 5. Baseline Snapshot
+- HEAD 9e8e147; suite `1117 passed, 13 skipped, 0 failed`; git clean at start.
 
 ## 6. Impact Radius
-- openforge_cli/main.py: main() dispatch + 3 command impls; imported by openforge console-script.
-- install.sh: affects fresh installs only (symlink set). No runtime code change.
+- WS routing (P0-5,P1-12), TUI rendering (P0-6,P1-7,P1-9,P1-10), provider error path (P1-8),
+  sandbox-build timeout clamp (P1-11), compat shim (P0-7).
 
 ## 7. Contract Stability
-- Restores documented CLI commands (update/rollback/doctor). Not a breaking change. No schema/API change.
+- All restore intended behavior; no breaking schema/API change. provider chat_stream error path changes
+  from raise->yield('error',...) which matches documented contract (P1-8 is a conformance fix).
 
 ## 8. Test Strategy
-- Regression (P1-X1/P0-4/P1-15): unit test asserting `_cmd_update`, `_cmd_rollback`, single `_cmd_doctor`,
-  and that dispatch map routes "doctor" (assert source contains branch + callable exists).
-- Behavior: run `openforge doctor`, `openforge update --help`? (update has no --help in current parser; run
-  `openforge update` expecting a real result code, not NameError) after fix.
-- Full suite: re-run pytest to confirm no regressions (compare against 1112-pass baseline).
-- install.sh: static re-check line containing the 5-binary loop.
+- New regression file tests/test_grp2_fixes.py covering: layout chat update path, skills_panel ERROR
+  import resolves, commands _DISPATCH has /exit+/quit, provider error yields tuple (offline), panels persona
+  detail_open guard, server ws handlers annotated, sandbox timeout clamped, nexa shim importable.
+- Re-run full suite; compare to 1117 baseline (+ new tests).
 
-## 9. Rollback Strategy
-- `git checkout -- openforge_cli/main.py scripts/install/install.sh` (+ remove the new test file if added). <5 min, no data loss.
+## 9. Decision Escalation (P0-7)
+Mandate question surfaced to user separately. Plan default = build the shim (compat) since the mandate
+exists and QA flagged its removal as a regression. Awaiting confirmation only if user prefers removal.
 
-## 10. Risk Assessment
-- _cmd_update/_cmd_rollback need a sane implementation. Minimal-risk choice: implement read-only status/inspect
-  behavior (list current version / available backups; refuse mutation without explicit flags) to avoid executing
-  network/git mutations during a bugfix commit. [I] matches existing CLI tone (migrate is conservative).
-- doctor dispatch: low risk; wires existing SelfHealth.run_full_check already used elsewhere.
-- Duplicate doctor removal: keep the richer v5.1.0 variant (577, docstring mentions LOCK integrity) OR merge; removing
-  a duplicated def has no external contract change. [E-verified bodies are equivalent except docstring.]
-- Edit tools on Windows with indentation: use exact-match edits on small hunks only.
+## 10. Abortion Criteria
+- Full suite falls below 1117 passed after fixes -> revert that hunk.
+- WS annotation change breaks FastAPI route registration (verify app still imports + routes 404/403 list).
+- TUI fixes require a redesign rather than a 1-2 line update -> escalate, do not over-engineer.
 
-## 11. Abortion Criteria
-- Full pytest suite drops below 1112 passed after edits -> revert.
-- `_cmd_update`/`_cmd_rollback` cannot be implemented without network/git mutation -> implement read-only safe versions.
+## 11. Rollback Strategy
+- `git checkout -- <files>` + delete new test/shim artifacts. <5 min, no data loss.
 
 ## 12. Release Strategy Preview
-- NONE now. After this fix lands + full suite green, the NEXT user-authorized step would be a PATCH release (v5.1.1) with tag+release per Section 17 iron law. Logged here as the plan's decision.
+- After these fixes + suite green -> step C: PATCH v5.1.1 (Section 17 iron-law ceremony).
 
 ## 13. Knowledge Artifacts
-- New focused test file (tests/test_cli_dispatch_regression.py) OR extend existing; verify which harness exists first.
-- Update .plans/qa/QA-VERIFICATION-v503.md statuses to FIXED for these IDs after verification.
-- worklog.md append.
-
-## 14. Release parity
-- No tag created in this task -> no parity check needed. If later released, execute Section 17 in full.
+- tests/test_grp2_fixes.py; update .plans/qa/QA-VERIFICATION-v503.md statuses; worklog append.
