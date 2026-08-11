@@ -137,6 +137,21 @@ def main(argv: Optional[List[str]] = None) -> int:
     install_p = plugin_sub.add_parser("install", help="Install a plugin from a git URL")
     install_p.add_argument("url", help="Git URL of the plugin repository")
 
+    # v5.2.0 — OpenCode-parity subcommands
+    subparsers.add_parser("tools", help="List the registered Forge tools")
+    subparsers.add_parser("models", help="List models visible to the active provider")
+
+    session_parser = subparsers.add_parser("session", help="Manage conversations")
+    session_sub = session_parser.add_subparsers(dest="session_command")
+    session_sub.add_parser("new", help="Create a new conversation")
+    session_sub.add_parser("list", help="List conversations")
+
+    run_parser = subparsers.add_parser("run", help="One-shot: send a single message and stream the answer")
+    run_parser.add_argument("message", nargs="+", help="The user message to send")
+    run_parser.add_argument("--model", help="Override the model for this run")
+    run_parser.add_argument("--print-logs", action="store_true", help="Print tool/raw logs to stdout")
+    run_parser.add_argument("--log-level", choices=["DEBUG", "INFO", "WARN", "ERROR"], help="Log verbosity")
+
     args = parser.parse_args(argv)
 
     # v4.2.3: --version short-circuit (handled BEFORE subcommand dispatch).
@@ -166,6 +181,14 @@ def main(argv: Optional[List[str]] = None) -> int:
         return _cmd_update()
     elif args.command == "rollback":
         return _cmd_rollback(to_version=args.to, list_only=args.list)
+    elif args.command == "tools":
+        return _cmd_tools()
+    elif args.command == "models":
+        return _cmd_models()
+    elif args.command == "session":
+        return _cmd_session(args)
+    elif args.command == "run":
+        return _cmd_run(args)
     elif args.command == "plugin":
         if getattr(args, "plugin_command", None) == "install":
             return _cmd_plugin_install(args.url)
@@ -218,6 +241,10 @@ def _print_rich_help() -> None:
         ("doctor", "Run self-health diagnostics", "openforge doctor"),
         ("update", "Report update guidance (read-only)", "openforge update"),
         ("rollback", "List snapshots / plan a rollback", "openforge rollback --list"),
+        ("tools", "List registered tools", "openforge tools"),
+        ("models", "List models exposed by the active provider", "openforge models"),
+        ("session", "Manage conversations", "openforge session new | list"),
+        ("run", "One-shot: send a message and stream the answer", "openforge run \"hello\""),
     ]
     for cmd, desc, example in rows:
         table.add_row(cmd, desc, example)
@@ -692,6 +719,86 @@ def _cmd_rollback(to_version: "Optional[str]" = None, list_only: bool = False) -
 
     console.print(f"[green]✓ rolled back to {to_version}[/green]")
     return 0
+
+def _cmd_tools() -> int:
+    """List registered Forge tools (name + one-line description)."""
+    from tools.registry import create_default_registry
+    reg = create_default_registry()
+    console.print(Panel.fit("OpenForge Tools", border_style="cyan"))
+    for name in sorted(reg.list_names()):
+        console.print(f"  [cyan]{name}[/cyan]")
+    console.print(f"\n[dim]{len(reg.list_names())} tools available.[/dim]")
+    return 0
+
+
+def _cmd_models() -> int:
+    """List models exposed by the currently configured provider."""
+    try:
+        import asyncio
+        from openforge.provider import LLMProvider
+
+        async def _fetch():
+            p = LLMProvider()
+            client = await p._get_client()
+            return await client.models.list()
+
+        res = asyncio.run(_fetch())
+        for m in getattr(res, "data", []) or []:
+            console.print(f"  [cyan]{getattr(m, 'id', m)}[/cyan]")
+        return 0
+    except Exception as exc:  # noqa: BLE001
+        console.print(f"[red]model listing failed: {exc}[/red]")
+        return 1
+
+
+def _cmd_session(args) -> int:
+    """Manage conversations (new / list) backed by the local DB."""
+    import asyncio
+    from openforge.state import ConversationDB
+
+    async def _run() -> int:
+        db = ConversationDB()
+        await db.init()
+        if args.session_command == "new":
+            conv = await db.create_conversation()
+            console.print(f"[green]created[/green] conversation: [cyan]{conv['id']}[/cyan]")
+            return 0
+        if args.session_command == "list":
+            items = await db.list_conversations()
+            for c in items:
+                console.print(f"  {c['id']}  {c.get('title') or '(untitled)'}")
+            return 0
+        console.print("Use: openforge session new | openforge session list")
+        return 1
+
+    return asyncio.run(_run())
+
+
+def _cmd_run(args) -> int:
+    """One-shot message -> streamed answer (TUI-flow parity with OpenCode's `run`)."""
+    import asyncio
+    from openforge.provider import LLMProvider
+
+    async def _run() -> int:
+        provider = LLMProvider(model=args.model or None)
+        message = " ".join(args.message)
+        async for etype, payload in provider.chat_stream([{"role": "user", "content": message}]):
+            if etype == "token":
+                console.print(payload, end="")
+            elif etype == "reasoning":
+                if args.print_logs and args.log_level in ("DEBUG", "INFO"):
+                    console.print(f"[dim](reasoning: {payload})[/dim]")
+            elif etype == "tool_call":
+                if args.print_logs:
+                    console.print(f"\n[cyan]tool_call[/cyan] {payload.name}")
+            elif etype == "error":
+                console.print(f"\n[red]error[/red] {payload}")
+                return 1
+            elif etype == "done":
+                console.print()
+        return 0
+
+    return asyncio.run(_run())
 
 
 def _cmd_doctor() -> int:
