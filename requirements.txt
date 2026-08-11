@@ -21,7 +21,7 @@ python-dotenv>=1.0.1
 
 # aiosqlite provides async access to the SQLite database used for
 # conversation persistence (conversations + messages tables).
-aiosqlite>=0.20.0
+aiosqlite>=0.22.1
 
 # websockets is used by the WebSocket endpoint for real-time streaming.
 websockets>=13.0
