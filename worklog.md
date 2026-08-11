@@ -2240,3 +2240,19 @@ Root cause: on a brand-new runner (~/.openforge/workspace missing), a non-blocke
 Fix: pinned `tools.terminal_tool.FORGE_WORKSPACE` to `tmp_path` via monkeypatch inside the test, so the test is deterministic regardless of runner state (still exercises the blocked-pattern contract). No production changes.
 Verify: full suite in this env 1132 passed/0 failed; the failing test passes standalone; all category9 tests pass even when FORGE_WORKSPACE points to a non-existent path.
 Release: PATCH v5.1.3, tag+release published and parity-verified below.
+
+---
+
+## Task ID: DOCS-CRON-v1 (2026-08-10)
+Agent: OpenCode (kimi-k3) — SOP v9.
+Deliverable: autonomous cron manifesto for Z.ai (GLM-5.2) + referenced SOP v9 copy.
+
+### Artifacts
+- schedule_tasks.md (root): Shared Block prelude, QA-Q (4h), FIX-C (8h), AUDIT-F (24h) ready-to-paste
+  prompts, worklog append template, cron-mode guardrails, phone health check. SOP referenced, not inlined.
+- .sop/UNIVERSAL_AUTONOMOUS_DEVELOPMENT_PROTOCOL_v9.md: canonical SOP copy (74890 bytes).
+
+### Verification
+- Files created and committed: git commit 752695d on main, pushed to origin.
+- Sanity: project still compiles (py_compile openforge_cli/main.py rc=0); docs-only change.
+- No tag/release (docs)= intended per Step-8 table (no behavior change). Worklog updated here.
