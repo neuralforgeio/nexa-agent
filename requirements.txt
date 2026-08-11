@@ -40,7 +40,7 @@ tenacity>=9.0.0
 httpx>=0.27.0
 
 # pyyaml for config file parsing.
-pyyaml>=6.0
+pyyaml>=6.0.3
 
 # pytest for testing (dev dependency, but included for convenience).
 pytest>=8.0.0
