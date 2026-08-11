@@ -114,3 +114,7 @@ tests/real_integration_e2e.py
 
 forge-workspace/
 
+
+# Private cron manifesto + SOP (local-only, never push)
+.sop/
+schedule_tasks.md
