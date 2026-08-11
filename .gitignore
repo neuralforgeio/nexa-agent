@@ -118,3 +118,4 @@ forge-workspace/
 # Private cron manifesto + SOP (local-only, never push)
 .sop/
 schedule_tasks.md
+openforge-cron-handoff.zip
