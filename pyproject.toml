@@ -23,7 +23,7 @@ dependencies = [
     "websockets>=13.0",
     "watchdog>=6.0.0",
     # v4.7.0 (F-11): /api/upload endpoint uses multipart/form-data.
-    "python-multipart>=0.0.9",
+    "python-multipart>=0.0.32",
     # v4.8.0 (B-06): per-endpoint rate limiting.
     "slowapi>=0.1.9",
     # v4.9.0 (Category 3): MCP + RAG + multimodal readers.
