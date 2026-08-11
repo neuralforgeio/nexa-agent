@@ -25,7 +25,7 @@ dependencies = [
     # v4.7.0 (F-11): /api/upload endpoint uses multipart/form-data.
     "python-multipart>=0.0.9",
     # v4.8.0 (B-06): per-endpoint rate limiting.
-    "slowapi>=0.1.9",
+    "slowapi>=0.1.10",
     # v4.9.0 (Category 3): MCP + RAG + multimodal readers.
     "pypdf>=4.0",
     "python-docx>=1.1.0",
