@@ -1,0 +1,23 @@
+name: Agent task (autonomous / cron / DX)
+description: A task for the autonomous/automation layer (QA-Q, FIX-C, AUDIT-F) to pick up.
+title: "agent-task: <what the cron should do>"
+labels: ["agent", "automation"]
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: One sentence — what outcome proves the cron slot was well used?
+    validations: { required: true }
+  - type: dropdown
+    id: cadence
+    attributes:
+      label: Cadence bucket
+      options: ["QA-Q (4h read-only)", "FIX-C (8h fix+verify)", "AUDIT-F (24h audit/feature)"]
+    validations: { required: true }
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Required evidence
+      description: Exact commands + expected outputs the cron must capture to prove the task done
+    validations: { required: true }

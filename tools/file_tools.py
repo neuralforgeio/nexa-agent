@@ -29,7 +29,7 @@ from openforge.path_protection import ReadOnlyViolation, ensure_safe_write
 _resolve_in_workspace = resolve_in_workspace
 
 
-async def read_file(path: str, **_: Any) -> str:
+async def read_file(path: str, allow_absolute: bool = False, **_: Any) -> str:
     """
     Read a text file from the workspace.
 

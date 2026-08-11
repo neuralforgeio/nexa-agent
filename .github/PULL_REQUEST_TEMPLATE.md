@@ -60,3 +60,7 @@ in worklog.md.
       - `.plans/TASK_v4_PUNCHLIST.md`
 - [ ] Version bumped appropriately (MAJOR.MINOR.PATCH per `config.yaml`).
 - [ ] Tag and GitHub Release scripts prepared (will be executed by maintainers).
+- [ ] **Triad gate** — every substantive claim in this PR is backed by executed
+      evidence (Channel A) + structural proof (B) + a negative search (C).
+      Paste the key command + output tail in "Verification performed".
+- [ ] If I made a claim that "X is fixed", I verified it AFTER the fix, not before.

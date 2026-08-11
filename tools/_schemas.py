@@ -25,7 +25,7 @@ from __future__ import annotations
 import re
 from typing import Dict, Optional, Type
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 # ---------------------------------------------------------------------------
@@ -40,45 +40,75 @@ MAX_WEB_RESULTS: int = 10
 
 
 def _no_traversal(value: str) -> str:
-    """Reject paths that try to escape via ``..``."""
+    """Reject paths that try to escape via ``..``.
+
+    v5.2.0: absolute paths are permitted ONLY when the caller opts in via
+    ``allow_absolute=True`` (used by the CLI/TUI after an explicit user grant).
+    Default remains workspace-scoped for safety.
+    """
     if not value or not value.strip():
         raise ValueError("path is required")
     if ".." in value.split("/"):
         raise ValueError("path traversal via '..' is not allowed")
-    if value.startswith("/") or (len(value) > 1 and value[1] == ":"):
-        # Reject absolute paths (Unix / Windows drive letters).
-        raise ValueError("absolute paths are not allowed; use a relative path inside the workspace")
     return value
+
+
+class FileArgs(BaseModel):
+    """Common fields for file tools (allow_absolute opt-in for out-of-workspace I/O)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    allow_absolute: bool = Field(
+        False,
+        description=(
+            "If true, permit absolute paths outside the workspace (requires "
+            "explicit approval from the user in the CLI/TUI)."
+        ),
+    )
 
 
 # ---------------------------------------------------------------------------
 # File tools
 # ---------------------------------------------------------------------------
-class ReadFileArgs(BaseModel):
+class ReadFileArgs(FileArgs):
     """Arguments for the ``read_file`` tool."""
 
-    model_config = ConfigDict(extra="forbid")
-
-    path: str = Field(..., description="Relative path to the file inside the workspace.")
+    path: str = Field(..., description="Path to the file (workspace-relative by default; absolute allowed when allow_absolute=True).")
 
     @field_validator("path")
     @classmethod
     def _validate_path(cls, v: str) -> str:
         return _no_traversal(v)
 
+    @model_validator(mode="after")
+    def _require_workspace_scope(self):
+        if getattr(self, "allow_absolute", False) is True:
+            return self
+        p = self.path
+        if p.startswith("/") or (len(p) > 1 and p[1] == ":"):
+            raise ValueError("absolute paths are not allowed without allow_absolute=True")
+        return self
 
-class WriteFileArgs(BaseModel):
+
+class WriteFileArgs(FileArgs):
     """Arguments for the ``write_file`` tool."""
 
-    model_config = ConfigDict(extra="forbid")
-
-    path: str = Field(..., description="Relative path to the file inside the workspace.")
+    path: str = Field(..., description="Path to the file (workspace-relative by default; absolute allowed when allow_absolute=True).")
     content: str = Field(..., description="The text content to write (max 1MB).")
 
     @field_validator("path")
     @classmethod
     def _validate_path(cls, v: str) -> str:
         return _no_traversal(v)
+
+    @model_validator(mode="after")
+    def _require_workspace_scope(self):
+        if getattr(self, "allow_absolute", False) is True:
+            return self
+        p = self.path
+        if p.startswith("/") or (len(p) > 1 and p[1] == ":"):
+            raise ValueError("absolute paths are not allowed without allow_absolute=True")
+        return self
 
 
 # ---------------------------------------------------------------------------

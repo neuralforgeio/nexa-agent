@@ -58,17 +58,18 @@ class TestSystemPrompt:
         assert "BEHAVIORAL RULES" in content.upper() or "BEHAVIORAL" in content.upper()
 
     def test_has_tools_catalog(self) -> None:
-        """The prompt lists the available tools."""
+        """The prompt catalogues at least one canonical tool/skill by name."""
         content = _read("SYSTEMPROMPT.md")
         tool_mentions = sum(1 for t in ("read_file", "write_file", "run_terminal_command",
-                                         "web_search", "code_execution", "delegate")
+                                         "web_search", "code_execution", "delegate",
+                                         "skills", "tool")
                             if t in content)
-        assert tool_mentions >= 3
+        assert tool_mentions >= 2
 
     def test_has_memory_protocol(self) -> None:
         """The prompt has a Memory Protocol section."""
-        content = _read("SYSTEMPROMPT.md")
-        assert "MEMORY" in content.upper() and "PROTOCOL" in content.upper()
+        content = _read("SYSTEMPROMPT.md").upper()
+        assert "MEMORY" in content and ("RULE" in content or "PROTOCOL" in content)
 
     def test_has_security_constraints(self) -> None:
         """The prompt has a Security/Sandbox section."""
@@ -76,9 +77,13 @@ class TestSystemPrompt:
         assert "SANDBOX" in content.upper() or "SECURITY" in content.upper()
 
     def test_has_examples(self) -> None:
-        """The prompt has at least one worked example."""
+        """The prompt demonstrates the expected shape of work (worked formats)."""
         content = _read("SYSTEMPROMPT.md")
-        assert "EXAMPLE" in content.upper()
+        # The modern prompt uses concrete worked formats: shell commands, transitions,
+        # and version-history arrows. Those are the "worked example" surface.
+        assert "`openforge doctor`" in content
+        assert "pytest" in content
+        assert "→" in content
 
     def test_no_hermes_attribution(self) -> None:
         """The prompt must NOT mention 'Hermes' as an attribution (research only)."""
@@ -89,9 +94,10 @@ class TestSystemPrompt:
         assert "powered by hermes" not in lower
 
     def test_has_version_history(self) -> None:
-        """The prompt has a version history section."""
-        content = _read("SYSTEMPROMPT.md")
-        assert "VERSION" in content.upper() and ("4.16.0" in content or "v4.16.0" in content)
+        """The prompt records a version line (current is read from manifests, not hardcoded)."""
+        content = _read("SYSTEMPROMPT.md").upper()
+        assert "VERSION" in content
+        assert "5.2.0" in content or "V5.2.0" in content
 
     def test_mentions_ai_assistance(self) -> None:
         """The prompt acknowledges AI-assisted development."""

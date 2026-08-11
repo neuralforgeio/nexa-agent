@@ -1,0 +1,15 @@
+name: Agent Instructions
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  readme:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Surface agent instructions
+        run: |
+          echo "AGENT.md / AGENTS.md (repo root) takes precedence. Follow it when triaging issues."

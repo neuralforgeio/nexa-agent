@@ -1,0 +1,28 @@
+name: Roadmap / tracker issue
+description: Grouped tracker for a release phase or larger feature set (maintainers only).
+title: "tracker: <phase> — <one-line goal>"
+labels: ["tracker", "roadmap"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this to group related work under one umbrella (e.g., "v5.2 hardening").
+        Maintainers: create the issues it links to first, then reference them here.
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: What this tracker covers (and what it deliberately excludes)
+    validations: { required: true }
+  - type: textarea
+    id: items
+    attributes:
+      label: Linked issues / PRs
+      description: One per line, e.g. #123 or a URL
+    validations: { required: true }
+  - type: textarea
+    id: success
+    attributes:
+      label: Definition of done
+      description: How reviewers know this tracker can close (measured, not vibes)
+    validations: { required: true }

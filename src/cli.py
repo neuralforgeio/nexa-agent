@@ -482,10 +482,16 @@ async def run_turn(agent: OpenForgeAgent, message: str, conv_id: str, history: l
     """
     console.print()
     accumulated = ""
+    _thinking_shown = False
     try:
         async for event in agent.run_streaming(message, conv_id, history):
             if event["type"] == "thinking":
-                console.print("[dim]Forge is thinking...[/dim]", end="")
+                # v5.2.0: print the status line ONCE per turn. The event stream
+                # emits `thinking` for every reasoning chunk; repeating the label
+                # hundreds of times is the bug the user observed.
+                if not _thinking_shown:
+                    console.print("[dim]⟳ Forge is thinking…[/dim]")
+                    _thinking_shown = True
             elif event["type"] == "compressing":
                 console.print(f"\n[yellow]⚠ {event.get('detail', 'compressing context')}[/yellow]")
             elif event["type"] == "token":
