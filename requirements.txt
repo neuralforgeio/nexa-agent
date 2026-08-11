@@ -44,7 +44,7 @@ pyyaml>=6.0
 
 # pytest for testing (dev dependency, but included for convenience).
 pytest>=8.0.0
-pytest-asyncio>=0.24.0
+pytest-asyncio>=1.4.0
 
 # openpyxl — real .xlsx read/write for the spreadsheet_operations skill.
 openpyxl>=3.1.0
