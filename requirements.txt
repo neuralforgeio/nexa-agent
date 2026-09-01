@@ -30,7 +30,7 @@ websockets>=13.0
 pydantic>=2.9.0
 
 # rich + prompt_toolkit power the interactive TUI.
-rich>=13.0.0
+rich>=15.0.0
 prompt_toolkit>=3.0.0
 
 # tenacity provides retry/backoff for transient LLM errors.
